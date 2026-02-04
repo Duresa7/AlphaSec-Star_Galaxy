@@ -11,6 +11,8 @@ const MODEL_PATHS = {
   blackHole: '/models/icons/black_hole.glb',
   spaceStation: '/models/icons/space_station.glb',
   hyperspaceMarker: '/models/icons/hyperspace_marker.glb',
+  // Environment
+  galaxySkybox: '/models/environment/galaxy_skybox.glb',
   // Planet models from Sketchfab
   planetAlderaan: '/models/planets/alderaan.glb',
   planetBalmorra: '/models/planets/balmorra.glb',
@@ -160,3 +162,16 @@ export function PlanetModel({ planetId, position, scale = 1, rotation = [0, 0, 0
 export function hasPlanetModel(planetId: string): boolean {
   return planetId in PLANET_MODEL_PATHS;
 }
+
+// Galaxy Skybox component
+export function GalaxySkybox() {
+  const { scene } = useGLTF(MODEL_PATHS.galaxySkybox);
+  const clonedScene = useMemo(() => scene.clone(), [scene]);
+  
+  return (
+    <primitive object={clonedScene} />
+  );
+}
+
+// Preload skybox
+useGLTF.preload(MODEL_PATHS.galaxySkybox);

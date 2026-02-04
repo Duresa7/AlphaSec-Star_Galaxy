@@ -3,6 +3,7 @@ import { InfoPanel } from '@/components/ui/InfoPanel';
 import { ControlsPanel } from '@/components/ui/ControlsPanel';
 import { LoadingScreen } from '@/components/ui/LoadingScreen';
 import { TimelinePanel } from '@/components/ui/TimelinePanel';
+import { BackToGalaxyButton } from '@/components/ui/BackButton';
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
       <GalaxyScene />
       
       {/* UI Overlays */}
+      <BackToGalaxyButton />
       <ControlsPanel />
       <InfoPanel />
       <TimelinePanel />

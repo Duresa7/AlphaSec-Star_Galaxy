@@ -1,14 +1,25 @@
 import { Suspense, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { Starfield } from '@/components/three/Starfield';
+import { Environment } from '@react-three/drei';
+import * as THREE from 'three';
+import { GalaxySkybox } from '@/components/three/ModelLoader';
 import { CameraController } from '@/components/three/CameraController';
-import { SystemMarker } from '@/components/galaxy/SystemMarker';
+import { TopDownMarkers } from '@/components/galaxy/TopDownMarker';
+import { GalaxyMapBackground } from '@/components/galaxy/GalaxyMapBackground';
 import { HyperspaceLanes } from '@/components/galaxy/HyperspaceLanes';
 import { FleetMarkers } from '@/components/galaxy/FleetMarker';
 import { AnomalyMarkers } from '@/components/galaxy/AnomalyMarker';
 import { SystemDetailView } from '@/components/galaxy/SystemDetailView';
 import { useGalaxyStore } from '@/store/galaxyStore';
 import type { StarSystem, HyperspaceLane } from '@/types';
+import {
+  AMBIENT_LIGHT,
+  DIRECTIONAL_LIGHT,
+  POINT_LIGHTS,
+  HEMISPHERE_LIGHT,
+  FOG,
+  BACKGROUND_COLOR,
+} from '@/config/lightingConfig';
 
 function GalaxyContent() {
   const { 
@@ -46,22 +57,52 @@ function GalaxyContent() {
     }
   };
   
+  // Get lighting config based on current view mode
+  const isSystemView = viewMode === 'system';
+  const ambientConfig = isSystemView ? AMBIENT_LIGHT.system : AMBIENT_LIGHT.galaxy;
+  const hemisphereConfig = isSystemView ? HEMISPHERE_LIGHT.system : HEMISPHERE_LIGHT.galaxy;
+  const directionalConfig = isSystemView ? DIRECTIONAL_LIGHT.system : DIRECTIONAL_LIGHT.galaxy;
+  const pointLightsConfig = isSystemView ? POINT_LIGHTS.system : POINT_LIGHTS.galaxy;
+  
   return (
     <group onClick={handleCanvasClick}>
-      {/* Ambient lighting */}
-      <ambientLight intensity={0.4} />
+      {/* Environment map for subtle reflections on metallic surfaces */}
+      <Environment preset="night" background={false} blur={0.5} />
       
-      {/* Point lights for galaxy illumination */}
-      <pointLight position={[0, 20, 0]} intensity={0.8} color="#FFD700" distance={100} />
-      <pointLight position={[50, 10, 30]} intensity={0.5} color="#DC143C" distance={80} />
-      <pointLight position={[-20, 5, -10]} intensity={0.3} color="#1E90FF" distance={60} />
+      {/* Hemisphere light for subtle sky/ground gradient */}
+      <hemisphereLight
+        args={[hemisphereConfig.skyColor, hemisphereConfig.groundColor, hemisphereConfig.intensity]}
+      />
       
-      {/* Background starfield - always visible */}
-      <Starfield count={20000} radius={500} />
+      {/* Ambient lighting - base illumination */}
+      <ambientLight intensity={ambientConfig.intensity} color={ambientConfig.color} />
+      
+      {/* Main directional light - simulates distant star */}
+      <directionalLight
+        position={directionalConfig.position}
+        intensity={directionalConfig.intensity}
+        color={directionalConfig.color}
+        castShadow={directionalConfig.castShadow}
+      />
+      
+      {/* Point lights for atmospheric colored illumination */}
+      {pointLightsConfig.map((light) => (
+        <pointLight
+          key={light.name}
+          position={light.position}
+          intensity={light.intensity}
+          color={light.color}
+          distance={light.distance}
+          decay={light.decay}
+        />
+      ))}
+      
+      {/* Galaxy skybox - Blender model with stars and nebula */}
+      <GalaxySkybox />
       
       {/* Conditional rendering based on view mode */}
-      {viewMode === 'galaxy' && (
-        <GalaxyView 
+      {viewMode === 'topdown' && (
+        <TopDownView 
           systems={filteredSystems}
           allSystems={systems}
           hyperspaceLanes={hyperspaceLanes}
@@ -81,24 +122,19 @@ function GalaxyContent() {
   );
 }
 
-// Galaxy-level view components
-interface GalaxyViewProps {
+// Top-down view components (2D map with markers)
+interface TopDownViewProps {
   systems: StarSystem[];
   allSystems: StarSystem[];
   hyperspaceLanes: HyperspaceLane[];
   showHyperspaceLanes: boolean;
 }
 
-function GalaxyView({ systems, allSystems, hyperspaceLanes, showHyperspaceLanes }: GalaxyViewProps) {
+function TopDownView({ allSystems, hyperspaceLanes, showHyperspaceLanes }: TopDownViewProps) {
   return (
     <>
-      {/* Galaxy plane effect - spiral arms hint */}
-      <GalaxyPlane />
-      
-      {/* Hyperspace lanes - use all systems for lane connections */}
-      {showHyperspaceLanes && (
-        <HyperspaceLanes lanes={hyperspaceLanes} systems={allSystems} />
-      )}
+      {/* Procedural galaxy map background */}
+      <GalaxyMapBackground />
       
       {/* Anomalies (nebulae, black holes, stations) */}
       <AnomalyMarkers />
@@ -106,69 +142,9 @@ function GalaxyView({ systems, allSystems, hyperspaceLanes, showHyperspaceLanes 
       {/* Fleet markers */}
       <FleetMarkers />
       
-      {/* Star systems - only show filtered */}
-      {systems.map(system => (
-        <SystemMarker key={system.id} system={system} />
-      ))}
+      {/* Top-down planet markers (placeholder dots, not 3D models) */}
+      <TopDownMarkers />
     </>
-  );
-}
-
-// Galaxy plane with subtle spiral arm effect
-function GalaxyPlane() {
-  return (
-    <group rotation={[-Math.PI / 2, 0, 0]} position={[0, -2, 0]}>
-      {/* Core glow */}
-      <mesh>
-        <circleGeometry args={[15, 32]} />
-        <meshBasicMaterial 
-          color="#FFD700" 
-          transparent 
-          opacity={0.15}
-        />
-      </mesh>
-      
-      {/* Mid disc */}
-      <mesh>
-        <ringGeometry args={[15, 60, 64]} />
-        <meshBasicMaterial 
-          color="#1a1a2e" 
-          transparent 
-          opacity={0.2}
-        />
-      </mesh>
-      
-      {/* Outer halo */}
-      <mesh>
-        <ringGeometry args={[60, 100, 64]} />
-        <meshBasicMaterial 
-          color="#0f0f1a" 
-          transparent 
-          opacity={0.1}
-        />
-      </mesh>
-      
-      {/* Faction territory indicators */}
-      {/* Republic Core */}
-      <mesh position={[0, 0, 0.1]}>
-        <circleGeometry args={[20, 32]} />
-        <meshBasicMaterial 
-          color="#FFD700" 
-          transparent 
-          opacity={0.05}
-        />
-      </mesh>
-      
-      {/* Sith Empire region */}
-      <mesh position={[50, 30, 0.1]}>
-        <circleGeometry args={[15, 32]} />
-        <meshBasicMaterial 
-          color="#DC143C" 
-          transparent 
-          opacity={0.08}
-        />
-      </mesh>
-    </group>
   );
 }
 
@@ -191,18 +167,21 @@ export function GalaxyScene() {
         position: [0, 60, 100],
         fov: 60,
         near: 0.1,
-        far: 1000,
+        far: 2000,
       }}
       gl={{
         antialias: true,
         alpha: false,
+        toneMapping: THREE.ACESFilmicToneMapping,
+        toneMappingExposure: 1.0,
       }}
+      shadows
       style={{
-        background: '#0a0a0f',
+        background: BACKGROUND_COLOR,
       }}
     >
-      <color attach="background" args={['#050508']} />
-      <fog attach="fog" args={['#050508', 150, 500]} />
+      <color attach="background" args={[BACKGROUND_COLOR]} />
+      <fog attach="fog" args={[FOG.color, FOG.near, FOG.far]} />
       
       <Suspense fallback={<LoadingFallback />}>
         <GalaxyContent />

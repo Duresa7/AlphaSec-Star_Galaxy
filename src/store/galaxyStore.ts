@@ -15,7 +15,7 @@ import {
 
 export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
   // View state
-  viewMode: 'galaxy',
+  viewMode: 'topdown',
   setViewMode: (mode: ViewMode) => set({ viewMode: mode }),
   
   // Selection state
@@ -24,11 +24,11 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
   setSelectedSystem: (id: string | null) => set({ 
     selectedSystemId: id,
     selectedPlanetId: null,
-    viewMode: id ? 'system' : 'galaxy',
+    viewMode: id ? 'system' : 'topdown',
   }),
   setSelectedPlanet: (id: string | null) => set({ 
     selectedPlanetId: id,
-    viewMode: id ? 'planet' : 'system',
+    // Stay in system view when selecting a planet
   }),
   
   // Data - use imported data

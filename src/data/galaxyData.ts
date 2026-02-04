@@ -9,7 +9,7 @@ export const starSystems: StarSystem[] = [
   {
     id: 'tython',
     name: 'Tython',
-    position: new THREE.Vector3(-8, 2, -12),
+    position: new THREE.Vector3(30, 0, 45),
     faction: 'galactic_republic',
     starType: 'yellow',
     importance: 'major',
@@ -58,7 +58,7 @@ export const starSystems: StarSystem[] = [
   {
     id: 'alderaan',
     name: 'Alderaan',
-    position: new THREE.Vector3(5, 1, -5),
+    position: new THREE.Vector3(30, 0, 15),
     faction: 'galactic_republic',
     starType: 'yellow',
     importance: 'major',
@@ -82,7 +82,7 @@ export const starSystems: StarSystem[] = [
   {
     id: 'corellia',
     name: 'Corellia',
-    position: new THREE.Vector3(8, -1, -3),
+    position: new THREE.Vector3(15, 0, 0),
     faction: 'galactic_republic',
     starType: 'yellow',
     importance: 'major',
@@ -106,7 +106,7 @@ export const starSystems: StarSystem[] = [
   {
     id: 'balmorra',
     name: 'Balmorra',
-    position: new THREE.Vector3(15, 3, 2),
+    position: new THREE.Vector3(45, 0, -15),
     faction: 'contested',
     starType: 'yellow',
     importance: 'major',
@@ -130,7 +130,7 @@ export const starSystems: StarSystem[] = [
   {
     id: 'belsavis',
     name: 'Belsavis',
-    position: new THREE.Vector3(12, 6, -15),
+    position: new THREE.Vector3(-45, 0, 45),
     faction: 'neutral',
     starType: 'white',
     importance: 'major',
@@ -154,7 +154,7 @@ export const starSystems: StarSystem[] = [
   {
     id: 'dromund-kaas',
     name: 'Dromund Kaas',
-    position: new THREE.Vector3(48, -2, 35),
+    position: new THREE.Vector3(-30, 0, 15),
     faction: 'sith_empire',
     starType: 'yellow',
     importance: 'capital',
@@ -178,7 +178,7 @@ export const starSystems: StarSystem[] = [
   {
     id: 'korriban',
     name: 'Korriban',
-    position: new THREE.Vector3(50, 5, 30),
+    position: new THREE.Vector3(-30, 0, 0),
     faction: 'sith_empire',
     starType: 'red',
     importance: 'capital',
@@ -202,7 +202,7 @@ export const starSystems: StarSystem[] = [
   {
     id: 'hoth',
     name: 'Hoth',
-    position: new THREE.Vector3(32, 10, -30),
+    position: new THREE.Vector3(-75, 0, 30),
     faction: 'neutral',
     starType: 'blue',
     importance: 'major',
@@ -226,7 +226,7 @@ export const starSystems: StarSystem[] = [
   {
     id: 'hutta',
     name: 'Hutta',
-    position: new THREE.Vector3(28, -5, 18),
+    position: new THREE.Vector3(60, 0, -30),
     faction: 'neutral',
     starType: 'yellow',
     importance: 'major',
@@ -250,7 +250,7 @@ export const starSystems: StarSystem[] = [
   {
     id: 'ilum',
     name: 'Ilum',
-    position: new THREE.Vector3(-15, 8, -20),
+    position: new THREE.Vector3(-90, 0, 60),
     faction: 'galactic_republic',
     starType: 'blue',
     importance: 'major',
@@ -274,7 +274,7 @@ export const starSystems: StarSystem[] = [
   {
     id: 'makeb',
     name: 'Makeb',
-    position: new THREE.Vector3(40, -2, 18),
+    position: new THREE.Vector3(90, 0, -45),
     faction: 'neutral',
     starType: 'yellow',
     importance: 'major',
@@ -298,7 +298,7 @@ export const starSystems: StarSystem[] = [
   {
     id: 'nar-shaddaa',
     name: 'Nar Shaddaa',
-    position: new THREE.Vector3(25, -3, 15),
+    position: new THREE.Vector3(60, 0, -15),
     faction: 'neutral',
     starType: 'yellow',
     importance: 'major',
@@ -322,7 +322,7 @@ export const starSystems: StarSystem[] = [
   {
     id: 'ord-mantell',
     name: 'Ord Mantell',
-    position: new THREE.Vector3(18, -1, 12),
+    position: new THREE.Vector3(75, 0, -15),
     faction: 'galactic_republic',
     starType: 'yellow',
     importance: 'major',
@@ -346,7 +346,7 @@ export const starSystems: StarSystem[] = [
   {
     id: 'quesh',
     name: 'Quesh',
-    position: new THREE.Vector3(30, -8, 28),
+    position: new THREE.Vector3(45, 0, -45),
     faction: 'sith_empire',
     starType: 'red',
     importance: 'major',
@@ -370,7 +370,7 @@ export const starSystems: StarSystem[] = [
   {
     id: 'taris',
     name: 'Taris',
-    position: new THREE.Vector3(20, -5, -10),
+    position: new THREE.Vector3(45, 0, 30),
     faction: 'galactic_republic',
     starType: 'yellow',
     importance: 'major',
@@ -394,7 +394,7 @@ export const starSystems: StarSystem[] = [
   {
     id: 'tatooine',
     name: 'Tatooine',
-    position: new THREE.Vector3(38, -6, 25),
+    position: new THREE.Vector3(90, 0, -15),
     faction: 'neutral',
     starType: 'binary',
     importance: 'minor',
@@ -418,7 +418,7 @@ export const starSystems: StarSystem[] = [
   {
     id: 'voss',
     name: 'Voss',
-    position: new THREE.Vector3(26, 4, -22),
+    position: new THREE.Vector3(-15, 0, 60),
     faction: 'neutral',
     starType: 'white',
     importance: 'major',
