@@ -106,10 +106,15 @@ export function ControlsPanel() {
       {/* View mode indicator */}
       <div className="bg-black/80 border border-cyan-500/30 rounded-lg p-3 backdrop-blur-sm">
         <div className="text-xs text-gray-500 mb-1">View Mode</div>
-        <div className="text-cyan-400 font-bold capitalize">{viewMode}</div>
-        {viewMode !== 'galaxy' && (
+        <div className="text-cyan-400 font-bold capitalize">
+          {viewMode === 'topdown' ? 'Galaxy View' : 'System View'}
+        </div>
+        {viewMode === 'system' && (
           <button
-            onClick={() => setViewMode('galaxy')}
+            onClick={() => {
+              setSelectedSystem(null);
+              setInfoPanelData(null);
+            }}
             className="mt-2 text-xs text-cyan-500 hover:text-cyan-300 transition-colors"
           >
             Return to Galaxy View

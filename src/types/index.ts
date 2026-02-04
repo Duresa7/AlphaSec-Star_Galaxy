@@ -1,7 +1,9 @@
 import * as THREE from 'three';
 
 // View modes for the galaxy map
-export type ViewMode = 'galaxy' | 'system' | 'planet';
+// 'topdown' - 2D overhead view with placeholder markers
+// 'system' - 3D view of a selected planet
+export type ViewMode = 'topdown' | 'system';
 
 // Faction affiliations
 export type Faction = 'sith_empire' | 'galactic_republic' | 'neutral' | 'contested';

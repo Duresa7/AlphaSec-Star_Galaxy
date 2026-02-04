@@ -108,12 +108,11 @@ export function SystemDetailView({ system }: SystemDetailViewProps) {
     return null;
   }
   
+  // Lighting is now handled by the parent GalaxyScene with view-mode-aware configuration
+  // The scene automatically adjusts lighting for system/planet views
+  
   return (
     <group>
-      {/* Ambient lighting for the planet */}
-      <ambientLight intensity={0.5} />
-      <pointLight position={[10, 10, 10]} intensity={1} distance={50} decay={2} />
-      
       {/* Single planet - centered, no orbit */}
       <StaticPlanet
         planet={planet}

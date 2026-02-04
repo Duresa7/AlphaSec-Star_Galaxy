@@ -7,26 +7,25 @@ import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 
 // Camera distances for different view modes
 const CAMERA_CONFIG = {
-  galaxy: {
-    distance: 120,
-    height: 60,
-    minDistance: 0.5,
-    maxDistance: 500,
-    panSpeed: 1.0,
+  topdown: {
+    // Top-down view looking straight down at the galaxy map
+    distance: 100,
+    height: 70, // Lower to fill entire viewport
+    minDistance: 30,
+    maxDistance: 150,
+    panSpeed: 1.5,
+    rotateSpeed: 0, // Disable rotation in top-down
+    enableRotate: false,
   },
   system: {
-    distance: 25,
-    height: 15,
-    minDistance: 0.3,
-    maxDistance: 150,
+    // 3D view of a planet
+    distance: 20,
+    height: 10,
+    minDistance: 3,
+    maxDistance: 80,
     panSpeed: 0.5,
-  },
-  planet: {
-    distance: 5,
-    height: 2,
-    minDistance: 0.1,
-    maxDistance: 50,
-    panSpeed: 0.3,
+    rotateSpeed: 0.5,
+    enableRotate: true,
   },
 };
 
@@ -47,24 +46,14 @@ export function CameraController() {
     
     const config = CAMERA_CONFIG[viewMode];
     
-    if (viewMode === 'galaxy') {
-      targetPosition.current.set(0, config.height, config.distance);
+    if (viewMode === 'topdown') {
+      // Top-down view: camera directly above origin, looking down
+      targetPosition.current.set(0, config.height, 0);
       targetLookAt.current.set(0, 0, 0);
     } else if (viewMode === 'system' && selectedSystemId) {
       const system = systems.find(s => s.id === selectedSystemId);
       if (system) {
-        // Position camera relative to system
-        targetLookAt.current.copy(system.position);
-        targetPosition.current.set(
-          system.position.x + config.distance * 0.3,
-          system.position.y + config.height,
-          system.position.z + config.distance
-        );
-      }
-    } else if (viewMode === 'planet' && selectedSystemId && selectedPlanetId) {
-      const system = systems.find(s => s.id === selectedSystemId);
-      if (system) {
-        // For planet view, position camera closer
+        // Position camera to orbit around the planet
         targetLookAt.current.copy(system.position);
         targetPosition.current.set(
           system.position.x + config.distance * 0.5,
@@ -74,30 +63,43 @@ export function CameraController() {
       }
     }
     
-    // Update controls limits based on view mode
+    // Update controls limits and rotation based on view mode
     if (controlsRef.current) {
       controlsRef.current.minDistance = config.minDistance;
       controlsRef.current.maxDistance = config.maxDistance;
+      controlsRef.current.enableRotate = config.enableRotate;
+      controlsRef.current.rotateSpeed = config.rotateSpeed;
+      
+      // Limit polar angle in top-down to keep looking down
+      if (viewMode === 'topdown') {
+        controlsRef.current.minPolarAngle = 0;
+        controlsRef.current.maxPolarAngle = Math.PI / 6; // Max 30 degrees from vertical
+      } else {
+        controlsRef.current.minPolarAngle = 0;
+        controlsRef.current.maxPolarAngle = Math.PI; // Full range
+      }
     }
     
     // Stop animation after transition
     const timer = setTimeout(() => {
       isAnimating.current = false;
-    }, 2000);
+    }, 1500);
     
     return () => clearTimeout(timer);
   }, [viewMode, selectedSystemId, selectedPlanetId, systems]);
   
-  // Smooth camera animation
+  // Smooth camera animation - only during transitions
   useFrame(() => {
     if (controlsRef.current) {
-      // Lerp the controls target
-      const lerpFactor = isAnimating.current ? 0.03 : 0.1;
-      controlsRef.current.target.lerp(targetLookAt.current, lerpFactor);
-      
-      // Lerp camera position during transitions
+      // Only lerp during transitions, not during normal use
       if (isAnimating.current) {
+        const lerpFactor = 0.03;
+        controlsRef.current.target.lerp(targetLookAt.current, lerpFactor);
         camera.position.lerp(targetPosition.current, lerpFactor);
+      }
+      // In top-down mode, keep camera height consistent but allow free X/Z panning
+      else if (viewMode === 'topdown') {
+        camera.position.y = CAMERA_CONFIG.topdown.height;
       }
       
       controlsRef.current.update();
@@ -115,12 +117,19 @@ export function CameraController() {
       maxDistance={config.maxDistance}
       enablePan={true}
       panSpeed={config.panSpeed}
-      rotateSpeed={0.4}
+      screenSpacePanning={true}
+      enableZoom={viewMode !== 'topdown'}
+      enableRotate={viewMode !== 'topdown'}
+      rotateSpeed={viewMode === 'topdown' ? 0 : config.rotateSpeed}
       zoomSpeed={0.9}
+      minPolarAngle={viewMode === 'topdown' ? 0 : 0}
+      maxPolarAngle={viewMode === 'topdown' ? 0.001 : Math.PI}
+      minAzimuthAngle={viewMode === 'topdown' ? 0 : -Infinity}
+      maxAzimuthAngle={viewMode === 'topdown' ? 0 : Infinity}
       mouseButtons={{
         LEFT: THREE.MOUSE.PAN,
-        MIDDLE: THREE.MOUSE.DOLLY,
-        RIGHT: THREE.MOUSE.ROTATE,
+        MIDDLE: viewMode === 'topdown' ? undefined : THREE.MOUSE.DOLLY,
+        RIGHT: viewMode === 'topdown' ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE,
       }}
     />
   );
