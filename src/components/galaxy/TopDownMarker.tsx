@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { ThreeEvent } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
-import * as THREE from 'three';
 import type { StarSystem, Faction } from '@/types';
 import { useGalaxyStore } from '@/store/galaxyStore';
 

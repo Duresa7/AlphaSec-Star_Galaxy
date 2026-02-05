@@ -1,4 +1,4 @@
-import { useRef, useMemo, Suspense } from 'react';
+import { useRef, Suspense } from 'react';
 import * as THREE from 'three';
 import { Html } from '@react-three/drei';
 import type { Fleet } from '@/types';
@@ -10,16 +10,14 @@ interface FleetDetailViewProps {
 }
 
 export function FleetDetailView({ fleet }: FleetDetailViewProps) {
-  const { showLabels, viewMode, selectedFleetId } = useGalaxyStore();
+  const { showLabels } = useGalaxyStore();
   const groupRef = useRef<THREE.Group>(null);
-  
+
   const shipType = fleet.faction === 'sith_empire' ? 'sith' : 'republic';
   const factionColor = fleet.faction === 'sith_empire' ? '#DC143C' : '#FFD700';
-  
+
   // Larger scale for detail view
   const shipScale = 8;
-  
-  const isSelected = selectedFleetId === fleet.id;
 
   return (
     <group ref={groupRef}>

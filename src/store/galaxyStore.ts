@@ -1,14 +1,12 @@
 import { create } from 'zustand';
 import type { 
   GalaxyStore, 
-  ViewMode, 
   InfoPanelData,
   Faction,
   SearchResult
 } from '@/types';
 import { 
   starSystems, 
-  hyperspaceLanes, 
   anomalies, 
   fleets 
 } from '@/data/galaxyData';
@@ -16,7 +14,6 @@ import {
 export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
   // View state
   viewMode: 'topdown',
-  setViewMode: (mode: ViewMode) => set({ viewMode: mode }),
   
   // Selection state
   selectedSystemId: null,
@@ -41,16 +38,13 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
   
   // Data - use imported data
   systems: starSystems,
-  hyperspaceLanes: hyperspaceLanes,
   anomalies: anomalies,
   fleets: fleets,
   
   // UI state
-  showHyperspaceLanes: true,
   showFleets: true,
   showAnomalies: true,
   showLabels: true,
-  toggleHyperspaceLanes: () => set((state) => ({ showHyperspaceLanes: !state.showHyperspaceLanes })),
   toggleFleets: () => set((state) => ({ showFleets: !state.showFleets })),
   toggleAnomalies: () => set((state) => ({ showAnomalies: !state.showAnomalies })),
   toggleLabels: () => set((state) => ({ showLabels: !state.showLabels })),
@@ -61,7 +55,6 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
   
   // Timeline - Old Republic era ~3956 BBY (KOTOR 1)
   currentYear: 3956,
-  setCurrentYear: (year: number) => set({ currentYear: year }),
   
   // Loading
   isLoading: true,

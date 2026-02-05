@@ -21,7 +21,7 @@ export function FleetMarker({ fleet }: FleetMarkerProps) {
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
   
-  const { showLabels, setInfoPanelData, setSelectedFleet } = useGalaxyStore();
+  const { setInfoPanelData, setSelectedFleet } = useGalaxyStore();
   
   const color = FACTION_COLORS[fleet.faction];
   const shipType = fleet.faction === 'sith_empire' ? 'sith' : 'republic';
