@@ -117,7 +117,7 @@ export function SystemDetailView({ system }: SystemDetailViewProps) {
       <StaticPlanet
         planet={planet}
         showLabels={showLabels}
-        isDetailView={viewMode === 'planet' && selectedPlanetId === planet.id}
+        isDetailView={viewMode === 'system' && selectedPlanetId === planet.id}
       />
     </group>
   );

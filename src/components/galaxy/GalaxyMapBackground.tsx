@@ -1,9 +1,9 @@
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, forwardRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
 // Procedural galaxy map for top-down view
-export function ProceduralGalaxyMap() {
+function ProceduralGalaxyMap() {
   const galaxyRef = useRef<THREE.Group>(null);
   const coreRef = useRef<THREE.Mesh>(null);
   
@@ -37,7 +37,7 @@ export function ProceduralGalaxyMap() {
 }
 
 // Bright galactic core with glow - scaled to match planet coords
-const GalacticCore = ({ ref }: { ref?: React.RefObject<THREE.Mesh> }) => {
+const GalacticCore = forwardRef<THREE.Mesh>(function GalacticCore(_, ref) {
   return (
     <group>
       {/* Inner bright core */}
@@ -71,96 +71,7 @@ const GalacticCore = ({ ref }: { ref?: React.RefObject<THREE.Mesh> }) => {
       </mesh>
     </group>
   );
-};
-
-// Spiral arm structures
-function SpiralArms() {
-  const armCount = 4;
-  const arms = useMemo(() => {
-    const result = [];
-    for (let i = 0; i < armCount; i++) {
-      const angle = (Math.PI * 2 / armCount) * i;
-      result.push({ angle, key: i });
-    }
-    return result;
-  }, []);
-  
-  return (
-    <group>
-      {arms.map(({ angle, key }) => (
-        <SpiralArm key={key} baseAngle={angle} />
-      ))}
-    </group>
-  );
-}
-
-// Individual spiral arm
-function SpiralArm({ baseAngle }: { baseAngle: number }) {
-  const segments = 12;
-  
-  const particles = useMemo(() => {
-    const points = [];
-    for (let i = 0; i < segments; i++) {
-      const t = i / segments;
-      const radius = 15 + t * 60;
-      const spiralAngle = baseAngle + t * Math.PI * 0.8;
-      
-      // Main arm point
-      const x = Math.cos(spiralAngle) * radius;
-      const y = Math.sin(spiralAngle) * radius;
-      
-      // Add some scatter around the arm
-      for (let j = 0; j < 8; j++) {
-        const scatter = (Math.random() - 0.5) * (10 + t * 15);
-        const scatterAngle = Math.random() * Math.PI * 2;
-        points.push({
-          x: x + Math.cos(scatterAngle) * scatter,
-          y: y + Math.sin(scatterAngle) * scatter,
-          size: 0.3 + Math.random() * 0.5,
-          opacity: 0.3 + Math.random() * 0.4,
-        });
-      }
-    }
-    return points;
-  }, [baseAngle]);
-  
-  return (
-    <group>
-      {/* Arm base glow */}
-      {Array.from({ length: segments }).map((_, i) => {
-        const t = i / segments;
-        const radius = 15 + t * 60;
-        const spiralAngle = baseAngle + t * Math.PI * 0.8;
-        const x = Math.cos(spiralAngle) * radius;
-        const y = Math.sin(spiralAngle) * radius;
-        const size = 8 + t * 12;
-        
-        return (
-          <mesh key={i} position={[x, y, -0.2]}>
-            <circleGeometry args={[size, 16]} />
-            <meshBasicMaterial 
-              color="#4A7C99"
-              transparent 
-              opacity={0.06 - t * 0.03}
-            />
-          </mesh>
-        );
-      })}
-      
-      {/* Scattered star clusters in arm */}
-      {particles.map((p, i) => (
-        <mesh key={i} position={[p.x, p.y, 0.1]}>
-          <circleGeometry args={[p.size, 8]} />
-          <meshBasicMaterial 
-            color="#B8D4E8"
-            transparent 
-            opacity={p.opacity * 0.5}
-          />
-        </mesh>
-      ))}
-    </group>
-  );
-}
+});
 
 // Outer galactic halo - scaled to match planet coords (up to ±90)
 function OuterHalo() {
@@ -243,15 +154,11 @@ function StarField() {
       <bufferGeometry>
         <bufferAttribute
           attach="attributes-position"
-          count={positions.length / 3}
-          array={positions}
-          itemSize={3}
+          args={[positions, 3]}
         />
         <bufferAttribute
           attach="attributes-color"
-          count={colors.length / 3}
-          array={colors}
-          itemSize={3}
+          args={[colors, 3]}
         />
       </bufferGeometry>
       <pointsMaterial
@@ -271,97 +178,51 @@ function GridOverlay() {
   const gridSpacing = 10; // Each grid line = 1 unit in SWTOR coords (scaled by 10)
   const gridRange = 12; // -12 to +12 range (extended grid)
   
-  // Generate grid lines
-  const gridLines = useMemo(() => {
-    const lines = [];
+  // Generate grid line objects
+  const lineObjects = useMemo(() => {
+    const objects: THREE.Line[] = [];
     
     // Vertical lines (parallel to Y axis)
     for (let x = -gridRange; x <= gridRange; x++) {
-      lines.push({
-        key: `v${x}`,
-        start: [x * gridSpacing, -gridRange * gridSpacing],
-        end: [x * gridSpacing, gridRange * gridSpacing],
-        isAxis: x === 0,
+      const points = [
+        new THREE.Vector3(x * gridSpacing, -gridRange * gridSpacing, 0),
+        new THREE.Vector3(x * gridSpacing, gridRange * gridSpacing, 0),
+      ];
+      const geometry = new THREE.BufferGeometry().setFromPoints(points);
+      const material = new THREE.LineBasicMaterial({
+        color: x === 0 ? '#00FFFF' : '#00BFFF',
+        transparent: true,
+        opacity: x === 0 ? 0.3 : 0.08,
       });
+      objects.push(new THREE.Line(geometry, material));
     }
     
     // Horizontal lines (parallel to X axis)
     for (let y = -gridRange; y <= gridRange; y++) {
-      lines.push({
-        key: `h${y}`,
-        start: [-gridRange * gridSpacing, y * gridSpacing],
-        end: [gridRange * gridSpacing, y * gridSpacing],
-        isAxis: y === 0,
+      const points = [
+        new THREE.Vector3(-gridRange * gridSpacing, y * gridSpacing, 0),
+        new THREE.Vector3(gridRange * gridSpacing, y * gridSpacing, 0),
+      ];
+      const geometry = new THREE.BufferGeometry().setFromPoints(points);
+      const material = new THREE.LineBasicMaterial({
+        color: y === 0 ? '#00FFFF' : '#00BFFF',
+        transparent: true,
+        opacity: y === 0 ? 0.3 : 0.08,
       });
+      objects.push(new THREE.Line(geometry, material));
     }
     
-    return lines;
+    return objects;
   }, []);
   
   return (
     <group position={[0, 0, 0.1]}>
       {/* Grid lines */}
-      {gridLines.map((line) => {
-        const points = [
-          new THREE.Vector3(line.start[0], line.start[1], 0),
-          new THREE.Vector3(line.end[0], line.end[1], 0),
-        ];
-        const geometry = new THREE.BufferGeometry().setFromPoints(points);
-        
-        return (
-          <line key={line.key} geometry={geometry}>
-            <lineBasicMaterial 
-              color={line.isAxis ? "#00FFFF" : "#00BFFF"}
-              transparent
-              opacity={line.isAxis ? 0.3 : 0.08}
-            />
-        </line>
-        );
-      })}
+      {lineObjects.map((lineObj, i) => (
+        <primitive key={i} object={lineObj} />
+      ))}
     </group>
   );
-}
-
-// Faction territory hints
-function RegionTerritories() {
-  return (
-    <group position={[0, 0, 0.05]}>
-      {/* Republic Core territory hint */}
-      <mesh position={[0, 0, 0]}>
-        <circleGeometry args={[25, 32]} />
-        <meshBasicMaterial 
-          color="#FFD700"
-          transparent 
-          opacity={0.03}
-        />
-      </mesh>
-      
-      {/* Sith Empire territory hint - upper right */}
-      <mesh position={[45, 35, 0]}>
-        <circleGeometry args={[20, 32]} />
-        <meshBasicMaterial 
-          color="#DC143C"
-          transparent 
-          opacity={0.04}
-        />
-      </mesh>
-      
-      {/* Hutt Space hint */}
-      <mesh position={[25, -5, 0]}>
-        <circleGeometry args={[15, 32]} />
-        <meshBasicMaterial 
-          color="#808080"
-          transparent 
-          opacity={0.03}
-        />
-      </mesh>
-    </group>
-  );
-}
-
-// Legacy fallback - can be removed
-export function GalaxyPlaneFallback() {
-  return <ProceduralGalaxyMap />;
 }
 
 // Placeholder for texture-based version - now redirects to procedural

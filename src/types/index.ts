@@ -72,13 +72,7 @@ export type GalaxyRegion =
   | 'outer_rim'
   | 'unknown_regions';
 
-// Hyperspace lane
-export interface HyperspaceLane {
-  id: string;
-  name: string;
-  systems: string[]; // System IDs
-  type: 'major' | 'minor' | 'secret';
-}
+
 
 // Space anomaly
 export interface Anomaly {
@@ -102,30 +96,10 @@ export interface Fleet {
   systemId?: string;
 }
 
-// Camera state
-export interface CameraState {
-  mode: ViewMode;
-  target: THREE.Vector3;
-  distance: number;
-  selectedSystem?: string;
-  selectedPlanet?: string;
-  selectedFleet?: string;
-}
-
 // UI Panel types
 export interface InfoPanelData {
-  type: 'system' | 'planet' | 'fleet' | 'anomaly' | 'lane';
-  data: StarSystem | Planet | Fleet | Anomaly | HyperspaceLane;
-}
-
-// Timeline event (for historical markers)
-export interface TimelineEvent {
-  id: string;
-  year: number; // BBY (Before Battle of Yavin)
-  title: string;
-  description: string;
-  location?: string;
-  faction?: Faction;
+  type: 'system' | 'planet' | 'fleet' | 'anomaly';
+  data: StarSystem | Planet | Fleet | Anomaly;
 }
 
 // Search result type
@@ -140,7 +114,6 @@ export interface SearchResult {
 export interface GalaxyStore {
   // View state
   viewMode: ViewMode;
-  setViewMode: (mode: ViewMode) => void;
   
   // Selection state
   selectedSystemId: string | null;
@@ -152,16 +125,13 @@ export interface GalaxyStore {
   
   // Data
   systems: StarSystem[];
-  hyperspaceLanes: HyperspaceLane[];
   anomalies: Anomaly[];
   fleets: Fleet[];
   
   // UI state
-  showHyperspaceLanes: boolean;
   showFleets: boolean;
   showAnomalies: boolean;
   showLabels: boolean;
-  toggleHyperspaceLanes: () => void;
   toggleFleets: () => void;
   toggleAnomalies: () => void;
   toggleLabels: () => void;
@@ -172,7 +142,6 @@ export interface GalaxyStore {
   
   // Timeline
   currentYear: number; // Default ~4000 BBY
-  setCurrentYear: (year: number) => void;
   
   // Loading
   isLoading: boolean;

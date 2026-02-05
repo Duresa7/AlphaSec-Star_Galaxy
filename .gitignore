@@ -122,6 +122,7 @@ dist
 .idea
 .ds_store
 .vscode
+.claude/
 *.suo
 *.ntvs*
 *.njsproj
