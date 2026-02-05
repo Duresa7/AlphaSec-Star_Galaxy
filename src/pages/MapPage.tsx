@@ -1,7 +1,7 @@
 import { GalaxyScene } from '@/components/galaxy/GalaxyScene';
-import { InfoPanel } from '@/components/ui/InfoPanel';
-import { ControlsPanel } from '@/components/ui/ControlsPanel';
-import { LoadingScreen } from '@/components/ui/LoadingScreen';
+import { InfoPanel } from '@/components/panels/InfoPanel';
+import { ControlsPanel } from '@/components/panels/ControlsPanel';
+import { LoadingScreen } from '@/components/panels/LoadingScreen';
 
 export function MapPage() {
   return (

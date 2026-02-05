@@ -6,27 +6,22 @@ import { GalaxySkybox } from '@/components/three/ModelLoader';
 import { CameraController } from '@/components/three/CameraController';
 import { TopDownMarkers } from '@/components/galaxy/TopDownMarker';
 import { GalaxyMapBackground } from '@/components/galaxy/GalaxyMapBackground';
-import { HyperspaceLanes } from '@/components/galaxy/HyperspaceLanes';
 import { FleetMarkers } from '@/components/galaxy/FleetMarker';
 import { AnomalyMarkers } from '@/components/galaxy/AnomalyMarker';
 import { SystemDetailView } from '@/components/galaxy/SystemDetailView';
 import { FleetDetailView } from '@/components/galaxy/FleetDetailView';
 import { useGalaxyStore } from '@/store/galaxyStore';
-import type { StarSystem, HyperspaceLane } from '@/types';
 import {
   AMBIENT_LIGHT,
   DIRECTIONAL_LIGHT,
   POINT_LIGHTS,
   HEMISPHERE_LIGHT,
-  FOG,
   BACKGROUND_COLOR,
 } from '@/config/lightingConfig';
 
 function GalaxyContent() {
-  const { 
-    systems, 
-    hyperspaceLanes, 
-    showHyperspaceLanes,
+  const {
+    systems,
     setIsLoading,
     setSelectedSystem,
     setSelectedFleet,
@@ -34,18 +29,14 @@ function GalaxyContent() {
     viewMode,
     selectedSystemId,
     selectedFleetId,
-    getFilteredSystems,
     fleets
   } = useGalaxyStore();
-  
+
   useEffect(() => {
     // Simulate loading complete
     const timer = setTimeout(() => setIsLoading(false), 1500);
     return () => clearTimeout(timer);
   }, [setIsLoading]);
-  
-  // Get filtered systems for display
-  const filteredSystems = getFilteredSystems();
   
   // Get selected system for detail view
   const selectedSystem = selectedSystemId 
@@ -114,12 +105,7 @@ function GalaxyContent() {
       
       {/* Conditional rendering based on view mode */}
       {viewMode === 'topdown' && (
-        <TopDownView 
-          systems={filteredSystems}
-          allSystems={systems}
-          hyperspaceLanes={hyperspaceLanes}
-          showHyperspaceLanes={showHyperspaceLanes}
-        />
+        <TopDownView />
       )}
       
       {viewMode === 'system' && selectedSystem && (
@@ -141,14 +127,7 @@ function GalaxyContent() {
 }
 
 // Top-down view components (2D map with markers)
-interface TopDownViewProps {
-  systems: StarSystem[];
-  allSystems: StarSystem[];
-  hyperspaceLanes: HyperspaceLane[];
-  showHyperspaceLanes: boolean;
-}
-
-function TopDownView({ allSystems, hyperspaceLanes, showHyperspaceLanes }: TopDownViewProps) {
+function TopDownView() {
   return (
     <>
       {/* Procedural galaxy map background */}
@@ -199,7 +178,6 @@ export function GalaxyScene() {
       }}
     >
       <color attach="background" args={[BACKGROUND_COLOR]} />
-      {/* <fog attach="fog" args={[FOG.color, FOG.near, FOG.far]} /> */}
       
       <Suspense fallback={<LoadingFallback />}>
         <GalaxyContent />

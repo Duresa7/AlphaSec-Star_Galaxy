@@ -102,30 +102,10 @@ export interface Fleet {
   systemId?: string;
 }
 
-// Camera state
-export interface CameraState {
-  mode: ViewMode;
-  target: THREE.Vector3;
-  distance: number;
-  selectedSystem?: string;
-  selectedPlanet?: string;
-  selectedFleet?: string;
-}
-
 // UI Panel types
 export interface InfoPanelData {
   type: 'system' | 'planet' | 'fleet' | 'anomaly' | 'lane';
   data: StarSystem | Planet | Fleet | Anomaly | HyperspaceLane;
-}
-
-// Timeline event (for historical markers)
-export interface TimelineEvent {
-  id: string;
-  year: number; // BBY (Before Battle of Yavin)
-  title: string;
-  description: string;
-  location?: string;
-  faction?: Faction;
 }
 
 // Search result type

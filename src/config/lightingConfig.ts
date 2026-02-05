@@ -13,10 +13,6 @@ export const AMBIENT_LIGHT = {
     intensity: 0.4,
     color: '#606080',
   },
-  planet: {
-    intensity: 0.2,
-    color: '#404050',
-  },
 };
 
 // Main directional light (simulates distant star illumination)
@@ -106,21 +102,6 @@ export const HEMISPHERE_LIGHT = {
     groundColor: '#151520',
     intensity: 0.3,
   },
-};
-
-// Environment/HDRI settings
-export const ENVIRONMENT = {
-  preset: 'night' as const, // drei preset
-  background: false,
-  blur: 0.5,
-  intensity: 0.3, // Subtle reflections
-};
-
-// Renderer/tone mapping settings
-export const RENDERER_CONFIG = {
-  toneMapping: 'ACESFilmic' as const,
-  toneMappingExposure: 1.0,
-  outputColorSpace: 'srgb' as const,
 };
 
 // Fog settings
