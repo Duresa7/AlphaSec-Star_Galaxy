@@ -10,6 +10,7 @@ import { HyperspaceLanes } from '@/components/galaxy/HyperspaceLanes';
 import { FleetMarkers } from '@/components/galaxy/FleetMarker';
 import { AnomalyMarkers } from '@/components/galaxy/AnomalyMarker';
 import { SystemDetailView } from '@/components/galaxy/SystemDetailView';
+import { FleetDetailView } from '@/components/galaxy/FleetDetailView';
 import { useGalaxyStore } from '@/store/galaxyStore';
 import type { StarSystem, HyperspaceLane } from '@/types';
 import {
@@ -28,10 +29,13 @@ function GalaxyContent() {
     showHyperspaceLanes,
     setIsLoading,
     setSelectedSystem,
+    setSelectedFleet,
     setInfoPanelData,
     viewMode,
     selectedSystemId,
+    selectedFleetId,
     getFilteredSystems,
+    fleets
   } = useGalaxyStore();
   
   useEffect(() => {
@@ -47,12 +51,20 @@ function GalaxyContent() {
   const selectedSystem = selectedSystemId 
     ? systems.find(s => s.id === selectedSystemId) 
     : null;
+    
+  // Get selected fleet for detail view
+  const selectedFleet = selectedFleetId
+    ? fleets.find(f => f.id === selectedFleetId)
+    : null;
   
   // Handle clicking on empty space to deselect
   const handleCanvasClick = () => {
     if (viewMode === 'system') {
       // Go back to galaxy view
       setSelectedSystem(null);
+      setInfoPanelData(null);
+    } else if (viewMode === 'fleet') {
+      setSelectedFleet(null);
       setInfoPanelData(null);
     }
   };
@@ -113,6 +125,12 @@ function GalaxyContent() {
       {viewMode === 'system' && selectedSystem && (
         <group position={selectedSystem.position}>
           <SystemDetailView system={selectedSystem} />
+        </group>
+      )}
+
+      {viewMode === 'fleet' && selectedFleet && (
+        <group position={selectedFleet.position}>
+          <FleetDetailView fleet={selectedFleet} />
         </group>
       )}
       
@@ -181,7 +199,7 @@ export function GalaxyScene() {
       }}
     >
       <color attach="background" args={[BACKGROUND_COLOR]} />
-      <fog attach="fog" args={[FOG.color, FOG.near, FOG.far]} />
+      {/* <fog attach="fog" args={[FOG.color, FOG.near, FOG.far]} /> */}
       
       <Suspense fallback={<LoadingFallback />}>
         <GalaxyContent />

@@ -199,42 +199,70 @@ function OuterHalo() {
   );
 }
 
-// Star field background particles - extended
+// Star field background particles - optimized with Points
 function StarField() {
-  const starCount = 800; // More stars for larger area
+  const count = 2000;
   
-  const stars = useMemo(() => {
-    const result = [];
-    for (let i = 0; i < starCount; i++) {
-      // Distribute stars with more density toward center, but cover larger area
-      const angle = Math.random() * Math.PI * 2;
-      const radiusRand = Math.pow(Math.random(), 0.5);
-      const radius = radiusRand * 180; // Extended from 100 to 180
-      
-      result.push({
-        x: Math.cos(angle) * radius,
-        y: Math.sin(angle) * radius,
-        size: 0.1 + Math.random() * 0.3,
-        brightness: 0.2 + Math.random() * 0.6,
-        color: Math.random() > 0.8 ? '#FFE4B5' : (Math.random() > 0.5 ? '#FFFFFF' : '#B8D4E8'),
-      });
+  const { positions, colors } = useMemo(() => {
+    const positions = new Float32Array(count * 3);
+    const colors = new Float32Array(count * 3);
+    
+    for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const radiusRand = Math.pow(Math.random(), 0.5);
+        const radius = radiusRand * 250; 
+        
+        const x = Math.cos(angle) * radius;
+        const y = Math.sin(angle) * radius;
+        const z = (Math.random() - 0.5) * 5; // Slight depth variation
+        
+        positions[i * 3] = x;
+        positions[i * 3 + 1] = y;
+        positions[i * 3 + 2] = z;
+        
+        // Colors
+        const color = new THREE.Color();
+        const rand = Math.random();
+        if (rand > 0.8) color.setHex(0xFFE4B5); 
+        else if (rand > 0.5) color.setHex(0xFFFFFF); 
+        else color.setHex(0xB8D4E8); 
+        
+        // Brightness
+        const brightness = 0.5 + Math.random() * 0.5;
+        color.multiplyScalar(brightness);
+        
+        colors[i * 3] = color.r;
+        colors[i * 3 + 1] = color.g;
+        colors[i * 3 + 2] = color.b;
     }
-    return result;
+    return { positions, colors };
   }, []);
-  
+
   return (
-    <group position={[0, 0, -0.5]}>
-      {stars.map((star, i) => (
-        <mesh key={i} position={[star.x, star.y, 0]}>
-          <circleGeometry args={[star.size, 6]} />
-          <meshBasicMaterial 
-            color={star.color}
-            transparent 
-            opacity={star.brightness}
-          />
-        </mesh>
-      ))}
-    </group>
+    <points position={[0, 0, -0.5]} frustumCulled={false}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          count={positions.length / 3}
+          array={positions}
+          itemSize={3}
+        />
+        <bufferAttribute
+          attach="attributes-color"
+          count={colors.length / 3}
+          array={colors}
+          itemSize={3}
+        />
+      </bufferGeometry>
+      <pointsMaterial
+        size={2.5} // Large enough to see
+        sizeAttenuation={false}
+        vertexColors
+        transparent
+        opacity={0.9}
+        depthWrite={false}
+      />
+    </points>
   );
 }
 

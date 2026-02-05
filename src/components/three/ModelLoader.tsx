@@ -2,6 +2,7 @@ import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
+import { ProceduralSkybox } from './ProceduralSkybox';
 
 // Preload models
 const MODEL_PATHS = {
@@ -11,8 +12,6 @@ const MODEL_PATHS = {
   blackHole: '/models/icons/black_hole.glb',
   spaceStation: '/models/icons/space_station.glb',
   hyperspaceMarker: '/models/icons/hyperspace_marker.glb',
-  // Environment
-  galaxySkybox: '/models/environment/galaxy_skybox.glb',
   // Planet models from Sketchfab
   planetAlderaan: '/models/planets/alderaan.glb',
   planetBalmorra: '/models/planets/balmorra.glb',
@@ -165,13 +164,6 @@ export function hasPlanetModel(planetId: string): boolean {
 
 // Galaxy Skybox component
 export function GalaxySkybox() {
-  const { scene } = useGLTF(MODEL_PATHS.galaxySkybox);
-  const clonedScene = useMemo(() => scene.clone(), [scene]);
-  
-  return (
-    <primitive object={clonedScene} />
-  );
+  return <ProceduralSkybox />;
 }
 
-// Preload skybox
-useGLTF.preload(MODEL_PATHS.galaxySkybox);

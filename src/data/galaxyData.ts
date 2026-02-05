@@ -506,7 +506,7 @@ export const fleets: Fleet[] = [
     id: 'republic-home-fleet',
     name: 'Republic Home Fleet',
     faction: 'galactic_republic',
-    position: new THREE.Vector3(1, 1, 1),
+    position: new THREE.Vector3(5, 3, 5), // Near Coruscant (0,0,0)
     shipCount: 120,
     flagship: 'Hammerhead-class Cruiser "Endar Spire"',
     commander: 'Admiral Karath',
@@ -516,7 +516,7 @@ export const fleets: Fleet[] = [
     id: 'republic-second-fleet',
     name: 'Republic Second Fleet',
     faction: 'galactic_republic',
-    position: new THREE.Vector3(6, 1.5, -4),
+    position: new THREE.Vector3(35, 3, 20), // Near Alderaan (30, 0, 15)
     shipCount: 80,
     flagship: 'Hammerhead-class Cruiser',
     commander: 'Admiral Dodonna',
@@ -526,7 +526,7 @@ export const fleets: Fleet[] = [
     id: 'jedi-watchmen',
     name: 'Jedi Watchmen Squadron',
     faction: 'galactic_republic',
-    position: new THREE.Vector3(-7, 2.5, -11),
+    position: new THREE.Vector3(35, 4, 50), // Near Tython (30, 0, 45)
     shipCount: 15,
     flagship: 'Jedi Cruiser',
     systemId: 'tython',
@@ -537,7 +537,7 @@ export const fleets: Fleet[] = [
     id: 'sith-imperial-armada',
     name: 'Sith Imperial Armada',
     faction: 'sith_empire',
-    position: new THREE.Vector3(49, -1, 34),
+    position: new THREE.Vector3(-35, 4, 20), // Near Dromund Kaas (-30, 0, 15)
     shipCount: 200,
     flagship: 'Harrower-class Dreadnought "Leviathan"',
     commander: 'Darth Malak',
@@ -547,7 +547,7 @@ export const fleets: Fleet[] = [
     id: 'sith-korriban-guard',
     name: 'Korriban Defense Fleet',
     faction: 'sith_empire',
-    position: new THREE.Vector3(51, 6, 31),
+    position: new THREE.Vector3(-35, 5, 5), // Near Korriban (-30, 0, 0)
     shipCount: 50,
     flagship: 'Interdictor-class Cruiser',
     systemId: 'korriban',
@@ -556,7 +556,7 @@ export const fleets: Fleet[] = [
     id: 'sith-invasion-fleet',
     name: 'Sith Invasion Fleet',
     faction: 'sith_empire',
-    position: new THREE.Vector3(30, 0, 10),
+    position: new THREE.Vector3(-70, 4, 35), // Near Hoth (-75, 0, 30)
     shipCount: 150,
     flagship: 'Harrower-class Dreadnought',
     commander: 'Admiral Saul Karath',
@@ -567,7 +567,7 @@ export const fleets: Fleet[] = [
     id: 'mandalorian-remnant',
     name: 'Mandalorian Remnant',
     faction: 'neutral',
-    position: new THREE.Vector3(43, 4, 6),
+    position: new THREE.Vector3(55, 4, -25), // Near Nar Shaddaa (60, 0, -15)
     shipCount: 30,
     flagship: 'Basilisk War Droid Carrier',
     commander: 'Canderous Ordo',

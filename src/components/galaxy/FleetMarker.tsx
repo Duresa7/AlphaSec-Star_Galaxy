@@ -21,7 +21,7 @@ export function FleetMarker({ fleet }: FleetMarkerProps) {
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
   
-  const { showLabels, setInfoPanelData } = useGalaxyStore();
+  const { showLabels, setInfoPanelData, setSelectedFleet } = useGalaxyStore();
   
   const color = FACTION_COLORS[fleet.faction];
   const shipType = fleet.faction === 'sith_empire' ? 'sith' : 'republic';
@@ -35,6 +35,7 @@ export function FleetMarker({ fleet }: FleetMarkerProps) {
   
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
+    setSelectedFleet(fleet.id);
     setInfoPanelData({
       type: 'fleet',
       data: fleet,
@@ -60,65 +61,34 @@ export function FleetMarker({ fleet }: FleetMarkerProps) {
       onPointerOver={handlePointerOver}
       onPointerOut={handlePointerOut}
     >
-      {/* Fleet indicator ring */}
-      <mesh rotation={[Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[0.8, 1.0, 6]} />
-        <meshBasicMaterial 
-          color={color} 
-          transparent 
-          opacity={hovered ? 0.8 : 0.5}
-          side={THREE.DoubleSide}
-        />
-      </mesh>
-      
-      {/* Ship count indicator dots */}
-      {Array.from({ length: Math.min(fleet.shipCount / 20, 5) }).map((_, i) => (
-        <mesh 
-          key={i} 
-          position={[
-            Math.cos((i / 5) * Math.PI * 2) * 1.2,
-            0,
-            Math.sin((i / 5) * Math.PI * 2) * 1.2
-          ]}
-        >
-          <sphereGeometry args={[0.1, 8, 8]} />
-          <meshBasicMaterial color={color} />
-        </mesh>
-      ))}
-      
       {/* Try to load ship model, fallback to simple geometry */}
       <Suspense fallback={
         <mesh>
-          <coneGeometry args={[0.3, 0.8, 4]} />
+          <coneGeometry args={[2, 5, 4]} />
           <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.5} />
         </mesh>
       }>
         <ShipModel 
           type={shipType} 
           position={new THREE.Vector3(0, 0, 0)} 
-          scale={0.3}
+          scale={3}
           rotation={[0, Math.PI / 4, 0]}
         />
       </Suspense>
       
-      {/* Label */}
-      {showLabels && hovered && (
+      {/* Label / Tooltip - Shows stats on hover */}
+      {hovered && (
         <Html
-          position={[0, 1.5, 0]}
+          position={[0, 4, 0]}
           center
-          distanceFactor={30}
           style={{ pointerEvents: 'none', userSelect: 'none' }}
         >
-          <div 
-            className="text-center whitespace-nowrap px-2 py-1 rounded"
-            style={{
-              color: color,
-              backgroundColor: 'rgba(0,0,0,0.7)',
-              fontSize: '11px',
-            }}
+          <div
+            className="text-center whitespace-nowrap apple-tooltip"
+            style={{ minWidth: '100px' }}
           >
-            <div className="font-bold">{fleet.name}</div>
-            <div className="text-xs opacity-75">{fleet.shipCount} ships</div>
+            <div className="font-medium text-white text-xs">{fleet.name}</div>
+            <div className="text-[10px] text-gray-400 mt-0.5">{fleet.shipCount} ships</div>
           </div>
         </Html>
       )}

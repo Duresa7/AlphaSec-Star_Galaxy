@@ -27,13 +27,23 @@ const CAMERA_CONFIG = {
     rotateSpeed: 0.5,
     enableRotate: true,
   },
+  fleet: {
+    // 3D view of a fleet
+    distance: 12,
+    height: 4,
+    minDistance: 3,
+    maxDistance: 40,
+    panSpeed: 0.5,
+    rotateSpeed: 0.5,
+    enableRotate: true,
+  },
 };
 
 export function CameraController() {
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const { camera } = useThree();
   
-  const { viewMode, selectedSystemId, selectedPlanetId, systems } = useGalaxyStore();
+  const { viewMode, selectedSystemId, selectedPlanetId, selectedFleetId, systems, fleets } = useGalaxyStore();
   
   // Target position for camera animation
   const targetPosition = useRef(new THREE.Vector3(0, 60, 120));
@@ -44,7 +54,8 @@ export function CameraController() {
   useEffect(() => {
     isAnimating.current = true;
     
-    const config = CAMERA_CONFIG[viewMode];
+    // Default to system config if fleet config not found (shouldn't happen with proper TS)
+    const config = CAMERA_CONFIG[viewMode] || CAMERA_CONFIG.system;
     
     if (viewMode === 'topdown') {
       // Top-down view: camera directly above origin, looking down
@@ -59,6 +70,17 @@ export function CameraController() {
           system.position.x + config.distance * 0.5,
           system.position.y + config.height,
           system.position.z + config.distance
+        );
+      }
+    } else if (viewMode === 'fleet' && selectedFleetId) {
+      const fleet = fleets.find(f => f.id === selectedFleetId);
+      if (fleet) {
+        // Position camera to orbit around the fleet ship
+        targetLookAt.current.copy(fleet.position);
+        targetPosition.current.set(
+          fleet.position.x + config.distance * 0.5,
+          fleet.position.y + config.height,
+          fleet.position.z + config.distance
         );
       }
     }
@@ -86,7 +108,7 @@ export function CameraController() {
     }, 1500);
     
     return () => clearTimeout(timer);
-  }, [viewMode, selectedSystemId, selectedPlanetId, systems]);
+  }, [viewMode, selectedSystemId, selectedPlanetId, selectedFleetId, systems, fleets]);
   
   // Smooth camera animation - only during transitions
   useFrame(() => {
@@ -106,7 +128,8 @@ export function CameraController() {
     }
   });
   
-  const config = CAMERA_CONFIG[viewMode];
+  // Default to system config if fleet config not found
+  const config = CAMERA_CONFIG[viewMode] || CAMERA_CONFIG.system;
   
   return (
     <OrbitControls

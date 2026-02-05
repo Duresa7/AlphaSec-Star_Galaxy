@@ -234,14 +234,8 @@ function StaticPlanet({ planet, showLabels, isDetailView }: StaticPlanetProps) {
           distanceFactor={10}
           style={{ pointerEvents: 'none', userSelect: 'none' }}
         >
-          <div className="text-center whitespace-nowrap">
-            <div 
-              className="text-lg font-bold px-3 py-1 rounded"
-              style={{
-                color: isSelected ? '#00FF00' : (hovered ? '#00BFFF' : '#FFD700'),
-                backgroundColor: 'rgba(0,0,0,0.8)',
-              }}
-            >
+          <div className="text-center whitespace-nowrap apple-tooltip">
+            <div className="text-sm font-medium text-white">
               {planet.name}
             </div>
           </div>
