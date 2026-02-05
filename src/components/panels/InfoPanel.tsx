@@ -22,8 +22,9 @@ export function InfoPanel() {
 
   const handleClose = () => {
     setInfoPanelData(null);
-    if (viewMode === 'planet') {
+    if (viewMode === 'system') {
       setSelectedPlanet(null);
+      setSelectedSystem(null);
     } else if (viewMode === 'fleet') {
       setSelectedFleet(null);
     } else {

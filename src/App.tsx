@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { LandingPage } from '@/components/landing/LandingPage';
+import { LandingPage } from '@/pages/LandingPage';
 import { MapPage } from '@/pages/MapPage';
 
 function App() {
