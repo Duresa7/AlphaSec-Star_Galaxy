@@ -3,11 +3,9 @@ import { useGalaxyStore } from '@/store/galaxyStore';
 
 export function ControlsPanel() {
   const {
-    showHyperspaceLanes,
     showFleets,
     showAnomalies,
     showLabels,
-    toggleHyperspaceLanes,
     toggleFleets,
     toggleAnomalies,
     toggleLabels,
@@ -184,13 +182,6 @@ export function ControlsPanel() {
         
         {/* Layer toggles */}
         <div className="grid grid-cols-2 gap-2">
-          <FilterBox
-            active={showHyperspaceLanes}
-            onClick={toggleHyperspaceLanes}
-            label="Lanes"
-            color="cyan"
-          />
-
           <FilterBox
             active={showFleets}
             onClick={toggleFleets}
