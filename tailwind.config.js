@@ -5,12 +5,7 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {
-      fontFamily: {
-        'aurebesh': ['Aurebesh', 'sans-serif'],
-        'star-wars': ['Star Jedi', 'sans-serif'],
-      },
-    },
+    extend: {},
   },
   plugins: [],
 }
