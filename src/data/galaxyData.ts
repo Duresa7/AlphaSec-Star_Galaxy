@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { StarSystem, HyperspaceLane, Anomaly, Fleet } from '@/types';
+import type { StarSystem, Anomaly, Fleet } from '@/types';
 
 // ============================================
 // STAR SYSTEMS - Old Republic Era (~4000-3950 BBY)
@@ -442,54 +442,6 @@ export const starSystems: StarSystem[] = [
 ];
 
 // ============================================
-// HYPERSPACE LANES
-// ============================================
-
-export const hyperspaceLanes: HyperspaceLane[] = [
-  {
-    id: 'perlemian',
-    name: 'Perlemian Trade Route',
-    systems: ['coruscant', 'alderaan', 'arkania', 'onderon'],
-    type: 'major',
-  },
-  {
-    id: 'hydian',
-    name: 'Hydian Way',
-    systems: ['empress-teta', 'coruscant', 'balmorra', 'nar-shaddaa', 'tatooine'],
-    type: 'major',
-  },
-  {
-    id: 'corellian-run',
-    name: 'Corellian Run',
-    systems: ['coruscant', 'corellia', 'duro', 'tatooine'],
-    type: 'major',
-  },
-  {
-    id: 'rimma',
-    name: 'Rimma Trade Route',
-    systems: ['coruscant', 'alderaan', 'kashyyyk', 'sleheyron'],
-    type: 'major',
-  },
-  {
-    id: 'daragon-trail',
-    name: 'Daragon Trail',
-    systems: ['empress-teta', 'korriban'],
-    type: 'minor',
-  },
-  {
-    id: 'kaas-corridor',
-    name: 'Kaas Corridor',
-    systems: ['dromund-kaas', 'ziost', 'korriban'],
-    type: 'minor',
-  },
-  {
-    id: 'mandalorian-road',
-    name: 'Mandalorian Road',
-    systems: ['dantooine', 'mandalore', 'onderon', 'dxun-system'],
-    type: 'minor',
-  },
-];
-
 // ============================================
 // ANOMALIES
 // ============================================

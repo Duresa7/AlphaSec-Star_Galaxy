@@ -104,12 +104,5 @@ export const HEMISPHERE_LIGHT = {
   },
 };
 
-// Fog settings
-export const FOG = {
-  color: '#050510',
-  near: 100,
-  far: 400,
-};
-
 // Background color
 export const BACKGROUND_COLOR = '#030308';

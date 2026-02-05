@@ -55,11 +55,6 @@ export const PLANET_MODEL_PATHS: Record<string, string> = {
   'voss-prime': MODEL_PATHS.planetVoss,
 };
 
-// Preload all models
-Object.values(MODEL_PATHS).forEach(path => {
-  useGLTF.preload(path);
-});
-
 interface ShipModelProps {
   type: 'sith' | 'republic';
   position: THREE.Vector3;
