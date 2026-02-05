@@ -108,13 +108,12 @@ export function SystemMarker({ system }: SystemMarkerProps) {
             userSelect: 'none',
           }}
         >
-          <div 
-            className="text-center whitespace-nowrap"
+          <div
+            className="text-center whitespace-nowrap apple-tooltip"
             style={{
-              color: factionColor,
-              textShadow: '0 0 10px rgba(0,0,0,0.8)',
-              fontSize: isSelected ? '14px' : '12px',
-              fontWeight: isSelected ? 'bold' : 'normal',
+              fontSize: isSelected ? '12px' : '11px',
+              fontWeight: isSelected ? '600' : '500',
+              color: '#fff',
             }}
           >
             {system.name}

@@ -3,7 +3,8 @@ import * as THREE from 'three';
 // View modes for the galaxy map
 // 'topdown' - 2D overhead view with placeholder markers
 // 'system' - 3D view of a selected planet
-export type ViewMode = 'topdown' | 'system';
+// 'fleet' - 3D view of a selected fleet
+export type ViewMode = 'topdown' | 'system' | 'fleet';
 
 // Faction affiliations
 export type Faction = 'sith_empire' | 'galactic_republic' | 'neutral' | 'contested';
@@ -108,6 +109,7 @@ export interface CameraState {
   distance: number;
   selectedSystem?: string;
   selectedPlanet?: string;
+  selectedFleet?: string;
 }
 
 // UI Panel types
@@ -143,8 +145,10 @@ export interface GalaxyStore {
   // Selection state
   selectedSystemId: string | null;
   selectedPlanetId: string | null;
+  selectedFleetId: string | null;
   setSelectedSystem: (id: string | null) => void;
   setSelectedPlanet: (id: string | null) => void;
+  setSelectedFleet: (id: string | null) => void;
   
   // Data
   systems: StarSystem[];
