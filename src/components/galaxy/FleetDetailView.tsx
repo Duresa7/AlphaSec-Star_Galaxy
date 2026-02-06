@@ -60,7 +60,7 @@ export function FleetDetailView({ fleet }: FleetDetailViewProps) {
           distanceFactor={15}
           style={{ pointerEvents: 'none', userSelect: 'none' }}
         >
-          <div className="text-center whitespace-nowrap apple-tooltip" style={{ padding: '12px 16px' }}>
+          <div className="text-center whitespace-nowrap holo-tooltip" style={{ padding: '12px 16px' }}>
             <div className="text-base font-semibold text-white">{fleet.name}</div>
             <div className="text-xs text-gray-400 mt-1">
               {fleet.commander || 'Unknown Commander'}
