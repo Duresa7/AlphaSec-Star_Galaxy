@@ -15,6 +15,7 @@ const FACTION_COLORS: Record<Faction, string> = {
   galactic_republic: '#FFD700',
   neutral: '#808080',
   contested: '#FF8C00',
+  hutt_cartel: '#8B9A46',
 };
 
 const DRAG_THRESHOLD = 2;

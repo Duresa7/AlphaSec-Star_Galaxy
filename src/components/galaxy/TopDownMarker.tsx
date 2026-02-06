@@ -14,6 +14,7 @@ const FACTION_COLORS: Record<Faction, string> = {
   galactic_republic: '#FFD700',
   neutral: '#808080',
   contested: '#FF8C00',
+  hutt_cartel: '#8B9A46',
 };
 
 const IMPORTANCE_SIZE: Record<string, number> = {
@@ -36,6 +37,7 @@ export function TopDownMarker({ system }: TopDownMarkerProps) {
 
   const {
     setSelectedSystem,
+    setSelectedPlanet,
     setInfoPanelData,
     showLabels,
     updateCustomSystemPosition,
@@ -55,7 +57,16 @@ export function TopDownMarker({ system }: TopDownMarkerProps) {
     }
     if (placementMode) return;
     e.stopPropagation();
+    const primaryPlanet = system.planets[0];
     setSelectedSystem(system.id);
+    if (primaryPlanet) {
+      setSelectedPlanet(primaryPlanet.id);
+      setInfoPanelData({
+        type: 'planet',
+        data: primaryPlanet,
+      });
+      return;
+    }
     setInfoPanelData({
       type: 'system',
       data: system,

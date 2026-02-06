@@ -2,8 +2,12 @@ import { GalaxyScene } from '@/components/galaxy/GalaxyScene';
 import { InfoPanel } from '@/components/panels/InfoPanel';
 import { ControlsPanel } from '@/components/panels/ControlsPanel';
 import { LoadingScreen } from '@/components/panels/LoadingScreen';
+import { useGalaxyStore } from '@/store/galaxyStore';
 
 export function MapPage() {
+  const { viewMode } = useGalaxyStore();
+  const viewLabel = viewMode === 'topdown' ? 'Galaxy Map' : viewMode === 'system' ? 'Planet View' : 'Fleet View';
+
   return (
     <div className="w-full h-full relative overflow-hidden">
       {/* 3D Galaxy Scene */}
@@ -51,7 +55,7 @@ export function MapPage() {
               textShadow: '0 0 8px rgba(0, 240, 255, 0.5)',
             }}
           >
-            Galaxy Map &bull; Old Republic
+            {viewLabel} &bull; Old Republic
           </p>
           <div className="h-px w-8" style={{ background: 'linear-gradient(90deg, var(--holo-cyan), transparent)' }} />
         </div>

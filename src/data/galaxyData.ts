@@ -227,10 +227,10 @@ export const starSystems: StarSystem[] = [
     id: 'hutta',
     name: 'Hutta',
     position: new THREE.Vector3(60, 0, -30),
-    faction: 'neutral',
+    faction: 'hutt_cartel',
     starType: 'yellow',
-    importance: 'major',
-    description: 'Swamp world and capital of Hutt Space.',
+    importance: 'capital',
+    description: 'Swamp world and capital of Hutt Space. Seat of the Hutt Grand Council.',
     region: 'mid_rim',
     planets: [
       {
@@ -239,10 +239,11 @@ export const starSystems: StarSystem[] = [
         type: 'barren',
         position: new THREE.Vector3(0, 0, 0),
         radius: 0.95,
-        faction: 'neutral',
-        description: 'Toxic world of swamps and pollution.',
+        faction: 'hutt_cartel',
+        description: 'Toxic world of swamps and pollution, ruled by the Hutt clans.',
         climate: 'Toxic',
         terrain: 'Swamps, industrial waste',
+        population: '7 billion',
         systemId: 'hutta',
       }
     ],
@@ -299,7 +300,7 @@ export const starSystems: StarSystem[] = [
     id: 'nar-shaddaa',
     name: 'Nar Shaddaa',
     position: new THREE.Vector3(60, 0, -15),
-    faction: 'neutral',
+    faction: 'hutt_cartel',
     starType: 'yellow',
     importance: 'major',
     description: 'The Smuggler\'s Moon. A lawless ecumenopolis controlled by the Hutts.',
@@ -311,10 +312,11 @@ export const starSystems: StarSystem[] = [
         type: 'city',
         position: new THREE.Vector3(0, 0, 0),
         radius: 0.85,
-        faction: 'neutral',
-        description: 'Urban sprawl and towering skylines.',
+        faction: 'hutt_cartel',
+        description: 'Urban sprawl and towering skylines, ruled by Hutt crime lords.',
         climate: 'Polluted',
         terrain: 'Urban, industrial',
+        population: '85 billion',
         systemId: 'nar-shaddaa',
       }
     ],
@@ -524,6 +526,17 @@ export const fleets: Fleet[] = [
     flagship: 'Basilisk War Droid Carrier',
     commander: 'Canderous Ordo',
     systemId: 'mandalore',
+  },
+
+  // Hutt Cartel
+  {
+    id: 'hutt-cartel-fleet',
+    name: 'Hutt Cartel Enforcers',
+    faction: 'hutt_cartel',
+    position: new THREE.Vector3(65, 3, -22), // Between Hutta and Nar Shaddaa
+    shipCount: 60,
+    flagship: 'Ajuur-class Heavy Cruiser "Grancha\'s Fist"',
+    commander: 'Vogga the Hutt',
   },
 ];
 

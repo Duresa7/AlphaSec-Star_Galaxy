@@ -7,7 +7,7 @@ import * as THREE from 'three';
 export type ViewMode = 'topdown' | 'system' | 'fleet';
 
 // Faction affiliations
-export type Faction = 'sith_empire' | 'galactic_republic' | 'neutral' | 'contested';
+export type Faction = 'sith_empire' | 'galactic_republic' | 'neutral' | 'contested' | 'hutt_cartel';
 
 // Faction filter state
 export type FactionFilters = Record<Faction, boolean>;
@@ -46,6 +46,7 @@ export interface Planet {
   terrain?: string;
   notable?: string[];
   systemId: string;
+  factionControl?: Partial<Record<Faction, number>>;
 }
 
 // Star system data structure
@@ -99,11 +100,12 @@ export interface Fleet {
   isCustom?: boolean;
 }
 
-// UI Panel types
-export interface InfoPanelData {
-  type: 'system' | 'planet' | 'fleet' | 'anomaly';
-  data: StarSystem | Planet | Fleet | Anomaly;
-}
+// UI panel payload (discriminated union for strict type safety)
+export type InfoPanelData =
+  | { type: 'system'; data: StarSystem }
+  | { type: 'planet'; data: Planet }
+  | { type: 'fleet'; data: Fleet }
+  | { type: 'anomaly'; data: Anomaly };
 
 // Search result type
 export interface SearchResult {
@@ -145,6 +147,7 @@ export interface GalaxyStore {
   
   // Timeline
   currentYear: number; // Default ~4000 BBY
+  setCurrentYear: (year: number) => void;
   
   // Loading
   isLoading: boolean;
@@ -159,6 +162,10 @@ export interface GalaxyStore {
   // Computed getters
   getFilteredSystems: () => StarSystem[];
   getSearchResults: () => SearchResult[];
+  getFactionStats: () => Record<Faction, { planets: number; fleetShips: number }>;
+
+  // Planet stats editing
+  updatePlanetStats: (systemId: string, planetId: string, stats: { population?: string; factionControl?: Partial<Record<Faction, number>> }) => void;
 
   // Custom planet creation
   placementMode: boolean;
