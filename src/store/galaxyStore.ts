@@ -3,7 +3,9 @@ import type {
   GalaxyStore, 
   InfoPanelData,
   Faction,
-  SearchResult
+  SearchResult,
+  StarSystem,
+  Fleet,
 } from '@/types';
 import {
   starSystems,
@@ -12,6 +14,28 @@ import {
 } from '@/data/galaxyData';
 import { loadCustomSystems, saveCustomSystems } from '@/data/customPlanetStorage';
 import { loadCustomFleets, saveCustomFleets } from '@/data/customFleetStorage';
+
+const getCustomSystems = (systems: StarSystem[]) => systems.filter((s) => s.isCustom);
+const getCustomFleets = (fleets: Fleet[]) => fleets.filter((f) => f.isCustom);
+
+const persistCustomSystems = (systems: StarSystem[]) => {
+  saveCustomSystems(getCustomSystems(systems));
+};
+
+const persistCustomFleets = (fleets: Fleet[]) => {
+  saveCustomFleets(getCustomFleets(fleets));
+};
+
+const shouldClearPanelForSystem = (panel: InfoPanelData | null, systemId: string): boolean => {
+  if (!panel) return false;
+  if (panel.type === 'system') return panel.data.id === systemId;
+  if (panel.type === 'planet') return panel.data.systemId === systemId;
+  return false;
+};
+
+const shouldClearPanelForFleet = (panel: InfoPanelData | null, fleetId: string): boolean => {
+  return panel?.type === 'fleet' && panel.data.id === fleetId;
+};
 
 export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
   // View state
@@ -57,6 +81,7 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
   
   // Timeline - Old Republic era ~3956 BBY (KOTOR 1)
   currentYear: 3956,
+  setCurrentYear: (year: number) => set({ currentYear: year }),
   
   // Loading
   isLoading: true,
@@ -71,6 +96,7 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
     sith_empire: true,
     neutral: true,
     contested: true,
+    hutt_cartel: true,
   },
   toggleFactionFilter: (faction: Faction) => set((state) => ({
     factionFilters: {
@@ -144,6 +170,50 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
     return results.slice(0, 10); // Limit to 10 results
   },
 
+  // Faction stats — planet count and fleet size per faction
+  getFactionStats: () => {
+    const state = get();
+    const factions: Faction[] = ['galactic_republic', 'sith_empire', 'neutral', 'contested', 'hutt_cartel'];
+    const stats = {} as Record<Faction, { planets: number; fleetShips: number }>;
+    for (const f of factions) {
+      stats[f] = { planets: 0, fleetShips: 0 };
+    }
+    for (const system of state.systems) {
+      for (const planet of system.planets) {
+        if (stats[planet.faction]) {
+          stats[planet.faction].planets++;
+        }
+      }
+    }
+    for (const fleet of state.fleets) {
+      if (stats[fleet.faction]) {
+        stats[fleet.faction].fleetShips += fleet.shipCount;
+      }
+    }
+    return stats;
+  },
+
+  // Update planet stats (population, faction control %)
+  updatePlanetStats: (systemId, planetId, updates) => set((state) => {
+    const hasSystemId = state.systems.some((s) => s.id === systemId);
+    const newSystems = state.systems.map(s => {
+      const isTargetSystem = s.id === systemId;
+      const isFallbackMatch = !hasSystemId && s.planets.some((p) => p.id === planetId);
+      if (!isTargetSystem && !isFallbackMatch) return s;
+
+      return {
+        ...s,
+        planets: s.planets.map(p => {
+          if (p.id !== planetId) return p;
+          // Normalize legacy planets whose stored systemId may be out-of-sync.
+          return { ...p, ...updates, systemId: s.id };
+        }),
+      };
+    });
+    persistCustomSystems(newSystems);
+    return { systems: newSystems };
+  }),
+
   // Custom planet creation
   placementMode: false,
   pendingCustomPlanet: null,
@@ -160,17 +230,20 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
 
   addCustomSystem: (system) => set((state) => {
     const newSystems = [...state.systems, system];
-    saveCustomSystems(newSystems.filter(s => s.isCustom));
+    persistCustomSystems(newSystems);
     return { systems: newSystems, placementMode: false, pendingCustomPlanet: null };
   }),
 
   removeCustomSystem: (id) => set((state) => {
     const newSystems = state.systems.filter(s => s.id !== id);
-    saveCustomSystems(newSystems.filter(s => s.isCustom));
+    persistCustomSystems(newSystems);
+    const isSelected = state.selectedSystemId === id;
+    const shouldClearPanel = shouldClearPanelForSystem(state.infoPanelData, id);
+
     return {
       systems: newSystems,
-      infoPanelData: state.infoPanelData?.data && 'id' in state.infoPanelData.data && state.infoPanelData.data.id === id
-        ? null : state.infoPanelData,
+      infoPanelData: shouldClearPanel ? null : state.infoPanelData,
+      ...(isSelected ? { selectedSystemId: null, selectedPlanetId: null, viewMode: 'topdown' as const } : {}),
     };
   }),
 
@@ -178,7 +251,7 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
     const newSystems = state.systems.map(s =>
       s.id === id ? { ...s, position: position.clone(), planets: s.planets.map(p => ({ ...p })) } : s
     );
-    saveCustomSystems(newSystems.filter(s => s.isCustom));
+    persistCustomSystems(newSystems);
     return { systems: newSystems };
   }),
 
@@ -198,18 +271,19 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
 
   addCustomFleet: (fleet) => set((state) => {
     const newFleets = [...state.fleets, fleet];
-    saveCustomFleets(newFleets.filter(f => f.isCustom));
+    persistCustomFleets(newFleets);
     return { fleets: newFleets, fleetPlacementMode: false, pendingCustomFleet: null };
   }),
 
   removeCustomFleet: (id) => set((state) => {
     const newFleets = state.fleets.filter(f => f.id !== id);
-    saveCustomFleets(newFleets.filter(f => f.isCustom));
+    persistCustomFleets(newFleets);
     const isSelected = state.selectedFleetId === id;
+    const shouldClearPanel = shouldClearPanelForFleet(state.infoPanelData, id);
+
     return {
       fleets: newFleets,
-      infoPanelData: state.infoPanelData?.data && 'id' in state.infoPanelData.data && state.infoPanelData.data.id === id
-        ? null : state.infoPanelData,
+      infoPanelData: shouldClearPanel ? null : state.infoPanelData,
       ...(isSelected ? { selectedFleetId: null, viewMode: 'topdown' as const } : {}),
     };
   }),
@@ -218,7 +292,7 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
     const newFleets = state.fleets.map(f =>
       f.id === id ? { ...f, position: position.clone() } : f
     );
-    saveCustomFleets(newFleets.filter(f => f.isCustom));
+    persistCustomFleets(newFleets);
     return { fleets: newFleets };
   }),
 }));

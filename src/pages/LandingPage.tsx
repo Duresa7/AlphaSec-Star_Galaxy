@@ -62,8 +62,8 @@ export function LandingPage() {
               <button type="button" className="orb-btn-primary" onClick={handleLaunch} disabled={isLaunching}>
                 Launch Here
               </button>
-              <a className="orb-btn-secondary" href="#systems">
-                Explore Systems
+              <a className="orb-btn-secondary" href="#planets">
+                Explore Planets
               </a>
             </div>
           </div>
@@ -92,11 +92,11 @@ export function LandingPage() {
         </section>
 
         <section
-          id="systems"
+          id="planets"
           ref={revealSectionRef}
           className={`orb-features-reveal${isRevealVisible ? ' is-visible' : ''}`}
         >
-          <h3 className="orb-section-title">Operational Systems</h3>
+          <h3 className="orb-section-title">Operational Planets</h3>
           <p className="orb-section-copy">
             Every tool mirrors the way your galaxy evolves: creation, command, and control.
           </p>
@@ -112,7 +112,7 @@ export function LandingPage() {
             </article>
             <article className="orb-glass orb-feature-card">
               <h4>Territory Layer</h4>
-              <p>Redraw control zones and watch influence push across connected systems.</p>
+              <p>Redraw control zones and watch influence push across connected worlds.</p>
             </article>
             <article className="orb-glass orb-feature-card">
               <h4>Faction Control</h4>

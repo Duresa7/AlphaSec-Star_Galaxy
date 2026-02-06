@@ -24,15 +24,10 @@ function GalaxyContent() {
   const {
     systems,
     setIsLoading,
-    setSelectedSystem,
-    setSelectedFleet,
-    setInfoPanelData,
     viewMode,
     selectedSystemId,
     selectedFleetId,
     fleets,
-    placementMode,
-    fleetPlacementMode,
   } = useGalaxyStore();
 
   useEffect(() => {
@@ -51,19 +46,6 @@ function GalaxyContent() {
     ? fleets.find(f => f.id === selectedFleetId)
     : null;
   
-  // Handle clicking on empty space to deselect
-  const handleCanvasClick = () => {
-    if (placementMode || fleetPlacementMode) return; // Don't deselect during placement
-    if (viewMode === 'system') {
-      // Go back to galaxy view
-      setSelectedSystem(null);
-      setInfoPanelData(null);
-    } else if (viewMode === 'fleet') {
-      setSelectedFleet(null);
-      setInfoPanelData(null);
-    }
-  };
-  
   // Get lighting config based on current view mode
   const isSystemView = viewMode === 'system';
   const ambientConfig = isSystemView ? AMBIENT_LIGHT.system : AMBIENT_LIGHT.galaxy;
@@ -72,7 +54,7 @@ function GalaxyContent() {
   const pointLightsConfig = isSystemView ? POINT_LIGHTS.system : POINT_LIGHTS.galaxy;
   
   return (
-    <group onClick={handleCanvasClick}>
+    <group>
       {/* Environment map for subtle reflections on metallic surfaces */}
       <Environment preset="night" background={false} blur={0.5} />
       
@@ -135,11 +117,14 @@ function TopDownView() {
   const { placementMode, pendingCustomPlanet, addCustomSystem, fleetPlacementMode, pendingCustomFleet, addCustomFleet } = useGalaxyStore();
 
   const handlePlacementClick = (e: ThreeEvent<MouseEvent>) => {
+    if (!placementMode && !fleetPlacementMode) return;
+    e.stopPropagation();
+    const point = e.point;
+
     if (placementMode && pendingCustomPlanet) {
-      e.stopPropagation();
-      const point = e.point;
-      const newSystem = {
-        id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      const uniqueId = `custom-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+      addCustomSystem({
+        id: uniqueId,
         name: pendingCustomPlanet.name,
         position: new THREE.Vector3(point.x, 0, point.z),
         faction: 'neutral' as const,
@@ -150,29 +135,28 @@ function TopDownView() {
         isCustom: true,
         customColor: pendingCustomPlanet.color,
         planets: [{
-          id: `custom-${Date.now()}-planet`,
+          id: `${uniqueId}-prime`,
           name: pendingCustomPlanet.name,
           type: 'terrestrial' as const,
           position: new THREE.Vector3(0, 0, 0),
           radius: 1,
           faction: 'neutral' as const,
           description: `Custom planet: ${pendingCustomPlanet.name}`,
-          systemId: `custom-${Date.now()}`,
+          systemId: uniqueId,
         }],
-      };
-      addCustomSystem(newSystem);
-    } else if (fleetPlacementMode && pendingCustomFleet) {
-      e.stopPropagation();
-      const point = e.point;
-      const newFleet = {
+      });
+      return;
+    }
+
+    if (fleetPlacementMode && pendingCustomFleet) {
+      addCustomFleet({
         id: `custom-fleet-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
         name: pendingCustomFleet.name,
         position: new THREE.Vector3(point.x, 0, point.z),
         faction: pendingCustomFleet.faction,
         shipCount: pendingCustomFleet.shipCount,
         isCustom: true,
-      };
-      addCustomFleet(newFleet);
+      });
     }
   };
 
@@ -218,8 +202,35 @@ function LoadingFallback() {
 }
 
 export function GalaxyScene() {
+  const {
+    viewMode,
+    placementMode,
+    fleetPlacementMode,
+    setSelectedSystem,
+    setSelectedFleet,
+    setInfoPanelData,
+  } = useGalaxyStore();
+
+  // Only deselect when clicking empty space, not when clicking selectable objects.
+  const handlePointerMissed = () => {
+    if (placementMode || fleetPlacementMode) return;
+    switch (viewMode) {
+      case 'system':
+        setSelectedSystem(null);
+        setInfoPanelData(null);
+        break;
+      case 'fleet':
+        setSelectedFleet(null);
+        setInfoPanelData(null);
+        break;
+      default:
+        break;
+    }
+  };
+
   return (
     <Canvas
+      onPointerMissed={handlePointerMissed}
       camera={{
         position: [0, 60, 100],
         fov: 60,

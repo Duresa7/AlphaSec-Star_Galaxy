@@ -7,7 +7,7 @@ interface SerializedCustomFleet {
   id: string;
   name: string;
   position: { x: number; y: number; z: number };
-  faction: 'sith_empire' | 'galactic_republic' | 'neutral' | 'contested';
+  faction: 'sith_empire' | 'galactic_republic' | 'neutral' | 'contested' | 'hutt_cartel';
   shipCount: number;
   isCustom: boolean;
 }

@@ -1,72 +1,141 @@
+import { useState } from 'react';
 import { useGalaxyStore } from '@/store/galaxyStore';
-import type { StarSystem, Fleet, Anomaly, Planet } from '@/types';
+import type { StarSystem, Fleet, Anomaly, Planet, Faction, InfoPanelData, ViewMode } from '@/types';
 
-const FACTION_LABELS = {
+const FACTION_LABELS: Record<Faction, string> = {
   sith_empire: 'Sith Empire',
   galactic_republic: 'Galactic Republic',
   neutral: 'Neutral',
   contested: 'Contested',
+  hutt_cartel: 'Hutt Cartel',
 };
 
-const FACTION_COLORS = {
+const FACTION_COLORS: Record<Faction, string> = {
   sith_empire: 'text-red-500',
   galactic_republic: 'text-yellow-400',
   neutral: 'text-gray-400',
   contested: 'text-orange-400',
+  hutt_cartel: 'text-green-500',
 };
 
-export function InfoPanel() {
-  const { infoPanelData, setInfoPanelData, setSelectedSystem, setSelectedPlanet, setSelectedFleet, viewMode } = useGalaxyStore();
+function resolvePanelData({
+  infoPanelData,
+  viewMode,
+  selectedSystemId,
+  selectedPlanetId,
+  selectedFleetId,
+  systems,
+  fleets,
+}: {
+  infoPanelData: InfoPanelData | null;
+  viewMode: ViewMode;
+  selectedSystemId: string | null;
+  selectedPlanetId: string | null;
+  selectedFleetId: string | null;
+  systems: StarSystem[];
+  fleets: Fleet[];
+}): InfoPanelData | null {
+  if (viewMode === 'system' && selectedSystemId) {
+    const system = systems.find((s) => s.id === selectedSystemId);
+    if (!system) return null;
 
-  if (!infoPanelData) return null;
+    const selectedPlanet = selectedPlanetId
+      ? system.planets.find((p) => p.id === selectedPlanetId)
+      : null;
+    if (selectedPlanet) {
+      return { type: 'planet', data: selectedPlanet };
+    }
+
+    return system.planets[0]
+      ? { type: 'planet', data: system.planets[0] }
+      : { type: 'system', data: system };
+  }
+
+  if (viewMode === 'fleet' && selectedFleetId) {
+    const selectedFleet = fleets.find((f) => f.id === selectedFleetId);
+    return selectedFleet ? { type: 'fleet', data: selectedFleet } : null;
+  }
+
+  return infoPanelData;
+}
+
+export function InfoPanel() {
+  const {
+    infoPanelData,
+    setInfoPanelData,
+    setSelectedSystem,
+    setSelectedPlanet,
+    setSelectedFleet,
+    viewMode,
+    selectedSystemId,
+    selectedPlanetId,
+    selectedFleetId,
+    systems,
+    fleets,
+  } = useGalaxyStore();
+
+  const panelData = resolvePanelData({
+    infoPanelData,
+    viewMode,
+    selectedSystemId,
+    selectedPlanetId,
+    selectedFleetId,
+    systems,
+    fleets,
+  });
+  if (!panelData) return null;
 
   const handleClose = () => {
     setInfoPanelData(null);
-    if (viewMode === 'system') {
-      setSelectedPlanet(null);
-      setSelectedSystem(null);
-    } else if (viewMode === 'fleet') {
-      setSelectedFleet(null);
-    } else {
-      setSelectedSystem(null);
+    switch (viewMode) {
+      case 'system':
+        setSelectedPlanet(null);
+        setSelectedSystem(null);
+        break;
+      case 'fleet':
+        setSelectedFleet(null);
+        break;
+      default:
+        setSelectedSystem(null);
+    }
+  };
+
+  const renderPanelContent = (data: InfoPanelData) => {
+    switch (data.type) {
+      case 'system':
+        return <SystemInfo system={data.data} />;
+      case 'planet':
+        return <PlanetInfo planet={data.data} />;
+      case 'fleet':
+        return <FleetInfo fleet={data.data} />;
+      case 'anomaly':
+        return <AnomalyInfo anomaly={data.data} />;
+      default:
+        return null;
     }
   };
 
   return (
-    <div className="absolute right-4 top-4 w-96 holo-panel max-h-[calc(100vh-2rem)] overflow-y-auto animate-slide-in-right">
-      {/* Close button */}
-      <button
-        onClick={handleClose}
-        className="holo-close-button absolute top-4 right-4 z-10"
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
+    <div className="absolute right-4 top-4 z-50 w-96 max-h-[calc(100vh-2rem)] animate-slide-in-right">
+      <div className="holo-panel max-h-[calc(100vh-2rem)] overflow-y-auto">
+        {/* Close button */}
+        <button
+          onClick={handleClose}
+          className="holo-close-button absolute top-4 right-4 z-10"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
 
-      <div className="space-y-4">
-        {infoPanelData.type === 'system' && (
-          <SystemInfo system={infoPanelData.data as StarSystem} />
-        )}
-
-        {infoPanelData.type === 'planet' && (
-          <PlanetInfo planet={infoPanelData.data as Planet} />
-        )}
-
-        {infoPanelData.type === 'fleet' && (
-          <FleetInfo fleet={infoPanelData.data as Fleet} />
-        )}
-
-        {infoPanelData.type === 'anomaly' && (
-          <AnomalyInfo anomaly={infoPanelData.data as Anomaly} />
-        )}
+        <div className="space-y-4">{renderPanelContent(panelData)}</div>
       </div>
     </div>
   );
 }
 
 function SystemInfo({ system }: { system: StarSystem }) {
-  const { removeCustomSystem, setInfoPanelData, setSelectedSystem } = useGalaxyStore();
+  const { removeCustomSystem, setInfoPanelData, setSelectedSystem, setSelectedPlanet } = useGalaxyStore();
 
   return (
     <div className="space-y-4">
@@ -77,6 +146,7 @@ function SystemInfo({ system }: { system: StarSystem }) {
           <span className={`holo-badge ${
             system.faction === 'sith_empire' ? 'bg-red-500/20 text-red-300 border border-red-500/30' :
             system.faction === 'galactic_republic' ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' :
+            system.faction === 'hutt_cartel' ? 'bg-green-500/20 text-green-300 border border-green-500/30' :
             'bg-gray-500/20 text-gray-300 border border-gray-500/30'
           }`}>
             {FACTION_LABELS[system.faction]}
@@ -107,7 +177,14 @@ function SystemInfo({ system }: { system: StarSystem }) {
           <label className="holo-label" style={{ marginBottom: '8px' }}>Planets ({system.planets.length})</label>
           <div className="space-y-1 mt-2">
             {system.planets.map(planet => (
-              <div key={planet.id} className="holo-info-row group cursor-pointer hover:bg-amber-500/5 transition-colors">
+              <div
+                key={planet.id}
+                className="holo-info-row group cursor-pointer hover:bg-amber-500/5 transition-colors"
+                onClick={() => {
+                  setSelectedPlanet(planet.id);
+                  setInfoPanelData({ type: 'planet', data: planet });
+                }}
+              >
                 <span className="text-sm group-hover:text-cyan-300 transition-colors" style={{ color: 'var(--holo-text-primary)' }}>{planet.name}</span>
                 <span className="text-xs capitalize" style={{ color: 'var(--holo-text-muted)' }}>{planet.type.replace('_', ' ')}</span>
               </div>
@@ -136,7 +213,7 @@ function SystemInfo({ system }: { system: StarSystem }) {
       {/* Hint to zoom in */}
       {system.planets.length > 0 && (
         <div className="text-xs text-center animate-pulse" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Orbitron, monospace', fontSize: '9px' }}>
-          Click again to enter system view
+          Select a planet to open details
         </div>
       )}
 
@@ -165,7 +242,19 @@ function SystemInfo({ system }: { system: StarSystem }) {
   );
 }
 
+const FACTION_BAR_COLORS: Record<Faction, string> = {
+  galactic_republic: '#C8AA6E',
+  sith_empire: '#DC143C',
+  hutt_cartel: '#8B9A46',
+  neutral: '#808080',
+  contested: '#FF8C00',
+};
+
 function PlanetInfo({ planet }: { planet: Planet }) {
+  const { updatePlanetStats } = useGalaxyStore();
+  const [editingPopulation, setEditingPopulation] = useState(false);
+  const [populationDraft, setPopulationDraft] = useState(planet.population || '');
+
   const planetTypeColors: Record<string, string> = {
     terrestrial: 'text-green-400',
     gas_giant: 'text-orange-300',
@@ -177,6 +266,23 @@ function PlanetInfo({ planet }: { planet: Planet }) {
     city: 'text-gray-300',
     barren: 'text-gray-500',
     destroyed: 'text-red-400',
+  };
+
+  const factionControl = planet.factionControl || { [planet.faction]: 100 };
+
+  const handlePopulationSave = () => {
+    updatePlanetStats(planet.systemId, planet.id, { population: populationDraft });
+    setEditingPopulation(false);
+  };
+
+  const handleControlChange = (faction: Faction, value: number) => {
+    const updated = { ...factionControl, [faction]: Math.max(0, Math.min(100, value)) };
+    // Remove factions with 0%
+    const cleaned: Partial<Record<Faction, number>> = {};
+    for (const [f, v] of Object.entries(updated)) {
+      if (v > 0) cleaned[f as Faction] = v;
+    }
+    updatePlanetStats(planet.systemId, planet.id, { factionControl: cleaned });
   };
 
   return (
@@ -201,7 +307,96 @@ function PlanetInfo({ planet }: { planet: Planet }) {
       <div className="holo-info-grid space-y-2">
         {planet.climate && <InfoRow label="Climate" value={planet.climate} />}
         {planet.terrain && <InfoRow label="Terrain" value={planet.terrain} />}
-        {planet.population && <InfoRow label="Population" value={planet.population} />}
+        {/* Editable population */}
+        <div className="flex justify-between items-center text-sm">
+          <span style={{ color: 'var(--holo-text-muted)', fontFamily: 'Orbitron, monospace', fontSize: '10px' }}>Population</span>
+          {editingPopulation ? (
+            <div className="flex items-center gap-1">
+              <input
+                type="text"
+                value={populationDraft}
+                onChange={(e) => setPopulationDraft(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handlePopulationSave(); if (e.key === 'Escape') setEditingPopulation(false); }}
+                autoFocus
+                className="holo-input w-28 text-right"
+                style={{ padding: '2px 6px', fontSize: '12px' }}
+              />
+              <button
+                onClick={handlePopulationSave}
+                className="text-xs px-1"
+                style={{ color: 'var(--holo-cyan)' }}
+              >
+                ✓
+              </button>
+            </div>
+          ) : (
+            <span
+              onClick={() => { setPopulationDraft(planet.population || ''); setEditingPopulation(true); }}
+              className="cursor-pointer hover:underline"
+              style={{ color: 'var(--holo-text-primary)', fontFamily: 'Rajdhani, sans-serif', textDecorationColor: 'var(--holo-cyan)' }}
+              title="Click to edit"
+            >
+              {planet.population || 'Unknown'}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Faction Control Percentages */}
+      <div>
+        <label className="holo-label" style={{ marginBottom: '8px' }}>Faction Control</label>
+        {/* Visual bar */}
+        <div className="flex h-3 mt-2 overflow-hidden" style={{ clipPath: 'polygon(2px 0%, calc(100% - 2px) 0%, 100% 2px, 100% calc(100% - 2px), calc(100% - 2px) 100%, 2px 100%, 0% calc(100% - 2px), 0% 2px)' }}>
+          {(Object.entries(factionControl) as [Faction, number][])
+            .filter(([, v]) => v > 0)
+            .map(([faction, pct]) => (
+              <div
+                key={faction}
+                style={{
+                  width: `${pct}%`,
+                  backgroundColor: FACTION_BAR_COLORS[faction] || '#808080',
+                  boxShadow: `inset 0 0 8px rgba(0,0,0,0.3), 0 0 4px ${FACTION_BAR_COLORS[faction]}40`,
+                }}
+              />
+            ))}
+        </div>
+        {/* Editable faction sliders */}
+        <div className="space-y-2 mt-3">
+          {(Object.keys(FACTION_LABELS) as Faction[]).map((faction) => {
+            const pct = factionControl[faction] || 0;
+            if (pct === 0 && faction !== planet.faction) return null;
+            return (
+              <div key={faction} className="flex items-center gap-2">
+                <span
+                  className="w-2 h-2 flex-shrink-0"
+                  style={{ backgroundColor: FACTION_BAR_COLORS[faction], clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)' }}
+                />
+                <span className="text-[10px] flex-1 truncate" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Orbitron, monospace' }}>
+                  {FACTION_LABELS[faction]}
+                </span>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={pct}
+                  onChange={(e) => handleControlChange(faction, parseInt(e.target.value))}
+                  className="holo-slider flex-shrink-0"
+                  style={{ width: '80px', accentColor: FACTION_BAR_COLORS[faction] }}
+                />
+                <span className="text-[10px] w-8 text-right" style={{ color: 'var(--holo-text-primary)', fontFamily: 'Orbitron, monospace' }}>
+                  {pct}%
+                </span>
+              </div>
+            );
+          })}
+          {/* Button to add another faction's control */}
+          {Object.keys(FACTION_LABELS).filter(f => !factionControl[f as Faction]).length > 0 && (
+            <AddFactionControl
+              existingFactions={Object.keys(factionControl) as Faction[]}
+              onAdd={(faction) => handleControlChange(faction, 10)}
+            />
+          )}
+        </div>
       </div>
 
       {/* Description */}
@@ -254,13 +449,43 @@ function PlanetInfo({ planet }: { planet: Planet }) {
   );
 }
 
+function AddFactionControl({ existingFactions, onAdd }: { existingFactions: Faction[]; onAdd: (faction: Faction) => void }) {
+  const [open, setOpen] = useState(false);
+  const available = (Object.keys(FACTION_LABELS) as Faction[]).filter(f => !existingFactions.includes(f));
+
+  if (available.length === 0) return null;
+
+  return open ? (
+    <div className="flex flex-wrap gap-1 mt-1">
+      {available.map(faction => (
+        <button
+          key={faction}
+          onClick={() => { onAdd(faction); setOpen(false); }}
+          className="holo-badge text-[9px] cursor-pointer hover:bg-amber-500/10 transition-colors"
+          style={{ borderColor: FACTION_BAR_COLORS[faction], color: FACTION_BAR_COLORS[faction] }}
+        >
+          + {FACTION_LABELS[faction]}
+        </button>
+      ))}
+    </div>
+  ) : (
+    <button
+      onClick={() => setOpen(true)}
+      className="text-[9px] mt-1 hover:underline"
+      style={{ color: 'var(--holo-cyan)', fontFamily: 'Orbitron, monospace' }}
+    >
+      + Add Faction Influence
+    </button>
+  );
+}
+
 function FleetInfo({ fleet }: { fleet: Fleet }) {
   const { removeCustomFleet, setInfoPanelData, setSelectedFleet } = useGalaxyStore();
 
   // Segmented meter for fleet strength
   const totalSegments = 10;
   const filledSegments = Math.min(Math.ceil(fleet.shipCount / 20), totalSegments);
-  const segmentColor = fleet.faction === 'sith_empire' ? 'var(--holo-crimson)' : 'var(--holo-amber)';
+  const segmentColor = fleet.faction === 'sith_empire' ? 'var(--holo-crimson)' : fleet.faction === 'hutt_cartel' ? '#8B9A46' : 'var(--holo-amber)';
 
   return (
     <div className="space-y-4">
@@ -271,8 +496,8 @@ function FleetInfo({ fleet }: { fleet: Fleet }) {
             className="w-3 h-3 animate-pulse"
             style={{
               clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
-              backgroundColor: fleet.faction === 'sith_empire' ? '#DC143C' : fleet.faction === 'galactic_republic' ? '#C8AA6E' : '#808080',
-              boxShadow: fleet.faction === 'sith_empire' ? '0 0 8px rgba(220,20,60,0.5)' : '0 0 8px rgba(200,170,110,0.5)',
+              backgroundColor: fleet.faction === 'sith_empire' ? '#DC143C' : fleet.faction === 'galactic_republic' ? '#C8AA6E' : fleet.faction === 'hutt_cartel' ? '#8B9A46' : '#808080',
+              boxShadow: fleet.faction === 'sith_empire' ? '0 0 8px rgba(220,20,60,0.5)' : fleet.faction === 'hutt_cartel' ? '0 0 8px rgba(139,154,70,0.5)' : '0 0 8px rgba(200,170,110,0.5)',
             }}
           />
           <h2 className="text-xl font-semibold" style={{ fontFamily: 'Orbitron, monospace', color: 'var(--holo-text-primary)' }}>{fleet.name}</h2>
@@ -281,6 +506,7 @@ function FleetInfo({ fleet }: { fleet: Fleet }) {
           <span className={`holo-badge ${
             fleet.faction === 'sith_empire' ? 'bg-red-500/20 text-red-300 border border-red-500/30' :
             fleet.faction === 'galactic_republic' ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' :
+            fleet.faction === 'hutt_cartel' ? 'bg-green-500/20 text-green-300 border border-green-500/30' :
             'bg-gray-500/20 text-gray-300 border border-gray-500/30'
           }`}>
             {FACTION_LABELS[fleet.faction]}
