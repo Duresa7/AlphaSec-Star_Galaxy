@@ -33,11 +33,11 @@ export function InfoPanel() {
   };
 
   return (
-    <div className="absolute right-4 top-4 w-96 apple-card max-h-[calc(100vh-2rem)] overflow-y-auto animate-slide-in-right">
+    <div className="absolute right-4 top-4 w-96 holo-panel max-h-[calc(100vh-2rem)] overflow-y-auto animate-slide-in-right">
       {/* Close button */}
       <button
         onClick={handleClose}
-        className="apple-close-button absolute top-4 right-4 z-10"
+        className="holo-close-button absolute top-4 right-4 z-10"
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -72,9 +72,9 @@ function SystemInfo({ system }: { system: StarSystem }) {
     <div className="space-y-4">
       {/* Header */}
       <div className="pb-3">
-        <h2 className="text-xl font-semibold text-white mb-2">{system.name}</h2>
+        <h2 className="text-xl font-semibold mb-2" style={{ fontFamily: 'Orbitron, monospace', color: 'var(--holo-text-primary)' }}>{system.name}</h2>
         <div className="flex items-center gap-2">
-          <span className={`apple-badge ${
+          <span className={`holo-badge ${
             system.faction === 'sith_empire' ? 'bg-red-500/20 text-red-300 border border-red-500/30' :
             system.faction === 'galactic_republic' ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' :
             'bg-gray-500/20 text-gray-300 border border-gray-500/30'
@@ -82,34 +82,34 @@ function SystemInfo({ system }: { system: StarSystem }) {
             {FACTION_LABELS[system.faction]}
           </span>
           {system.isCustom && (
-            <span className="apple-badge bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+            <span className="holo-badge bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
               Custom
             </span>
           )}
         </div>
       </div>
 
-      <div className="apple-divider" />
+      <div className="holo-divider" />
 
       {/* Info grid */}
-      <div className="apple-info-grid space-y-2">
+      <div className="holo-info-grid space-y-2">
         <InfoRow label="Region" value={formatRegion(system.region)} />
         <InfoRow label="Star Type" value={capitalizeFirst(system.starType)} />
         <InfoRow label="Importance" value={capitalizeFirst(system.importance)} />
       </div>
 
       {/* Description */}
-      <p className="text-gray-400 text-sm leading-relaxed">{system.description}</p>
+      <p className="text-sm leading-relaxed" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Rajdhani, sans-serif' }}>{system.description}</p>
 
       {/* Planets */}
       {system.planets.length > 0 && (
         <div>
-          <label className="section-label" style={{ marginBottom: '8px' }}>Planets ({system.planets.length})</label>
+          <label className="holo-label" style={{ marginBottom: '8px' }}>Planets ({system.planets.length})</label>
           <div className="space-y-1 mt-2">
             {system.planets.map(planet => (
-              <div key={planet.id} className="apple-info-row group cursor-pointer hover:bg-white/5 transition-colors">
-                <span className="text-gray-200 text-sm group-hover:text-cyan-300 transition-colors">{planet.name}</span>
-                <span className="text-gray-500 text-xs capitalize">{planet.type.replace('_', ' ')}</span>
+              <div key={planet.id} className="holo-info-row group cursor-pointer hover:bg-amber-500/5 transition-colors">
+                <span className="text-sm group-hover:text-cyan-300 transition-colors" style={{ color: 'var(--holo-text-primary)' }}>{planet.name}</span>
+                <span className="text-xs capitalize" style={{ color: 'var(--holo-text-muted)' }}>{planet.type.replace('_', ' ')}</span>
               </div>
             ))}
           </div>
@@ -119,12 +119,12 @@ function SystemInfo({ system }: { system: StarSystem }) {
       {/* Notable locations */}
       {system.planets.length > 0 && system.planets[0].notable && (
         <div>
-          <label className="section-label" style={{ marginBottom: '8px' }}>Notable Locations</label>
+          <label className="holo-label" style={{ marginBottom: '8px' }}>Notable Locations</label>
           <div className="flex flex-wrap gap-2 mt-2">
             {system.planets[0].notable.map((loc, i) => (
               <span
                 key={i}
-                className="apple-badge bg-cyan-900/30 border border-cyan-500/30 text-cyan-200"
+                className="holo-badge bg-cyan-900/30 border border-cyan-500/30 text-cyan-200"
               >
                 {loc}
               </span>
@@ -135,7 +135,7 @@ function SystemInfo({ system }: { system: StarSystem }) {
 
       {/* Hint to zoom in */}
       {system.planets.length > 0 && (
-        <div className="text-xs text-gray-500 text-center animate-pulse">
+        <div className="text-xs text-center animate-pulse" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Orbitron, monospace', fontSize: '9px' }}>
           Click again to enter system view
         </div>
       )}
@@ -148,7 +148,15 @@ function SystemInfo({ system }: { system: StarSystem }) {
             setInfoPanelData(null);
             setSelectedSystem(null);
           }}
-          className="w-full mt-2 px-4 py-2 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 text-[12px] font-medium hover:bg-red-500/20 transition-colors"
+          className="w-full mt-2 px-4 py-2 border text-[12px] font-medium hover:bg-red-500/20 transition-colors"
+          style={{
+            borderColor: 'rgba(220, 20, 60, 0.3)',
+            background: 'rgba(220, 20, 60, 0.08)',
+            color: '#DC143C',
+            fontFamily: 'Orbitron, monospace',
+            fontSize: '10px',
+            clipPath: 'polygon(6px 0%, calc(100% - 6px) 0%, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0% calc(100% - 6px), 0% 6px)',
+          }}
         >
           Delete Custom Planet
         </button>
@@ -175,39 +183,39 @@ function PlanetInfo({ planet }: { planet: Planet }) {
     <div className="space-y-4">
       {/* Header */}
       <div className="pb-3">
-        <h2 className="text-xl font-semibold text-white mb-2">{planet.name}</h2>
-        <span className={`apple-badge border border-white/10 bg-white/5 ${planetTypeColors[planet.type] || 'text-gray-400'}`}>
+        <h2 className="text-xl font-semibold mb-2" style={{ fontFamily: 'Orbitron, monospace', color: 'var(--holo-text-primary)' }}>{planet.name}</h2>
+        <span className={`holo-badge border border-white/10 bg-white/5 ${planetTypeColors[planet.type] || 'text-gray-400'}`}>
           {planet.type.replace('_', ' ')} World
         </span>
       </div>
 
-      <div className="apple-divider" />
+      <div className="holo-divider" />
 
       {/* Faction */}
-      <div className={`text-sm font-medium ${FACTION_COLORS[planet.faction]} flex items-center gap-2`}>
-        <span className="w-2 h-2 rounded-full bg-current shadow-[0_0_5px_currentColor]"></span>
+      <div className={`text-sm font-medium ${FACTION_COLORS[planet.faction]} flex items-center gap-2`} style={{ fontFamily: 'Rajdhani, sans-serif' }}>
+        <span className="w-2 h-2 bg-current" style={{ clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)', boxShadow: '0 0 5px currentColor' }}></span>
         {FACTION_LABELS[planet.faction]} Territory
       </div>
 
       {/* Info grid */}
-      <div className="apple-info-grid space-y-2">
+      <div className="holo-info-grid space-y-2">
         {planet.climate && <InfoRow label="Climate" value={planet.climate} />}
         {planet.terrain && <InfoRow label="Terrain" value={planet.terrain} />}
         {planet.population && <InfoRow label="Population" value={planet.population} />}
       </div>
 
       {/* Description */}
-      <p className="text-gray-400 text-sm leading-relaxed">{planet.description}</p>
+      <p className="text-sm leading-relaxed" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Rajdhani, sans-serif' }}>{planet.description}</p>
 
       {/* Notable locations */}
       {planet.notable && planet.notable.length > 0 && (
         <div>
-          <label className="section-label" style={{ marginBottom: '8px' }}>Points of Interest</label>
+          <label className="holo-label" style={{ marginBottom: '8px' }}>Points of Interest</label>
           <div className="flex flex-wrap gap-2 mt-2">
             {planet.notable.map((loc, i) => (
               <span
                 key={i}
-                className="apple-badge bg-cyan-900/30 border border-cyan-500/30 text-cyan-200"
+                className="holo-badge bg-cyan-900/30 border border-cyan-500/30 text-cyan-200"
               >
                 {loc}
               </span>
@@ -218,8 +226,8 @@ function PlanetInfo({ planet }: { planet: Planet }) {
 
       {/* Special warnings */}
       {planet.type === 'destroyed' && (
-        <div className="apple-info-grid bg-red-900/10 border-red-500/20">
-          <div className="flex items-center gap-2 text-red-400 text-xs font-bold">
+        <div className="holo-info-grid" style={{ background: 'rgba(220, 20, 60, 0.08)', borderColor: 'rgba(220, 20, 60, 0.2)' }}>
+          <div className="flex items-center gap-2 text-xs font-bold" style={{ color: 'var(--holo-crimson)', fontFamily: 'Orbitron, monospace', fontSize: '9px' }}>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
@@ -231,8 +239,8 @@ function PlanetInfo({ planet }: { planet: Planet }) {
       )}
 
       {planet.type === 'volcanic' && (
-        <div className="apple-info-grid bg-orange-900/10 border-orange-500/20">
-          <div className="flex items-center gap-2 text-orange-400 text-xs font-bold">
+        <div className="holo-info-grid" style={{ background: 'rgba(255, 140, 0, 0.08)', borderColor: 'rgba(255, 140, 0, 0.2)' }}>
+          <div className="flex items-center gap-2 text-orange-400 text-xs font-bold" style={{ fontFamily: 'Orbitron, monospace', fontSize: '9px' }}>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"
@@ -249,19 +257,28 @@ function PlanetInfo({ planet }: { planet: Planet }) {
 function FleetInfo({ fleet }: { fleet: Fleet }) {
   const { removeCustomFleet, setInfoPanelData, setSelectedFleet } = useGalaxyStore();
 
+  // Segmented meter for fleet strength
+  const totalSegments = 10;
+  const filledSegments = Math.min(Math.ceil(fleet.shipCount / 20), totalSegments);
+  const segmentColor = fleet.faction === 'sith_empire' ? 'var(--holo-crimson)' : 'var(--holo-amber)';
+
   return (
     <div className="space-y-4">
       {/* Header */}
       <div className="pb-3">
         <div className="flex items-center gap-2 mb-2">
-          <div className={`w-3 h-3 rounded-full shadow-[0_0_8px_currentColor] animate-pulse ${
-            fleet.faction === 'sith_empire' ? 'bg-red-500 shadow-red-500/50' :
-            fleet.faction === 'galactic_republic' ? 'bg-yellow-400 shadow-yellow-400/50' : 'bg-gray-400'
-          }`} />
-          <h2 className="text-xl font-semibold text-white">{fleet.name}</h2>
+          <div
+            className="w-3 h-3 animate-pulse"
+            style={{
+              clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
+              backgroundColor: fleet.faction === 'sith_empire' ? '#DC143C' : fleet.faction === 'galactic_republic' ? '#C8AA6E' : '#808080',
+              boxShadow: fleet.faction === 'sith_empire' ? '0 0 8px rgba(220,20,60,0.5)' : '0 0 8px rgba(200,170,110,0.5)',
+            }}
+          />
+          <h2 className="text-xl font-semibold" style={{ fontFamily: 'Orbitron, monospace', color: 'var(--holo-text-primary)' }}>{fleet.name}</h2>
         </div>
         <div className="flex items-center gap-2">
-          <span className={`apple-badge ${
+          <span className={`holo-badge ${
             fleet.faction === 'sith_empire' ? 'bg-red-500/20 text-red-300 border border-red-500/30' :
             fleet.faction === 'galactic_republic' ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' :
             'bg-gray-500/20 text-gray-300 border border-gray-500/30'
@@ -269,34 +286,41 @@ function FleetInfo({ fleet }: { fleet: Fleet }) {
             {FACTION_LABELS[fleet.faction]}
           </span>
           {fleet.isCustom && (
-            <span className="apple-badge bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+            <span className="holo-badge bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
               Custom
             </span>
           )}
         </div>
       </div>
 
-      <div className="apple-divider" />
+      <div className="holo-divider" />
 
       {/* Info grid */}
-      <div className="apple-info-grid space-y-2">
+      <div className="holo-info-grid space-y-2">
         <InfoRow label="Ship Count" value={`${fleet.shipCount} Vessels`} />
         {fleet.flagship && <InfoRow label="Flagship" value={fleet.flagship} />}
         {fleet.commander && <InfoRow label="Commander" value={fleet.commander} />}
       </div>
 
-      {/* Fleet strength indicator */}
+      {/* Fleet strength — KOTOR segmented meter */}
       <div>
-        <label className="section-label" style={{ marginBottom: '8px' }}>Fleet Strength</label>
-        <div className="w-full bg-black/40 rounded-full h-2 border border-white/10 mt-2">
-          <div
-            className={`h-full rounded-full transition-all duration-500 ${
-              fleet.faction === 'sith_empire' ? 'bg-red-500' : 'bg-yellow-400'
-            }`}
-            style={{ width: `${Math.min(fleet.shipCount / 2, 100)}%` }}
-          />
+        <label className="holo-label" style={{ marginBottom: '8px' }}>Fleet Strength</label>
+        <div className="flex gap-1 mt-2">
+          {Array.from({ length: totalSegments }).map((_, i) => (
+            <div
+              key={i}
+              className="flex-1 h-3 transition-all duration-300"
+              style={{
+                background: i < filledSegments ? segmentColor : 'rgba(200, 170, 110, 0.08)',
+                border: `1px solid ${i < filledSegments ? segmentColor : 'rgba(200, 170, 110, 0.15)'}`,
+                boxShadow: i < filledSegments ? `0 0 6px ${segmentColor}40` : 'none',
+                clipPath: 'polygon(2px 0%, calc(100% - 2px) 0%, 100% 2px, 100% calc(100% - 2px), calc(100% - 2px) 100%, 2px 100%, 0% calc(100% - 2px), 0% 2px)',
+                opacity: i < filledSegments ? 1 : 0.4,
+              }}
+            />
+          ))}
         </div>
-        <div className="text-xs text-gray-500 mt-1 text-right">
+        <div className="text-xs mt-1 text-right" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Orbitron, monospace', fontSize: '9px' }}>
           {fleet.shipCount < 50 ? 'Light' : fleet.shipCount < 100 ? 'Medium' : 'Heavy'} Task Force
         </div>
       </div>
@@ -309,7 +333,15 @@ function FleetInfo({ fleet }: { fleet: Fleet }) {
             setInfoPanelData(null);
             setSelectedFleet(null);
           }}
-          className="w-full mt-2 px-4 py-2 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 text-[12px] font-medium hover:bg-red-500/20 transition-colors"
+          className="w-full mt-2 px-4 py-2 border text-[12px] font-medium hover:bg-red-500/20 transition-colors"
+          style={{
+            borderColor: 'rgba(220, 20, 60, 0.3)',
+            background: 'rgba(220, 20, 60, 0.08)',
+            color: '#DC143C',
+            fontFamily: 'Orbitron, monospace',
+            fontSize: '10px',
+            clipPath: 'polygon(6px 0%, calc(100% - 6px) 0%, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0% calc(100% - 6px), 0% 6px)',
+          }}
         >
           Delete Custom Fleet
         </button>
@@ -330,26 +362,26 @@ function AnomalyInfo({ anomaly }: { anomaly: Anomaly }) {
     <div className="space-y-4">
       {/* Header */}
       <div className="pb-3">
-        <h2 className="text-xl font-semibold text-white mb-2">{anomaly.name}</h2>
-        <span className={`apple-badge border border-white/10 bg-white/5 ${typeColors[anomaly.type] || 'text-gray-400'}`}>
+        <h2 className="text-xl font-semibold mb-2" style={{ fontFamily: 'Orbitron, monospace', color: 'var(--holo-text-primary)' }}>{anomaly.name}</h2>
+        <span className={`holo-badge border border-white/10 bg-white/5 ${typeColors[anomaly.type] || 'text-gray-400'}`}>
           {anomaly.type.replace('_', ' ')}
         </span>
       </div>
 
-      <div className="apple-divider" />
+      <div className="holo-divider" />
 
       {/* Info */}
-      <div className="apple-info-grid">
+      <div className="holo-info-grid">
         <InfoRow label="Radius" value={`${anomaly.radius} parsecs`} />
       </div>
 
       {/* Description */}
-      <p className="text-gray-400 text-sm leading-relaxed">{anomaly.description}</p>
+      <p className="text-sm leading-relaxed" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Rajdhani, sans-serif' }}>{anomaly.description}</p>
 
       {/* Warning for dangerous anomalies */}
       {(anomaly.type === 'black_hole' || anomaly.type === 'nebula') && (
-        <div className="apple-info-grid bg-yellow-900/10 border-yellow-500/20">
-          <div className="flex items-center gap-2 text-yellow-500 text-xs font-bold">
+        <div className="holo-info-grid" style={{ background: 'rgba(200, 170, 110, 0.06)', borderColor: 'rgba(200, 170, 110, 0.2)' }}>
+          <div className="flex items-center gap-2 text-xs font-bold" style={{ color: 'var(--holo-amber)', fontFamily: 'Orbitron, monospace', fontSize: '9px' }}>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
@@ -366,8 +398,8 @@ function AnomalyInfo({ anomaly }: { anomaly: Anomaly }) {
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between text-sm">
-      <span className="text-gray-500">{label}</span>
-      <span className="text-gray-200">{value}</span>
+      <span style={{ color: 'var(--holo-text-muted)', fontFamily: 'Orbitron, monospace', fontSize: '10px' }}>{label}</span>
+      <span style={{ color: 'var(--holo-text-primary)', fontFamily: 'Rajdhani, sans-serif' }}>{value}</span>
     </div>
   );
 }
