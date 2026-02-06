@@ -1,5 +1,6 @@
 import { Suspense, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
+import { ThreeEvent } from '@react-three/fiber';
 import { Environment } from '@react-three/drei';
 import * as THREE from 'three';
 import { GalaxySkybox } from '@/components/three/ModelLoader';
@@ -29,7 +30,9 @@ function GalaxyContent() {
     viewMode,
     selectedSystemId,
     selectedFleetId,
-    fleets
+    fleets,
+    placementMode,
+    fleetPlacementMode,
   } = useGalaxyStore();
 
   useEffect(() => {
@@ -50,6 +53,7 @@ function GalaxyContent() {
   
   // Handle clicking on empty space to deselect
   const handleCanvasClick = () => {
+    if (placementMode || fleetPlacementMode) return; // Don't deselect during placement
     if (viewMode === 'system') {
       // Go back to galaxy view
       setSelectedSystem(null);
@@ -128,19 +132,75 @@ function GalaxyContent() {
 
 // Top-down view components (2D map with markers)
 function TopDownView() {
+  const { placementMode, pendingCustomPlanet, addCustomSystem, fleetPlacementMode, pendingCustomFleet, addCustomFleet } = useGalaxyStore();
+
+  const handlePlacementClick = (e: ThreeEvent<MouseEvent>) => {
+    if (placementMode && pendingCustomPlanet) {
+      e.stopPropagation();
+      const point = e.point;
+      const newSystem = {
+        id: `custom-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        name: pendingCustomPlanet.name,
+        position: new THREE.Vector3(point.x, 0, point.z),
+        faction: 'neutral' as const,
+        starType: 'white' as const,
+        importance: 'minor' as const,
+        description: `Custom planet: ${pendingCustomPlanet.name}`,
+        region: 'unknown_regions' as const,
+        isCustom: true,
+        customColor: pendingCustomPlanet.color,
+        planets: [{
+          id: `custom-${Date.now()}-planet`,
+          name: pendingCustomPlanet.name,
+          type: 'terrestrial' as const,
+          position: new THREE.Vector3(0, 0, 0),
+          radius: 1,
+          faction: 'neutral' as const,
+          description: `Custom planet: ${pendingCustomPlanet.name}`,
+          systemId: `custom-${Date.now()}`,
+        }],
+      };
+      addCustomSystem(newSystem);
+    } else if (fleetPlacementMode && pendingCustomFleet) {
+      e.stopPropagation();
+      const point = e.point;
+      const newFleet = {
+        id: `custom-fleet-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        name: pendingCustomFleet.name,
+        position: new THREE.Vector3(point.x, 0, point.z),
+        faction: pendingCustomFleet.faction,
+        shipCount: pendingCustomFleet.shipCount,
+        isCustom: true,
+      };
+      addCustomFleet(newFleet);
+    }
+  };
+
   return (
     <>
       {/* Procedural galaxy map background */}
       <GalaxyMapBackground />
-      
+
       {/* Anomalies (nebulae, black holes, stations) */}
       <AnomalyMarkers />
-      
+
       {/* Fleet markers */}
       <FleetMarkers />
-      
+
       {/* Top-down planet markers (placeholder dots, not 3D models) */}
       <TopDownMarkers />
+
+      {/* Invisible ground plane for placement clicks */}
+      {(placementMode || fleetPlacementMode) && (
+        <mesh
+          rotation={[-Math.PI / 2, 0, 0]}
+          position={[0, -0.1, 0]}
+          onClick={handlePlacementClick}
+        >
+          <planeGeometry args={[500, 500]} />
+          <meshBasicMaterial visible={false} />
+        </mesh>
+      )}
     </>
   );
 }

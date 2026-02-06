@@ -5,11 +5,13 @@ import type {
   Faction,
   SearchResult
 } from '@/types';
-import { 
-  starSystems, 
-  anomalies, 
-  fleets 
+import {
+  starSystems,
+  anomalies,
+  fleets
 } from '@/data/galaxyData';
+import { loadCustomSystems, saveCustomSystems } from '@/data/customPlanetStorage';
+import { loadCustomFleets, saveCustomFleets } from '@/data/customFleetStorage';
 
 export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
   // View state
@@ -36,10 +38,10 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
     viewMode: id ? 'fleet' : 'topdown',
   }),
   
-  // Data - use imported data
-  systems: starSystems,
+  // Data - use imported data merged with saved custom systems
+  systems: [...starSystems, ...loadCustomSystems()],
   anomalies: anomalies,
-  fleets: fleets,
+  fleets: [...fleets, ...loadCustomFleets()],
   
   // UI state
   showFleets: true,
@@ -122,16 +124,101 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
       // Search planets within systems
       system.planets.forEach((planet) => {
         if (planet.name.toLowerCase().includes(query)) {
-          results.push({ 
-            type: 'planet', 
-            id: planet.id, 
-            name: planet.name, 
-            parentName: system.name 
+          results.push({
+            type: 'planet',
+            id: planet.id,
+            name: planet.name,
+            parentName: system.name
           });
         }
       });
     });
-    
+
+    // Search fleets
+    state.fleets.forEach((fleet) => {
+      if (fleet.name.toLowerCase().includes(query)) {
+        results.push({ type: 'fleet', id: fleet.id, name: fleet.name });
+      }
+    });
+
     return results.slice(0, 10); // Limit to 10 results
   },
+
+  // Custom planet creation
+  placementMode: false,
+  pendingCustomPlanet: null,
+  draggingCustomPlanet: false,
+
+  setPlacementMode: (mode, pending = null) => set({
+    placementMode: mode,
+    pendingCustomPlanet: pending ?? null,
+    // Clear fleet placement if activating planet placement
+    ...(mode ? { fleetPlacementMode: false, pendingCustomFleet: null } : {}),
+  }),
+
+  setDraggingCustomPlanet: (dragging) => set({ draggingCustomPlanet: dragging }),
+
+  addCustomSystem: (system) => set((state) => {
+    const newSystems = [...state.systems, system];
+    saveCustomSystems(newSystems.filter(s => s.isCustom));
+    return { systems: newSystems, placementMode: false, pendingCustomPlanet: null };
+  }),
+
+  removeCustomSystem: (id) => set((state) => {
+    const newSystems = state.systems.filter(s => s.id !== id);
+    saveCustomSystems(newSystems.filter(s => s.isCustom));
+    return {
+      systems: newSystems,
+      infoPanelData: state.infoPanelData?.data && 'id' in state.infoPanelData.data && state.infoPanelData.data.id === id
+        ? null : state.infoPanelData,
+    };
+  }),
+
+  updateCustomSystemPosition: (id, position) => set((state) => {
+    const newSystems = state.systems.map(s =>
+      s.id === id ? { ...s, position: position.clone(), planets: s.planets.map(p => ({ ...p })) } : s
+    );
+    saveCustomSystems(newSystems.filter(s => s.isCustom));
+    return { systems: newSystems };
+  }),
+
+  // Custom fleet creation
+  fleetPlacementMode: false,
+  pendingCustomFleet: null,
+  draggingCustomFleet: false,
+
+  setFleetPlacementMode: (mode, pending = null) => set({
+    fleetPlacementMode: mode,
+    pendingCustomFleet: pending ?? null,
+    // Clear planet placement if activating fleet placement
+    ...(mode ? { placementMode: false, pendingCustomPlanet: null } : {}),
+  }),
+
+  setDraggingCustomFleet: (dragging) => set({ draggingCustomFleet: dragging }),
+
+  addCustomFleet: (fleet) => set((state) => {
+    const newFleets = [...state.fleets, fleet];
+    saveCustomFleets(newFleets.filter(f => f.isCustom));
+    return { fleets: newFleets, fleetPlacementMode: false, pendingCustomFleet: null };
+  }),
+
+  removeCustomFleet: (id) => set((state) => {
+    const newFleets = state.fleets.filter(f => f.id !== id);
+    saveCustomFleets(newFleets.filter(f => f.isCustom));
+    const isSelected = state.selectedFleetId === id;
+    return {
+      fleets: newFleets,
+      infoPanelData: state.infoPanelData?.data && 'id' in state.infoPanelData.data && state.infoPanelData.data.id === id
+        ? null : state.infoPanelData,
+      ...(isSelected ? { selectedFleetId: null, viewMode: 'topdown' as const } : {}),
+    };
+  }),
+
+  updateCustomFleetPosition: (id, position) => set((state) => {
+    const newFleets = state.fleets.map(f =>
+      f.id === id ? { ...f, position: position.clone() } : f
+    );
+    saveCustomFleets(newFleets.filter(f => f.isCustom));
+    return { fleets: newFleets };
+  }),
 }));

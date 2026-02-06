@@ -43,7 +43,7 @@ export function CameraController() {
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const { camera } = useThree();
   
-  const { viewMode, selectedSystemId, selectedPlanetId, selectedFleetId, systems, fleets } = useGalaxyStore();
+  const { viewMode, selectedSystemId, selectedPlanetId, selectedFleetId, systems, fleets, draggingCustomPlanet, draggingCustomFleet } = useGalaxyStore();
   
   // Target position for camera animation
   const targetPosition = useRef(new THREE.Vector3(0, 60, 120));
@@ -138,7 +138,7 @@ export function CameraController() {
       dampingFactor={0.08}
       minDistance={config.minDistance}
       maxDistance={config.maxDistance}
-      enablePan={true}
+      enablePan={!draggingCustomPlanet && !draggingCustomFleet}
       panSpeed={config.panSpeed}
       screenSpacePanning={true}
       enableZoom={viewMode !== 'topdown'}

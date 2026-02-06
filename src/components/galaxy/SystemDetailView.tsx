@@ -118,6 +118,7 @@ export function SystemDetailView({ system }: SystemDetailViewProps) {
         planet={planet}
         showLabels={showLabels}
         isDetailView={viewMode === 'system' && selectedPlanetId === planet.id}
+        customColor={system.customColor}
       />
     </group>
   );
@@ -128,9 +129,10 @@ interface StaticPlanetProps {
   planet: Planet;
   showLabels: boolean;
   isDetailView: boolean;
+  customColor?: string;
 }
 
-function StaticPlanet({ planet, showLabels, isDetailView }: StaticPlanetProps) {
+function StaticPlanet({ planet, showLabels, isDetailView, customColor }: StaticPlanetProps) {
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
   
@@ -143,11 +145,11 @@ function StaticPlanet({ planet, showLabels, isDetailView }: StaticPlanetProps) {
   // Generate procedural planet texture colors
   const planetMaterial = useMemo(() => {
     return {
-      color: appearance.color,
+      color: customColor || appearance.color,
       roughness: appearance.roughness,
       metalness: appearance.metalness,
     };
-  }, [appearance]);
+  }, [appearance, customColor]);
   
   
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
