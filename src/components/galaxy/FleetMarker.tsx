@@ -227,7 +227,7 @@ export function FleetMarker({ fleet }: FleetMarkerProps) {
           style={{ pointerEvents: 'none', userSelect: 'none' }}
         >
           <div
-            className="text-center whitespace-nowrap apple-tooltip"
+            className="text-center whitespace-nowrap holo-tooltip"
             style={{ minWidth: '100px' }}
           >
             <div className="font-medium text-white text-xs">{fleet.name}</div>

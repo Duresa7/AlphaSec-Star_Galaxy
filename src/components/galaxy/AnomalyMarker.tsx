@@ -172,7 +172,7 @@ export function AnomalyMarker({ anomaly }: AnomalyMarkerProps) {
           distanceFactor={30}
           style={{ pointerEvents: 'none', userSelect: 'none' }}
         >
-          <div className="text-center whitespace-nowrap apple-tooltip" style={{ minWidth: '100px' }}>
+          <div className="text-center whitespace-nowrap holo-tooltip" style={{ minWidth: '100px' }}>
             <div className="font-medium text-white text-xs">{anomaly.name}</div>
             <div className="text-[10px] text-gray-400 mt-0.5 capitalize">{anomaly.type.replace('_', ' ')}</div>
           </div>

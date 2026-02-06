@@ -236,7 +236,7 @@ function StaticPlanet({ planet, showLabels, isDetailView, customColor }: StaticP
           distanceFactor={10}
           style={{ pointerEvents: 'none', userSelect: 'none' }}
         >
-          <div className="text-center whitespace-nowrap apple-tooltip">
+          <div className="text-center whitespace-nowrap holo-tooltip">
             <div className="text-sm font-medium text-white">
               {planet.name}
             </div>
