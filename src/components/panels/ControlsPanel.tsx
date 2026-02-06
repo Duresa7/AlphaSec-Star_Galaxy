@@ -1,5 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import { useGalaxyStore } from '@/store/galaxyStore';
+import type { Faction } from '@/types';
+
+const FACTION_STAT_CONFIG: { key: Faction; label: string; color: string }[] = [
+  { key: 'galactic_republic', label: 'Republic', color: '#C8AA6E' },
+  { key: 'sith_empire', label: 'Sith Empire', color: '#DC143C' },
+  { key: 'hutt_cartel', label: 'Hutt Cartel', color: '#8B9A46' },
+  { key: 'neutral', label: 'Neutral', color: '#9E9E9E' },
+  { key: 'contested', label: 'Contested', color: '#FFA726' },
+];
 
 export function ControlsPanel() {
   const {
@@ -10,13 +19,16 @@ export function ControlsPanel() {
     toggleAnomalies,
     toggleLabels,
     currentYear,
+    setCurrentYear,
     viewMode,
     searchQuery,
     setSearchQuery,
     factionFilters,
     toggleFactionFilter,
     getSearchResults,
+    getFactionStats,
     setSelectedSystem,
+    setSelectedPlanet,
     setSelectedFleet,
     setInfoPanelData,
     systems,
@@ -33,10 +45,11 @@ export function ControlsPanel() {
   const [newPlanetColor, setNewPlanetColor] = useState('#4DD0E1');
   const [showFleetCreateForm, setShowFleetCreateForm] = useState(false);
   const [newFleetName, setNewFleetName] = useState('');
-  const [newFleetFaction, setNewFleetFaction] = useState<'sith_empire' | 'galactic_republic' | 'neutral' | 'contested'>('neutral');
+  const [newFleetFaction, setNewFleetFaction] = useState<Faction>('neutral');
   const [newFleetShipCount, setNewFleetShipCount] = useState(10);
   const searchRef = useRef<HTMLInputElement>(null);
   const searchResults = getSearchResults();
+  const factionStats = getFactionStats();
 
   // Handle search result selection
   const handleSelectResult = (result: { type: 'system' | 'planet' | 'fleet'; id: string; name: string; parentName?: string }) => {
@@ -52,6 +65,7 @@ export function ControlsPanel() {
         setSelectedSystem(system.id);
         const planet = system.planets.find(p => p.id === result.id);
         if (planet) {
+          setSelectedPlanet(planet.id);
           setInfoPanelData({ type: 'planet', data: planet });
         }
       }
@@ -101,30 +115,32 @@ export function ControlsPanel() {
 
         {/* Search Results Dropdown */}
         {isSearchFocused && searchResults.length > 0 && (
-          <div className="absolute top-full left-0 right-0 mt-2 holo-panel overflow-hidden z-50">
-            {searchResults.map((result) => (
-              <button
-                key={`${result.type}-${result.id}`}
-                onClick={() => handleSelectResult(result)}
-                className="w-full px-4 py-3 text-left hover:bg-amber-500/5 transition-colors flex items-center gap-3 border-b border-amber-500/10 last:border-0"
-              >
-                <span className={`text-[9px] font-semibold px-2 py-0.5 holo-badge ${
-                  result.type === 'system'
-                    ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
-                    : result.type === 'fleet'
-                    ? 'bg-red-500/15 text-red-400 border border-red-500/30'
-                    : 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30'
-                }`} style={{ fontFamily: 'Orbitron, monospace' }}>
-                  {result.type === 'system' ? 'SYS' : result.type === 'fleet' ? 'FLT' : 'PLN'}
-                </span>
-                <div className="flex flex-col">
-                  <span className="text-gray-100 text-[13px] font-medium" style={{ fontFamily: 'Rajdhani, sans-serif' }}>{result.name}</span>
-                  {result.parentName && (
-                    <span className="text-gray-500 text-[11px]">in {result.parentName}</span>
-                  )}
-                </div>
-              </button>
-            ))}
+          <div className="absolute top-full left-0 right-0 mt-2 z-50">
+            <div className="holo-panel overflow-hidden">
+              {searchResults.map((result) => (
+                <button
+                  key={`${result.type}-${result.id}`}
+                  onClick={() => handleSelectResult(result)}
+                  className="w-full px-4 py-3 text-left hover:bg-amber-500/5 transition-colors flex items-center gap-3 border-b border-amber-500/10 last:border-0"
+                >
+                  <span className={`text-[9px] font-semibold px-2 py-0.5 holo-badge ${
+                    result.type === 'system'
+                      ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                      : result.type === 'fleet'
+                      ? 'bg-red-500/15 text-red-400 border border-red-500/30'
+                      : 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30'
+                  }`} style={{ fontFamily: 'Orbitron, monospace' }}>
+                    {result.type === 'system' ? 'LOC' : result.type === 'fleet' ? 'FLT' : 'PLN'}
+                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-gray-100 text-[13px] font-medium" style={{ fontFamily: 'Rajdhani, sans-serif' }}>{result.name}</span>
+                    {result.parentName && (
+                      <span className="text-gray-500 text-[11px]">in {result.parentName}</span>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -133,7 +149,7 @@ export function ControlsPanel() {
       <div className="holo-panel" style={{ marginTop: '16px' }}>
         <label className="holo-label">Current View</label>
         <h2 className="text-lg font-semibold mt-2" style={{ fontFamily: 'Orbitron, monospace', color: 'var(--holo-text-primary)' }}>
-          {viewMode === 'topdown' ? 'Galaxy Map' : (viewMode === 'system' ? 'System View' : 'Fleet View')}
+          {viewMode === 'topdown' ? 'Galaxy Map' : (viewMode === 'system' ? 'Planet View' : 'Fleet View')}
         </h2>
         {viewMode !== 'topdown' && (
           <button
@@ -153,7 +169,7 @@ export function ControlsPanel() {
         )}
       </div>
 
-      {/* Timeline */}
+      {/* Timeline with Year Slider */}
       <div className="holo-panel" style={{ marginTop: '16px' }}>
         <div className="flex items-center justify-between">
           <div>
@@ -164,6 +180,84 @@ export function ControlsPanel() {
             <span className="text-lg font-semibold" style={{ fontFamily: 'Orbitron, monospace', color: 'var(--holo-amber)' }}>{currentYear}</span>
             <span className="text-[11px] ml-1" style={{ color: 'var(--holo-text-muted)' }}>BBY</span>
           </div>
+        </div>
+        {/* Year slider */}
+        <div className="mt-3">
+          <input
+            type="range"
+            min={3900}
+            max={4100}
+            value={currentYear}
+            onChange={(e) => setCurrentYear(parseInt(e.target.value))}
+            className="holo-slider w-full"
+          />
+          <div className="flex justify-between mt-1">
+            <span style={{ fontFamily: 'Orbitron, monospace', fontSize: '8px', color: 'var(--holo-text-muted)' }}>3900</span>
+            <span style={{ fontFamily: 'Orbitron, monospace', fontSize: '8px', color: 'var(--holo-text-muted)' }}>4100</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Galaxy Overview — Faction Stats */}
+      <div className="holo-panel" style={{ marginTop: '16px' }}>
+        <label className="holo-label" style={{ marginBottom: '10px' }}>
+          <span style={{ color: 'var(--holo-cyan)', opacity: 0.5 }}>&#9668; </span>
+          Galaxy Overview
+          <span style={{ color: 'var(--holo-cyan)', opacity: 0.5 }}> &#9658;</span>
+        </label>
+
+        <div className="space-y-2">
+          {FACTION_STAT_CONFIG.map(({ key, label, color }) => {
+            const stats = factionStats[key];
+            if (!stats || (stats.planets === 0 && stats.fleetShips === 0)) return null;
+            return (
+              <div
+                key={key}
+                className="flex items-center gap-3 py-2 px-2"
+                style={{
+                  background: 'rgba(200, 170, 110, 0.03)',
+                  border: '1px solid rgba(200, 170, 110, 0.08)',
+                  clipPath: 'polygon(4px 0%, calc(100% - 4px) 0%, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 0% calc(100% - 4px), 0% 4px)',
+                }}
+              >
+                {/* Faction diamond indicator */}
+                <div
+                  className="w-2.5 h-2.5 flex-shrink-0"
+                  style={{
+                    backgroundColor: color,
+                    clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
+                    boxShadow: `0 0 6px ${color}60`,
+                  }}
+                />
+                {/* Faction name */}
+                <span
+                  className="flex-1 text-[11px] font-medium"
+                  style={{ fontFamily: 'Rajdhani, sans-serif', color }}
+                >
+                  {label}
+                </span>
+                {/* Stats */}
+                <div className="flex gap-3 text-right">
+                  <div className="text-center">
+                    <div style={{ fontFamily: 'Orbitron, monospace', fontSize: '11px', color: 'var(--holo-text-primary)' }}>
+                      {stats.planets}
+                    </div>
+                    <div style={{ fontFamily: 'Orbitron, monospace', fontSize: '7px', color: 'var(--holo-text-muted)' }}>
+                      PLN
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div style={{ fontFamily: 'Orbitron, monospace', fontSize: '11px', color: 'var(--holo-text-primary)' }}>
+                      {stats.fleetShips}
+                    </div>
+                    <div style={{ fontFamily: 'Orbitron, monospace', fontSize: '7px', color: 'var(--holo-text-muted)' }}>
+                      SHIPS
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -307,13 +401,14 @@ export function ControlsPanel() {
                 <label className="text-[11px] uppercase tracking-wide" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Orbitron, monospace', fontSize: '9px' }}>Faction</label>
                 <select
                   value={newFleetFaction}
-                  onChange={(e) => setNewFleetFaction(e.target.value as typeof newFleetFaction)}
+                  onChange={(e) => setNewFleetFaction(e.target.value as Faction)}
                   className="holo-input flex-1 px-2 py-1.5 text-[12px]"
                   style={{ background: 'rgba(5, 5, 8, 0.7)' }}
                 >
                   <option value="neutral">Neutral</option>
                   <option value="galactic_republic">Republic</option>
                   <option value="sith_empire">Sith Empire</option>
+                  <option value="hutt_cartel">Hutt Cartel</option>
                   <option value="contested">Contested</option>
                 </select>
               </div>
@@ -399,6 +494,12 @@ export function ControlsPanel() {
             color="red"
           />
           <FilterBox
+            active={factionFilters.hutt_cartel}
+            onClick={() => toggleFactionFilter('hutt_cartel')}
+            label="Hutts"
+            color="olive"
+          />
+          <FilterBox
             active={factionFilters.neutral}
             onClick={() => toggleFactionFilter('neutral')}
             label="Neutral"
@@ -453,7 +554,7 @@ interface FilterBoxProps {
   active: boolean;
   onClick: () => void;
   label: string;
-  color?: 'blue' | 'yellow' | 'red' | 'orange' | 'gray' | 'purple' | 'cyan';
+  color?: 'blue' | 'yellow' | 'red' | 'orange' | 'gray' | 'purple' | 'cyan' | 'olive';
 }
 
 function FilterBox({ active, onClick, label, color = 'blue' }: FilterBoxProps) {
@@ -482,7 +583,7 @@ function FilterBox({ active, onClick, label, color = 'blue' }: FilterBoxProps) {
 
       {/* Label */}
       <span
-        className={`text-[10px] font-medium tracking-wider uppercase ${active ? '' : ''}`}
+        className="text-[10px] font-medium tracking-wider uppercase"
         style={{
           fontFamily: 'Orbitron, monospace',
           color: active ? activeColor : 'rgba(200, 170, 110, 0.35)',
@@ -512,4 +613,5 @@ const colorMap: Record<string, string> = {
   gray: '#9E9E9E',
   purple: '#AB47BC',
   cyan: '#00F0FF',
+  olive: '#8B9A46',
 };

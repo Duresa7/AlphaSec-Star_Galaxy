@@ -4,6 +4,7 @@ import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { useGalaxyStore } from '@/store/galaxyStore';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
+import { shouldRecenterTopdown } from '@/components/three/cameraTransition';
 
 // Camera distances for different view modes
 const CAMERA_CONFIG = {
@@ -44,6 +45,7 @@ export function CameraController() {
   const { camera } = useThree();
   
   const { viewMode, selectedSystemId, selectedPlanetId, selectedFleetId, systems, fleets, draggingCustomPlanet, draggingCustomFleet } = useGalaxyStore();
+  const previousViewModeRef = useRef<'topdown' | 'system' | 'fleet' | null>(null);
   
   // Target position for camera animation
   const targetPosition = useRef(new THREE.Vector3(0, 60, 120));
@@ -52,10 +54,21 @@ export function CameraController() {
   
   // Update camera target when selection changes
   useEffect(() => {
-    isAnimating.current = true;
-    
     // Default to system config if fleet config not found (shouldn't happen with proper TS)
     const config = CAMERA_CONFIG[viewMode] || CAMERA_CONFIG.system;
+    const previousViewMode = previousViewModeRef.current;
+    previousViewModeRef.current = viewMode;
+
+    // Keep current panned position in top-down while data updates (dragging custom objects).
+    // Recenter only when transitioning into top-down from another view mode.
+    const shouldRecenter = shouldRecenterTopdown(viewMode, previousViewMode);
+    if (!shouldRecenter && viewMode === 'topdown') {
+      isAnimating.current = false;
+      camera.position.y = CAMERA_CONFIG.topdown.height;
+      return;
+    }
+
+    isAnimating.current = true;
     
     if (viewMode === 'topdown') {
       // Top-down view: camera directly above origin, looking down
