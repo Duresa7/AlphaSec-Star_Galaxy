@@ -81,8 +81,12 @@ export function ControlsPanel() {
     <div className="absolute left-5 top-5 space-y-5 max-h-[calc(100vh-3rem)] overflow-y-auto w-[280px] animate-slide-in-left pb-4">
       {/* Search Box */}
       <div ref={searchRef} className="relative z-50">
-        <div className="apple-card">
-          <label className="section-label" style={{ marginBottom: '12px' }}>Navigation</label>
+        <div className="holo-panel">
+          <label className="holo-label" style={{ marginBottom: '12px' }}>
+            <span style={{ color: 'var(--holo-amber)', opacity: 0.5 }}>&#9668; </span>
+            Navigation
+            <span style={{ color: 'var(--holo-amber)', opacity: 0.5 }}> &#9658;</span>
+          </label>
           <div className="relative">
             <input
               type="text"
@@ -90,31 +94,31 @@ export function ControlsPanel() {
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setIsSearchFocused(true)}
               placeholder=""
-              className="apple-input w-full px-4 py-2.5 text-[14px]"
+              className="holo-input w-full px-4 py-2.5 text-[14px]"
             />
           </div>
         </div>
 
         {/* Search Results Dropdown */}
         {isSearchFocused && searchResults.length > 0 && (
-          <div className="absolute top-full left-0 right-0 mt-2 apple-card overflow-hidden z-50">
+          <div className="absolute top-full left-0 right-0 mt-2 holo-panel overflow-hidden z-50">
             {searchResults.map((result) => (
               <button
                 key={`${result.type}-${result.id}`}
                 onClick={() => handleSelectResult(result)}
-                className="w-full px-4 py-3 text-left hover:bg-white/5 transition-colors flex items-center gap-3 border-b border-white/5 last:border-0"
+                className="w-full px-4 py-3 text-left hover:bg-amber-500/5 transition-colors flex items-center gap-3 border-b border-amber-500/10 last:border-0"
               >
-                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md ${
+                <span className={`text-[9px] font-semibold px-2 py-0.5 holo-badge ${
                   result.type === 'system'
-                    ? 'bg-amber-500/10 text-amber-400'
+                    ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
                     : result.type === 'fleet'
-                    ? 'bg-red-500/10 text-red-400'
-                    : 'bg-blue-500/10 text-blue-400'
-                }`}>
+                    ? 'bg-red-500/15 text-red-400 border border-red-500/30'
+                    : 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30'
+                }`} style={{ fontFamily: 'Orbitron, monospace' }}>
                   {result.type === 'system' ? 'SYS' : result.type === 'fleet' ? 'FLT' : 'PLN'}
                 </span>
                 <div className="flex flex-col">
-                  <span className="text-gray-100 text-[13px] font-medium">{result.name}</span>
+                  <span className="text-gray-100 text-[13px] font-medium" style={{ fontFamily: 'Rajdhani, sans-serif' }}>{result.name}</span>
                   {result.parentName && (
                     <span className="text-gray-500 text-[11px]">in {result.parentName}</span>
                   )}
@@ -126,9 +130,9 @@ export function ControlsPanel() {
       </div>
 
       {/* View Status */}
-      <div className="apple-card" style={{ marginTop: '16px' }}>
-        <label className="section-label">Current View</label>
-        <h2 className="text-lg font-semibold text-white mt-2">
+      <div className="holo-panel" style={{ marginTop: '16px' }}>
+        <label className="holo-label">Current View</label>
+        <h2 className="text-lg font-semibold mt-2" style={{ fontFamily: 'Orbitron, monospace', color: 'var(--holo-text-primary)' }}>
           {viewMode === 'topdown' ? 'Galaxy Map' : (viewMode === 'system' ? 'System View' : 'Fleet View')}
         </h2>
         {viewMode !== 'topdown' && (
@@ -138,7 +142,7 @@ export function ControlsPanel() {
               setSelectedFleet(null);
               setInfoPanelData(null);
             }}
-            className="apple-button-secondary mt-4 w-full"
+            className="holo-button mt-4 w-full"
             style={{ padding: '6px 16px' }}
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -150,33 +154,38 @@ export function ControlsPanel() {
       </div>
 
       {/* Timeline */}
-      <div className="apple-card" style={{ marginTop: '16px' }}>
+      <div className="holo-panel" style={{ marginTop: '16px' }}>
         <div className="flex items-center justify-between">
           <div>
-            <label className="section-label">Timeline</label>
-            <p className="text-[13px] text-gray-400 mt-1">Old Republic Era</p>
+            <label className="holo-label">Timeline</label>
+            <p className="text-[13px] mt-1" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Rajdhani, sans-serif' }}>Old Republic Era</p>
           </div>
           <div className="text-right">
-            <span className="text-lg font-semibold text-amber-400">{currentYear}</span>
-            <span className="text-[11px] text-gray-500 ml-1">BBY</span>
+            <span className="text-lg font-semibold" style={{ fontFamily: 'Orbitron, monospace', color: 'var(--holo-amber)' }}>{currentYear}</span>
+            <span className="text-[11px] ml-1" style={{ color: 'var(--holo-text-muted)' }}>BBY</span>
           </div>
         </div>
       </div>
 
       {/* Custom Planets */}
       {viewMode === 'topdown' && (
-        <div className="apple-card" style={{ marginTop: '16px' }}>
-          <label className="section-label">Custom Planets</label>
+        <div className="holo-panel" style={{ marginTop: '16px' }}>
+          <label className="holo-label">
+            <span style={{ color: 'var(--holo-cyan)', opacity: 0.5 }}>&#9668; </span>
+            Custom Planets
+            <span style={{ color: 'var(--holo-cyan)', opacity: 0.5 }}> &#9658;</span>
+          </label>
 
           {/* Placement mode indicator */}
           {placementMode && (
-            <div className="mt-3 p-3 rounded-xl border border-cyan-500/30 bg-cyan-500/10">
-              <p className="text-cyan-300 text-[12px] font-medium animate-pulse">
+            <div className="mt-3 p-3 border" style={{ borderColor: 'rgba(0, 240, 255, 0.3)', background: 'rgba(0, 240, 255, 0.05)', clipPath: 'polygon(6px 0%, calc(100% - 6px) 0%, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0% calc(100% - 6px), 0% 6px)' }}>
+              <p className="text-[12px] font-medium animate-pulse" style={{ color: 'var(--holo-cyan)', fontFamily: 'Orbitron, monospace', fontSize: '10px' }}>
                 Click on the map to place your planet
               </p>
               <button
                 onClick={() => setPlacementMode(false)}
-                className="mt-2 text-[11px] text-gray-400 hover:text-white transition-colors"
+                className="mt-2 text-[11px] hover:text-white transition-colors"
+                style={{ color: 'var(--holo-text-muted)' }}
               >
                 Cancel
               </button>
@@ -191,21 +200,22 @@ export function ControlsPanel() {
                 value={newPlanetName}
                 onChange={(e) => setNewPlanetName(e.target.value)}
                 placeholder="Planet name"
-                className="apple-input w-full px-3 py-2 text-[13px]"
+                className="holo-input w-full px-3 py-2 text-[13px]"
                 maxLength={30}
                 autoFocus
               />
               <div className="flex items-center gap-3">
-                <label className="text-[11px] text-gray-400 uppercase tracking-wide">Color</label>
+                <label className="text-[11px] uppercase tracking-wide" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Orbitron, monospace', fontSize: '9px' }}>Color</label>
                 <input
                   type="color"
                   value={newPlanetColor}
                   onChange={(e) => setNewPlanetColor(e.target.value)}
-                  className="w-8 h-8 rounded-lg border border-white/10 cursor-pointer bg-transparent"
+                  className="w-8 h-8 border cursor-pointer bg-transparent"
+                  style={{ borderColor: 'rgba(200, 170, 110, 0.2)' }}
                 />
                 <div
-                  className="w-4 h-4 rounded-full border border-white/20"
-                  style={{ backgroundColor: newPlanetColor, boxShadow: `0 0 8px ${newPlanetColor}60` }}
+                  className="w-4 h-4"
+                  style={{ backgroundColor: newPlanetColor, boxShadow: `0 0 8px ${newPlanetColor}60`, clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)' }}
                 />
               </div>
               <div className="flex gap-2">
@@ -217,17 +227,18 @@ export function ControlsPanel() {
                     }
                   }}
                   disabled={!newPlanetName.trim()}
-                  className="apple-button-secondary flex-1 disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="holo-button flex-1 disabled:opacity-30 disabled:cursor-not-allowed"
                   style={{ padding: '6px 12px' }}
                 >
-                  <span className="text-[12px]">Place on Map</span>
+                  <span className="text-[11px]">Place on Map</span>
                 </button>
                 <button
                   onClick={() => {
                     setShowCreateForm(false);
                     setNewPlanetName('');
                   }}
-                  className="text-[12px] text-gray-400 hover:text-white transition-colors px-3"
+                  className="text-[12px] hover:text-white transition-colors px-3"
+                  style={{ color: 'var(--holo-text-muted)' }}
                 >
                   Cancel
                 </button>
@@ -236,7 +247,7 @@ export function ControlsPanel() {
           ) : !placementMode && (
             <button
               onClick={() => setShowCreateForm(true)}
-              className="apple-button-secondary mt-3 w-full"
+              className="holo-button mt-3 w-full"
               style={{ padding: '6px 16px' }}
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -248,7 +259,7 @@ export function ControlsPanel() {
 
           {/* Count of custom planets */}
           {systems.filter(s => s.isCustom).length > 0 && (
-            <p className="text-[11px] text-gray-500 mt-2">
+            <p className="text-[11px] mt-2" style={{ color: 'var(--holo-text-muted)' }}>
               {systems.filter(s => s.isCustom).length} custom planet{systems.filter(s => s.isCustom).length !== 1 ? 's' : ''} placed
             </p>
           )}
@@ -257,18 +268,23 @@ export function ControlsPanel() {
 
       {/* Custom Fleets */}
       {viewMode === 'topdown' && (
-        <div className="apple-card" style={{ marginTop: '16px' }}>
-          <label className="section-label">Custom Fleets</label>
+        <div className="holo-panel" style={{ marginTop: '16px' }}>
+          <label className="holo-label">
+            <span style={{ color: 'var(--holo-crimson)', opacity: 0.5 }}>&#9668; </span>
+            Custom Fleets
+            <span style={{ color: 'var(--holo-crimson)', opacity: 0.5 }}> &#9658;</span>
+          </label>
 
           {/* Placement mode indicator */}
           {fleetPlacementMode && (
-            <div className="mt-3 p-3 rounded-xl border border-cyan-500/30 bg-cyan-500/10">
-              <p className="text-cyan-300 text-[12px] font-medium animate-pulse">
+            <div className="mt-3 p-3 border" style={{ borderColor: 'rgba(0, 240, 255, 0.3)', background: 'rgba(0, 240, 255, 0.05)', clipPath: 'polygon(6px 0%, calc(100% - 6px) 0%, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0% calc(100% - 6px), 0% 6px)' }}>
+              <p className="text-[12px] font-medium animate-pulse" style={{ color: 'var(--holo-cyan)', fontFamily: 'Orbitron, monospace', fontSize: '10px' }}>
                 Click on the map to place your fleet
               </p>
               <button
                 onClick={() => setFleetPlacementMode(false)}
-                className="mt-2 text-[11px] text-gray-400 hover:text-white transition-colors"
+                className="mt-2 text-[11px] hover:text-white transition-colors"
+                style={{ color: 'var(--holo-text-muted)' }}
               >
                 Cancel
               </button>
@@ -283,16 +299,17 @@ export function ControlsPanel() {
                 value={newFleetName}
                 onChange={(e) => setNewFleetName(e.target.value)}
                 placeholder="Fleet name"
-                className="apple-input w-full px-3 py-2 text-[13px]"
+                className="holo-input w-full px-3 py-2 text-[13px]"
                 maxLength={30}
                 autoFocus
               />
               <div className="flex items-center gap-3">
-                <label className="text-[11px] text-gray-400 uppercase tracking-wide">Faction</label>
+                <label className="text-[11px] uppercase tracking-wide" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Orbitron, monospace', fontSize: '9px' }}>Faction</label>
                 <select
                   value={newFleetFaction}
                   onChange={(e) => setNewFleetFaction(e.target.value as typeof newFleetFaction)}
-                  className="apple-input flex-1 px-2 py-1.5 text-[12px] bg-black/30"
+                  className="holo-input flex-1 px-2 py-1.5 text-[12px]"
+                  style={{ background: 'rgba(5, 5, 8, 0.7)' }}
                 >
                   <option value="neutral">Neutral</option>
                   <option value="galactic_republic">Republic</option>
@@ -301,14 +318,14 @@ export function ControlsPanel() {
                 </select>
               </div>
               <div className="flex items-center gap-3">
-                <label className="text-[11px] text-gray-400 uppercase tracking-wide">Ships</label>
+                <label className="text-[11px] uppercase tracking-wide" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Orbitron, monospace', fontSize: '9px' }}>Ships</label>
                 <input
                   type="number"
                   value={newFleetShipCount}
                   onChange={(e) => setNewFleetShipCount(Math.max(1, parseInt(e.target.value) || 1))}
                   min={1}
                   max={500}
-                  className="apple-input flex-1 px-2 py-1.5 text-[12px]"
+                  className="holo-input flex-1 px-2 py-1.5 text-[12px]"
                 />
               </div>
               <div className="flex gap-2">
@@ -320,17 +337,18 @@ export function ControlsPanel() {
                     }
                   }}
                   disabled={!newFleetName.trim()}
-                  className="apple-button-secondary flex-1 disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="holo-button flex-1 disabled:opacity-30 disabled:cursor-not-allowed"
                   style={{ padding: '6px 12px' }}
                 >
-                  <span className="text-[12px]">Place on Map</span>
+                  <span className="text-[11px]">Place on Map</span>
                 </button>
                 <button
                   onClick={() => {
                     setShowFleetCreateForm(false);
                     setNewFleetName('');
                   }}
-                  className="text-[12px] text-gray-400 hover:text-white transition-colors px-3"
+                  className="text-[12px] hover:text-white transition-colors px-3"
+                  style={{ color: 'var(--holo-text-muted)' }}
                 >
                   Cancel
                 </button>
@@ -339,7 +357,7 @@ export function ControlsPanel() {
           ) : !fleetPlacementMode && (
             <button
               onClick={() => setShowFleetCreateForm(true)}
-              className="apple-button-secondary mt-3 w-full"
+              className="holo-button mt-3 w-full"
               style={{ padding: '6px 16px' }}
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -351,7 +369,7 @@ export function ControlsPanel() {
 
           {/* Count of custom fleets */}
           {fleets.filter(f => f.isCustom).length > 0 && (
-            <p className="text-[11px] text-gray-500 mt-2">
+            <p className="text-[11px] mt-2" style={{ color: 'var(--holo-text-muted)' }}>
               {fleets.filter(f => f.isCustom).length} custom fleet{fleets.filter(f => f.isCustom).length !== 1 ? 's' : ''} placed
             </p>
           )}
@@ -359,8 +377,12 @@ export function ControlsPanel() {
       )}
 
       {/* Filter Groups */}
-      <div className="apple-card space-y-4" style={{ marginTop: '16px' }}>
-        <label className="section-label">Filters</label>
+      <div className="holo-panel space-y-4" style={{ marginTop: '16px' }}>
+        <label className="holo-label">
+          <span style={{ color: 'var(--holo-amber)', opacity: 0.5 }}>&#9668; </span>
+          Filters
+          <span style={{ color: 'var(--holo-amber)', opacity: 0.5 }}> &#9658;</span>
+        </label>
 
         {/* Faction Filters */}
         <div className="grid grid-cols-2 gap-2">
@@ -390,10 +412,10 @@ export function ControlsPanel() {
           />
         </div>
 
-        <div className="h-px bg-white/5 my-3" />
+        <div className="holo-divider" />
 
-        <label className="section-label mb-2">Layers</label>
-        
+        <label className="holo-label mb-2">Layers</label>
+
         {/* Layer toggles */}
         <div className="grid grid-cols-2 gap-2">
           <FilterBox
@@ -424,7 +446,7 @@ export function ControlsPanel() {
 
 // -----------------------------------------------------------------------------
 // Component: FilterBox
-// A clickable box that toggles state, replacing the list-style switches
+// KOTOR-style angular filter toggle
 // -----------------------------------------------------------------------------
 
 interface FilterBoxProps {
@@ -436,40 +458,44 @@ interface FilterBoxProps {
 
 function FilterBox({ active, onClick, label, color = 'blue' }: FilterBoxProps) {
   const activeColor = colorMap[color];
-  
+
   return (
     <button
       onClick={onClick}
-      className={`
-        relative flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-200
-        ${active 
-          ? 'bg-white/10 border-white/20 shadow-[0_0_15px_rgba(0,0,0,0.3)]' 
-          : 'bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10 text-gray-400'
-        }
-      `}
+      className="relative flex flex-col items-center justify-center p-3 border transition-all duration-200"
       style={{
-        boxShadow: active ? `0 0 0 1px ${activeColor}40, inset 0 0 20px ${activeColor}10` : 'none',
-        borderColor: active ? `${activeColor}60` : undefined
+        background: active ? `rgba(200, 170, 110, 0.08)` : 'rgba(5, 5, 8, 0.5)',
+        borderColor: active ? `${activeColor}60` : 'rgba(200, 170, 110, 0.1)',
+        boxShadow: active ? `0 0 0 1px ${activeColor}30, 0 0 12px ${activeColor}15` : 'none',
+        clipPath: 'polygon(6px 0%, calc(100% - 6px) 0%, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0% calc(100% - 6px), 0% 6px)',
       }}
     >
-      {/* Indicator Dot */}
-      <div 
-        className={`w-2 h-2 rounded-full mb-2 transition-all duration-300 ${active ? 'scale-110' : 'scale-90 opacity-50'}`}
-        style={{ 
+      {/* Indicator — diamond shape */}
+      <div
+        className={`w-2 h-2 mb-2 transition-all duration-300 ${active ? 'scale-110' : 'scale-90 opacity-50'}`}
+        style={{
           backgroundColor: active ? activeColor : '#666',
-          boxShadow: active ? `0 0 8px ${activeColor}` : 'none'
-        }} 
+          boxShadow: active ? `0 0 8px ${activeColor}` : 'none',
+          clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
+        }}
       />
-      
+
       {/* Label */}
-      <span className={`text-[11px] font-medium tracking-wide uppercase ${active ? 'text-white' : 'text-gray-500'}`}>
+      <span
+        className={`text-[10px] font-medium tracking-wider uppercase ${active ? '' : ''}`}
+        style={{
+          fontFamily: 'Orbitron, monospace',
+          color: active ? activeColor : 'rgba(200, 170, 110, 0.35)',
+          textShadow: active ? `0 0 6px ${activeColor}40` : 'none',
+        }}
+      >
         {label}
       </span>
-      
-      {/* Active Glow Background (Subtle) */}
+
+      {/* Active Glow Background */}
       {active && (
-        <div 
-          className="absolute inset-0 rounded-xl opacity-20 pointer-events-none"
+        <div
+          className="absolute inset-0 opacity-15 pointer-events-none"
           style={{ background: `radial-gradient(circle at center, ${activeColor}, transparent 70%)` }}
         />
       )}
@@ -480,10 +506,10 @@ function FilterBox({ active, onClick, label, color = 'blue' }: FilterBoxProps) {
 // Color map for toggle colors
 const colorMap: Record<string, string> = {
   blue: '#64B5F6',
-  yellow: '#FFD54F',
-  red: '#EF5350',
+  yellow: '#C8AA6E',
+  red: '#DC143C',
   orange: '#FFA726',
   gray: '#9E9E9E',
   purple: '#AB47BC',
-  cyan: '#4DD0E1',
+  cyan: '#00F0FF',
 };
