@@ -66,18 +66,27 @@ export function InfoPanel() {
 }
 
 function SystemInfo({ system }: { system: StarSystem }) {
+  const { removeCustomSystem, setInfoPanelData, setSelectedSystem } = useGalaxyStore();
+
   return (
     <div className="space-y-4">
       {/* Header */}
       <div className="pb-3">
         <h2 className="text-xl font-semibold text-white mb-2">{system.name}</h2>
-        <span className={`apple-badge ${
-          system.faction === 'sith_empire' ? 'bg-red-500/20 text-red-300 border border-red-500/30' :
-          system.faction === 'galactic_republic' ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' :
-          'bg-gray-500/20 text-gray-300 border border-gray-500/30'
-        }`}>
-          {FACTION_LABELS[system.faction]}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className={`apple-badge ${
+            system.faction === 'sith_empire' ? 'bg-red-500/20 text-red-300 border border-red-500/30' :
+            system.faction === 'galactic_republic' ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' :
+            'bg-gray-500/20 text-gray-300 border border-gray-500/30'
+          }`}>
+            {FACTION_LABELS[system.faction]}
+          </span>
+          {system.isCustom && (
+            <span className="apple-badge bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+              Custom
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="apple-divider" />
@@ -129,6 +138,20 @@ function SystemInfo({ system }: { system: StarSystem }) {
         <div className="text-xs text-gray-500 text-center animate-pulse">
           Click again to enter system view
         </div>
+      )}
+
+      {/* Delete button for custom planets */}
+      {system.isCustom && (
+        <button
+          onClick={() => {
+            removeCustomSystem(system.id);
+            setInfoPanelData(null);
+            setSelectedSystem(null);
+          }}
+          className="w-full mt-2 px-4 py-2 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 text-[12px] font-medium hover:bg-red-500/20 transition-colors"
+        >
+          Delete Custom Planet
+        </button>
       )}
     </div>
   );
@@ -224,6 +247,8 @@ function PlanetInfo({ planet }: { planet: Planet }) {
 }
 
 function FleetInfo({ fleet }: { fleet: Fleet }) {
+  const { removeCustomFleet, setInfoPanelData, setSelectedFleet } = useGalaxyStore();
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -235,13 +260,20 @@ function FleetInfo({ fleet }: { fleet: Fleet }) {
           }`} />
           <h2 className="text-xl font-semibold text-white">{fleet.name}</h2>
         </div>
-        <span className={`apple-badge ${
-          fleet.faction === 'sith_empire' ? 'bg-red-500/20 text-red-300 border border-red-500/30' :
-          fleet.faction === 'galactic_republic' ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' :
-          'bg-gray-500/20 text-gray-300 border border-gray-500/30'
-        }`}>
-          {FACTION_LABELS[fleet.faction]}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className={`apple-badge ${
+            fleet.faction === 'sith_empire' ? 'bg-red-500/20 text-red-300 border border-red-500/30' :
+            fleet.faction === 'galactic_republic' ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' :
+            'bg-gray-500/20 text-gray-300 border border-gray-500/30'
+          }`}>
+            {FACTION_LABELS[fleet.faction]}
+          </span>
+          {fleet.isCustom && (
+            <span className="apple-badge bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+              Custom
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="apple-divider" />
@@ -268,6 +300,20 @@ function FleetInfo({ fleet }: { fleet: Fleet }) {
           {fleet.shipCount < 50 ? 'Light' : fleet.shipCount < 100 ? 'Medium' : 'Heavy'} Task Force
         </div>
       </div>
+
+      {/* Delete button for custom fleets */}
+      {fleet.isCustom && (
+        <button
+          onClick={() => {
+            removeCustomFleet(fleet.id);
+            setInfoPanelData(null);
+            setSelectedFleet(null);
+          }}
+          className="w-full mt-2 px-4 py-2 rounded-xl border border-red-500/30 bg-red-500/10 text-red-400 text-[12px] font-medium hover:bg-red-500/20 transition-colors"
+        >
+          Delete Custom Fleet
+        </button>
+      )}
     </div>
   );
 }

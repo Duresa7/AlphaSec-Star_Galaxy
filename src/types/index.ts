@@ -59,6 +59,8 @@ export interface StarSystem {
   importance: 'capital' | 'major' | 'minor' | 'outpost';
   description: string;
   region: GalaxyRegion;
+  isCustom?: boolean;
+  customColor?: string;
 }
 
 // Galaxy regions
@@ -94,6 +96,7 @@ export interface Fleet {
   flagship?: string;
   commander?: string;
   systemId?: string;
+  isCustom?: boolean;
 }
 
 // UI Panel types
@@ -104,7 +107,7 @@ export interface InfoPanelData {
 
 // Search result type
 export interface SearchResult {
-  type: 'system' | 'planet';
+  type: 'system' | 'planet' | 'fleet';
   id: string;
   name: string;
   parentName?: string;
@@ -156,4 +159,24 @@ export interface GalaxyStore {
   // Computed getters
   getFilteredSystems: () => StarSystem[];
   getSearchResults: () => SearchResult[];
+
+  // Custom planet creation
+  placementMode: boolean;
+  pendingCustomPlanet: { name: string; color: string } | null;
+  setPlacementMode: (mode: boolean, pending?: { name: string; color: string } | null) => void;
+  addCustomSystem: (system: StarSystem) => void;
+  removeCustomSystem: (id: string) => void;
+  updateCustomSystemPosition: (id: string, position: THREE.Vector3) => void;
+  draggingCustomPlanet: boolean;
+  setDraggingCustomPlanet: (dragging: boolean) => void;
+
+  // Custom fleet creation
+  fleetPlacementMode: boolean;
+  pendingCustomFleet: { name: string; faction: Faction; shipCount: number } | null;
+  setFleetPlacementMode: (mode: boolean, pending?: { name: string; faction: Faction; shipCount: number } | null) => void;
+  addCustomFleet: (fleet: Fleet) => void;
+  removeCustomFleet: (id: string) => void;
+  updateCustomFleetPosition: (id: string, position: THREE.Vector3) => void;
+  draggingCustomFleet: boolean;
+  setDraggingCustomFleet: (dragging: boolean) => void;
 }
