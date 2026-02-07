@@ -1,15 +1,14 @@
+import * as THREE from 'three';
 import { create } from 'zustand';
 import type {
   GalaxyStore,
   InfoPanelData,
   Faction,
   SearchResult,
+  Planet,
+  PlanetStatsUpdate,
 } from '@/types';
-import {
-  starSystems,
-  anomalies,
-  fleets
-} from '@/data/galaxyData';
+import { starSystems, anomalies, fleets } from '@/data/galaxyData';
 import {
   fetchCustomSystems,
   fetchCustomFleets,
@@ -25,6 +24,23 @@ import {
   updateCustomPlanetStats,
   migrateLocalStorageToSupabase,
 } from '@/data/supabaseStorage';
+import {
+  fetchLatestRedoAction,
+  fetchLatestUndoAction,
+  fetchUndoRedoAvailability,
+  markActionUndone,
+  recordMapAction,
+  serializeFleet,
+  serializeSystem,
+  serializeVector,
+  deserializeFleet,
+  deserializeSystem,
+  deserializeVector,
+  toStatsSnapshot,
+  type MapActionPayload,
+} from '@/data/actionHistory';
+import { logActivity } from '@/data/activityLog';
+import { useAuthStore } from '@/store/authStore';
 
 const shouldClearPanelForSystem = (panel: InfoPanelData | null, systemId: string): boolean => {
   if (!panel) return false;
@@ -37,6 +53,61 @@ const shouldClearPanelForFleet = (panel: InfoPanelData | null, fleetId: string):
   return panel?.type === 'fleet' && panel.data.id === fleetId;
 };
 
+const hasOwn = (obj: object, key: string): boolean => Object.prototype.hasOwnProperty.call(obj, key);
+
+const vectorChanged = (a: THREE.Vector3, b: THREE.Vector3): boolean => a.distanceToSquared(b) > 1e-9;
+
+const applyPlanetStatsPatch = (planet: Planet, updates: PlanetStatsUpdate): Planet => {
+  const next: Planet = { ...planet };
+
+  if (hasOwn(updates, 'population')) {
+    next.population = updates.population ?? undefined;
+  }
+  if (hasOwn(updates, 'description')) {
+    next.description = updates.description ?? '';
+  }
+  if (hasOwn(updates, 'climate')) {
+    next.climate = updates.climate ?? undefined;
+  }
+  if (hasOwn(updates, 'terrain')) {
+    next.terrain = updates.terrain ?? undefined;
+  }
+  if (hasOwn(updates, 'notable')) {
+    next.notable = updates.notable ?? undefined;
+  }
+  if (hasOwn(updates, 'factionControl')) {
+    next.factionControl = updates.factionControl ?? undefined;
+  }
+
+  return next;
+};
+
+const statsSnapshotToUpdate = (
+  snapshot: MapActionPayload & { systemId?: string; planetId?: string },
+): PlanetStatsUpdate => {
+  if (!('stats' in snapshot)) return {};
+  return {
+    population: snapshot.stats.population,
+    factionControl: snapshot.stats.factionControl,
+    description: snapshot.stats.description,
+    climate: snapshot.stats.climate,
+    terrain: snapshot.stats.terrain,
+    notable: snapshot.stats.notable,
+  };
+};
+
+let historyReplayDepth = 0;
+const isReplayingHistory = () => historyReplayDepth > 0;
+
+async function withHistoryReplay(task: () => void | Promise<void>) {
+  historyReplayDepth += 1;
+  try {
+    await task();
+  } finally {
+    historyReplayDepth -= 1;
+  }
+}
+
 export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
   // View state
   viewMode: 'topdown',
@@ -45,25 +116,28 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
   selectedSystemId: null,
   selectedPlanetId: null,
   selectedFleetId: null,
-  setSelectedSystem: (id: string | null) => set({
-    selectedSystemId: id,
-    selectedPlanetId: null,
-    selectedFleetId: null,
-    viewMode: id ? 'system' : 'topdown',
-  }),
-  setSelectedPlanet: (id: string | null) => set({
-    selectedPlanetId: id,
-  }),
-  setSelectedFleet: (id: string | null) => set({
-    selectedFleetId: id,
-    selectedSystemId: null,
-    selectedPlanetId: null,
-    viewMode: id ? 'fleet' : 'topdown',
-  }),
+  setSelectedSystem: (id: string | null) =>
+    set({
+      selectedSystemId: id,
+      selectedPlanetId: null,
+      selectedFleetId: null,
+      viewMode: id ? 'system' : 'topdown',
+    }),
+  setSelectedPlanet: (id: string | null) =>
+    set({
+      selectedPlanetId: id,
+    }),
+  setSelectedFleet: (id: string | null) =>
+    set({
+      selectedFleetId: id,
+      selectedSystemId: null,
+      selectedPlanetId: null,
+      viewMode: id ? 'fleet' : 'topdown',
+    }),
 
   // Data — start with static data only; custom data loads async via initializeData
   systems: [...starSystems],
-  anomalies: anomalies,
+  anomalies,
   fleets: [...fleets],
 
   // UI state
@@ -97,12 +171,13 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
     contested: true,
     hutt_cartel: true,
   },
-  toggleFactionFilter: (faction: Faction) => set((state) => ({
-    factionFilters: {
-      ...state.factionFilters,
-      [faction]: !state.factionFilters[faction],
-    },
-  })),
+  toggleFactionFilter: (faction: Faction) =>
+    set((state) => ({
+      factionFilters: {
+        ...state.factionFilters,
+        [faction]: !state.factionFilters[faction],
+      },
+    })),
 
   // Computed: filtered systems
   getFilteredSystems: () => {
@@ -117,9 +192,7 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
       if (query) {
         const matchesName = system.name.toLowerCase().includes(query);
         const matchesRegion = system.region.replace('_', ' ').toLowerCase().includes(query);
-        const matchesPlanets = system.planets.some(p =>
-          p.name.toLowerCase().includes(query)
-        );
+        const matchesPlanets = system.planets.some((p) => p.name.toLowerCase().includes(query));
         return matchesName || matchesRegion || matchesPlanets;
       }
 
@@ -149,7 +222,7 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
             type: 'planet',
             id: planet.id,
             name: planet.name,
-            parentName: system.name
+            parentName: system.name,
           });
         }
       });
@@ -188,7 +261,6 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
   },
 
   // ─── Supabase Data Initialization ──────────────────
-
   initializeData: async () => {
     try {
       // Migrate any existing localStorage data first
@@ -209,12 +281,12 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
             if (!override) return p;
             return {
               ...p,
-              ...(override.population !== undefined ? { population: override.population } : {}),
-              ...(override.factionControl !== undefined ? { factionControl: override.factionControl } : {}),
-              ...(override.description !== undefined ? { description: override.description } : {}),
-              ...(override.climate !== undefined ? { climate: override.climate } : {}),
-              ...(override.terrain !== undefined ? { terrain: override.terrain } : {}),
-              ...(override.notable !== undefined ? { notable: override.notable } : {}),
+              ...(override.population !== undefined ? { population: override.population ?? undefined } : {}),
+              ...(override.factionControl !== undefined ? { factionControl: override.factionControl ?? undefined } : {}),
+              ...(override.description !== undefined ? { description: override.description ?? '' } : {}),
+              ...(override.climate !== undefined ? { climate: override.climate ?? undefined } : {}),
+              ...(override.terrain !== undefined ? { terrain: override.terrain ?? undefined } : {}),
+              ...(override.notable !== undefined ? { notable: override.notable ?? undefined } : {}),
             };
           }),
         }));
@@ -232,109 +304,139 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
   },
 
   // ─── Remote Event Handlers (Supabase Realtime) ─────
+  handleRemoteSystemInsert: (system) =>
+    set((state) => {
+      if (state.systems.some((s) => s.id === system.id)) return state;
+      return { systems: [...state.systems, system] };
+    }),
 
-  handleRemoteSystemInsert: (system) => set((state) => {
-    if (state.systems.some((s) => s.id === system.id)) return state;
-    return { systems: [...state.systems, system] };
-  }),
+  handleRemoteSystemDelete: (id) =>
+    set((state) => {
+      const shouldClearPanel = shouldClearPanelForSystem(state.infoPanelData, id);
+      const isSelected = state.selectedSystemId === id;
+      return {
+        systems: state.systems.filter((s) => s.id !== id),
+        infoPanelData: shouldClearPanel ? null : state.infoPanelData,
+        ...(isSelected ? { selectedSystemId: null, selectedPlanetId: null, viewMode: 'topdown' as const } : {}),
+      };
+    }),
 
-  handleRemoteSystemDelete: (id) => set((state) => {
-    const shouldClearPanel = shouldClearPanelForSystem(state.infoPanelData, id);
-    const isSelected = state.selectedSystemId === id;
-    return {
-      systems: state.systems.filter((s) => s.id !== id),
-      infoPanelData: shouldClearPanel ? null : state.infoPanelData,
-      ...(isSelected ? { selectedSystemId: null, selectedPlanetId: null, viewMode: 'topdown' as const } : {}),
-    };
-  }),
-
-  handleRemoteSystemUpdate: (id, updates) => set((state) => ({
-    systems: state.systems.map((s) =>
-      s.id === id ? { ...s, ...updates } : s
-    ),
-  })),
-
-  handleRemoteFleetInsert: (fleet) => set((state) => {
-    if (state.fleets.some((f) => f.id === fleet.id)) return state;
-    return { fleets: [...state.fleets, fleet] };
-  }),
-
-  handleRemoteFleetDelete: (id) => set((state) => {
-    const shouldClearPanel = shouldClearPanelForFleet(state.infoPanelData, id);
-    const isSelected = state.selectedFleetId === id;
-    return {
-      fleets: state.fleets.filter((f) => f.id !== id),
-      infoPanelData: shouldClearPanel ? null : state.infoPanelData,
-      ...(isSelected ? { selectedFleetId: null, viewMode: 'topdown' as const } : {}),
-    };
-  }),
-
-  handleRemoteFleetUpdate: (id, updates) => set((state) => ({
-    fleets: state.fleets.map((f) =>
-      f.id === id ? { ...f, ...updates } : f
-    ),
-  })),
-
-  handleRemotePlanetStatsUpdate: (planetId, stats) => set((state) => ({
-    systems: state.systems.map((s) => ({
-      ...s,
-      planets: s.planets.map((p) =>
-        p.id === planetId ? { ...p, ...stats } : p
-      ),
+  handleRemoteSystemUpdate: (id, updates) =>
+    set((state) => ({
+      systems: state.systems.map((s) => (s.id === id ? { ...s, ...updates } : s)),
     })),
-  })),
+
+  handleRemoteFleetInsert: (fleet) =>
+    set((state) => {
+      if (state.fleets.some((f) => f.id === fleet.id)) return state;
+      return { fleets: [...state.fleets, fleet] };
+    }),
+
+  handleRemoteFleetDelete: (id) =>
+    set((state) => {
+      const shouldClearPanel = shouldClearPanelForFleet(state.infoPanelData, id);
+      const isSelected = state.selectedFleetId === id;
+      return {
+        fleets: state.fleets.filter((f) => f.id !== id),
+        infoPanelData: shouldClearPanel ? null : state.infoPanelData,
+        ...(isSelected ? { selectedFleetId: null, viewMode: 'topdown' as const } : {}),
+      };
+    }),
+
+  handleRemoteFleetUpdate: (id, updates) =>
+    set((state) => ({
+      fleets: state.fleets.map((f) => (f.id === id ? { ...f, ...updates } : f)),
+    })),
+
+  handleRemotePlanetStatsUpdate: (planetId, stats) =>
+    set((state) => ({
+      systems: state.systems.map((s) => ({
+        ...s,
+        planets: s.planets.map((p) => (p.id === planetId ? { ...p, ...stats } : p)),
+      })),
+    })),
 
   // ─── Planet Stats Editing ──────────────────────────
-
   updatePlanetStats: (systemId, planetId, updates) => {
-    // Optimistic local update
-    set((state) => {
-      const newSystems = state.systems.map(s => {
-        const hasSystemId = state.systems.some((sys) => sys.id === systemId);
-        const isTargetSystem = s.id === systemId;
-        const isFallbackMatch = !hasSystemId && s.planets.some((p) => p.id === planetId);
-        if (!isTargetSystem && !isFallbackMatch) return s;
+    const state = get();
+    const resolvedSystem =
+      state.systems.find((s) => s.id === systemId) ?? state.systems.find((s) => s.planets.some((p) => p.id === planetId));
+    if (!resolvedSystem) return;
 
+    const currentPlanet = resolvedSystem.planets.find((p) => p.id === planetId);
+    if (!currentPlanet) return;
+
+    const previousStats = toStatsSnapshot(currentPlanet);
+
+    // Optimistic local update
+    set((currentState) => ({
+      systems: currentState.systems.map((s) => {
+        const isTargetSystem = s.id === resolvedSystem.id;
+        if (!isTargetSystem) return s;
         return {
           ...s,
-          planets: s.planets.map(p => {
-            if (p.id !== planetId) return p;
-            return { ...p, ...updates, systemId: s.id };
-          }),
+          planets: s.planets.map((p) => (p.id === planetId ? applyPlanetStatsPatch(p, updates) : p)),
         };
-      });
-      return { systems: newSystems };
-    });
+      }),
+    }));
 
     // Persist to Supabase
-    const system = get().systems.find(
-      (s) => s.id === systemId || s.planets.some((p) => p.id === planetId)
-    );
-    if (system?.isCustom) {
-      updateCustomPlanetStats(planetId, updates).catch(console.error);
-    } else {
-      upsertPlanetStats(planetId, systemId, {
-        population: updates.population,
-        factionControl: updates.factionControl,
-        description: updates.description,
-        climate: updates.climate,
-        terrain: updates.terrain,
-        notable: updates.notable,
+    if (resolvedSystem.isCustom) {
+      updateCustomPlanetStats(planetId, {
+        population: hasOwn(updates, 'population') ? updates.population ?? null : undefined,
+        factionControl: hasOwn(updates, 'factionControl') ? updates.factionControl ?? null : undefined,
+        description: hasOwn(updates, 'description') ? updates.description ?? null : undefined,
+        climate: hasOwn(updates, 'climate') ? updates.climate ?? null : undefined,
+        terrain: hasOwn(updates, 'terrain') ? updates.terrain ?? null : undefined,
+        notable: hasOwn(updates, 'notable') ? updates.notable ?? null : undefined,
       }).catch(console.error);
+    } else {
+      upsertPlanetStats(planetId, resolvedSystem.id, {
+        population: hasOwn(updates, 'population') ? updates.population ?? null : undefined,
+        factionControl: hasOwn(updates, 'factionControl') ? updates.factionControl ?? null : undefined,
+        description: hasOwn(updates, 'description') ? updates.description ?? null : undefined,
+        climate: hasOwn(updates, 'climate') ? updates.climate ?? null : undefined,
+        terrain: hasOwn(updates, 'terrain') ? updates.terrain ?? null : undefined,
+        notable: hasOwn(updates, 'notable') ? updates.notable ?? null : undefined,
+      }).catch(console.error);
+    }
+
+    if (!isReplayingHistory()) {
+      const nextSystem = get().systems.find((s) => s.id === resolvedSystem.id);
+      const nextPlanet = nextSystem?.planets.find((p) => p.id === planetId);
+      if (nextPlanet) {
+        const nextStats = toStatsSnapshot(nextPlanet);
+        const before = JSON.stringify(previousStats);
+        const after = JSON.stringify(nextStats);
+        if (before !== after) {
+          void recordMapAction(
+            'planet_stats_update',
+            { systemId: resolvedSystem.id, planetId, stats: nextStats },
+            { systemId: resolvedSystem.id, planetId, stats: previousStats },
+          );
+          void logActivity({
+            eventType: 'planet_stats_updated',
+            entityType: 'planet',
+            entityId: planetId,
+            message: `Updated stats for ${nextPlanet.name}`,
+            metadata: { systemId: resolvedSystem.id },
+          });
+        }
+      }
     }
   },
 
   // ─── Custom Planet Creation ────────────────────────
-
   placementMode: false,
   pendingCustomPlanet: null,
   draggingCustomPlanet: false,
 
-  setPlacementMode: (mode, pending = null) => set({
-    placementMode: mode,
-    pendingCustomPlanet: pending ?? null,
-    ...(mode ? { fleetPlacementMode: false, pendingCustomFleet: null } : {}),
-  }),
+  setPlacementMode: (mode, pending = null) =>
+    set({
+      placementMode: mode,
+      pendingCustomPlanet: pending ?? null,
+      ...(mode ? { fleetPlacementMode: false, pendingCustomFleet: null } : {}),
+    }),
 
   setDraggingCustomPlanet: (dragging) => set({ draggingCustomPlanet: dragging }),
 
@@ -345,58 +447,109 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
       placementMode: false,
       pendingCustomPlanet: null,
     }));
+
     // Persist to Supabase
     insertCustomSystem(system).catch(console.error);
+
+    if (!isReplayingHistory()) {
+      void recordMapAction('system_create', { system: serializeSystem(system) }, { id: system.id });
+      void logActivity({
+        eventType: 'custom_system_created',
+        entityType: 'system',
+        entityId: system.id,
+        message: `Created custom planet/system: ${system.name}`,
+      });
+    }
   },
 
   removeCustomSystem: (id) => {
+    const existing = get().systems.find((s) => s.id === id && s.isCustom);
+
     // Optimistic local update
     set((state) => {
       const isSelected = state.selectedSystemId === id;
       const shouldClear = shouldClearPanelForSystem(state.infoPanelData, id);
       return {
-        systems: state.systems.filter(s => s.id !== id),
+        systems: state.systems.filter((s) => s.id !== id),
         infoPanelData: shouldClear ? null : state.infoPanelData,
         ...(isSelected ? { selectedSystemId: null, selectedPlanetId: null, viewMode: 'topdown' as const } : {}),
       };
     });
+
     // Persist to Supabase
     deleteSystemFromDB(id).catch(console.error);
+
+    if (!isReplayingHistory() && existing) {
+      void recordMapAction('system_delete', { id }, { system: serializeSystem(existing) });
+      void logActivity({
+        eventType: 'custom_system_deleted',
+        entityType: 'system',
+        entityId: id,
+        message: `Deleted custom planet/system: ${existing.name}`,
+      });
+    }
   },
 
-  updateCustomSystemPosition: (id, position) => {
+  previewCustomSystemPosition: (id, position) => {
+    set((state) => ({
+      systems: state.systems.map((s) => (s.id === id ? { ...s, position: position.clone() } : s)),
+    }));
+  },
+
+  updateCustomSystemPosition: (id, position, previousPosition) => {
+    const existing = get().systems.find((s) => s.id === id && s.isCustom);
+    const previous = previousPosition?.clone() ?? existing?.position.clone();
+    if (!existing || !previous) return;
+
     // Optimistic local update
     set((state) => ({
-      systems: state.systems.map(s =>
-        s.id === id ? { ...s, position: position.clone(), planets: s.planets.map(p => ({ ...p })) } : s
+      systems: state.systems.map((s) =>
+        s.id === id ? { ...s, position: position.clone(), planets: s.planets.map((p) => ({ ...p })) } : s,
       ),
     }));
+
     // Persist to Supabase
     updateSystemPosition(id, position.x, position.z).catch(console.error);
+
+    if (!isReplayingHistory() && vectorChanged(previous, position)) {
+      void recordMapAction(
+        'system_move',
+        { id, position: serializeVector(position) },
+        { id, position: serializeVector(previous) },
+      );
+      void logActivity({
+        eventType: 'custom_system_moved',
+        entityType: 'system',
+        entityId: id,
+        message: `Moved custom system: ${existing.name}`,
+        metadata: {
+          from: serializeVector(previous),
+          to: serializeVector(position),
+        },
+      });
+    }
   },
 
   updateCustomSystemMarkerSize: (id, markerSize) => {
     // Optimistic local update
     set((state) => ({
-      systems: state.systems.map(s =>
-        s.id === id ? { ...s, markerSize } : s
-      ),
+      systems: state.systems.map((s) => (s.id === id ? { ...s, markerSize } : s)),
     }));
     // Persist to Supabase
     updateSystemMarkerSize(id, markerSize).catch(console.error);
   },
 
   // ─── Custom Fleet Creation ─────────────────────────
-
   fleetPlacementMode: false,
   pendingCustomFleet: null,
   draggingCustomFleet: false,
 
-  setFleetPlacementMode: (mode, pending = null) => set({
-    fleetPlacementMode: mode,
-    pendingCustomFleet: pending ?? null,
-    ...(mode ? { placementMode: false, pendingCustomPlanet: null } : {}),
-  }),
+  setFleetPlacementMode: (mode, pending = null) =>
+    set({
+      fleetPlacementMode: mode,
+      pendingCustomFleet: pending ?? null,
+      ...(mode ? { placementMode: false, pendingCustomPlanet: null } : {}),
+    }),
 
   setDraggingCustomFleet: (dragging) => set({ draggingCustomFleet: dragging }),
 
@@ -409,31 +562,246 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
     }));
     // Persist to Supabase
     insertCustomFleet(fleet).catch(console.error);
+
+    if (!isReplayingHistory()) {
+      void recordMapAction('fleet_create', { fleet: serializeFleet(fleet) }, { id: fleet.id });
+      void logActivity({
+        eventType: 'custom_fleet_created',
+        entityType: 'fleet',
+        entityId: fleet.id,
+        message: `Created custom fleet: ${fleet.name}`,
+      });
+    }
   },
 
   removeCustomFleet: (id) => {
+    const existing = get().fleets.find((f) => f.id === id && f.isCustom);
+
     // Optimistic local update
     set((state) => {
       const isSelected = state.selectedFleetId === id;
       const shouldClear = shouldClearPanelForFleet(state.infoPanelData, id);
       return {
-        fleets: state.fleets.filter(f => f.id !== id),
+        fleets: state.fleets.filter((f) => f.id !== id),
         infoPanelData: shouldClear ? null : state.infoPanelData,
         ...(isSelected ? { selectedFleetId: null, viewMode: 'topdown' as const } : {}),
       };
     });
     // Persist to Supabase
     deleteFleetFromDB(id).catch(console.error);
+
+    if (!isReplayingHistory() && existing) {
+      void recordMapAction('fleet_delete', { id }, { fleet: serializeFleet(existing) });
+      void logActivity({
+        eventType: 'custom_fleet_deleted',
+        entityType: 'fleet',
+        entityId: id,
+        message: `Deleted custom fleet: ${existing.name}`,
+      });
+    }
   },
 
-  updateCustomFleetPosition: (id, position) => {
+  previewCustomFleetPosition: (id, position) => {
+    set((state) => ({
+      fleets: state.fleets.map((f) => (f.id === id ? { ...f, position: position.clone() } : f)),
+    }));
+  },
+
+  updateCustomFleetPosition: (id, position, previousPosition) => {
+    const existing = get().fleets.find((f) => f.id === id && f.isCustom);
+    const previous = previousPosition?.clone() ?? existing?.position.clone();
+    if (!existing || !previous) return;
+
     // Optimistic local update
     set((state) => ({
-      fleets: state.fleets.map(f =>
-        f.id === id ? { ...f, position: position.clone() } : f
-      ),
+      fleets: state.fleets.map((f) => (f.id === id ? { ...f, position: position.clone() } : f)),
     }));
     // Persist to Supabase
     updateFleetPosition(id, position.x, position.z).catch(console.error);
+
+    if (!isReplayingHistory() && vectorChanged(previous, position)) {
+      void recordMapAction(
+        'fleet_move',
+        { id, position: serializeVector(position) },
+        { id, position: serializeVector(previous) },
+      );
+      void logActivity({
+        eventType: 'custom_fleet_moved',
+        entityType: 'fleet',
+        entityId: id,
+        message: `Moved custom fleet: ${existing.name}`,
+        metadata: {
+          from: serializeVector(previous),
+          to: serializeVector(position),
+        },
+      });
+    }
+  },
+
+  // ─── Global History (Admin) ────────────────────────
+  historyBusy: false,
+  canUndo: false,
+  canRedo: false,
+
+  refreshHistoryAvailability: async () => {
+    if (!useAuthStore.getState().hasAdminPermission('run_global_history')) {
+      set({ canUndo: false, canRedo: false, historyBusy: false });
+      return;
+    }
+
+    const { canUndo, canRedo } = await fetchUndoRedoAvailability();
+    set({ canUndo, canRedo });
+  },
+
+  undoGlobalAction: async () => {
+    if (!useAuthStore.getState().hasAdminPermission('run_global_history')) {
+      set({ canUndo: false, canRedo: false, historyBusy: false });
+      return;
+    }
+
+    set({ historyBusy: true });
+    try {
+      const action = await fetchLatestUndoAction();
+      if (!action) {
+        const availability = await fetchUndoRedoAvailability();
+        set({ ...availability, historyBusy: false });
+        return;
+      }
+
+      await withHistoryReplay(async () => {
+        switch (action.actionType) {
+          case 'system_create':
+            if ('id' in action.undoPayload) {
+              get().removeCustomSystem(action.undoPayload.id);
+            }
+            break;
+          case 'system_delete':
+            if ('system' in action.undoPayload) {
+              get().addCustomSystem(deserializeSystem(action.undoPayload.system));
+            }
+            break;
+          case 'system_move':
+            if ('id' in action.undoPayload && 'position' in action.undoPayload) {
+              get().updateCustomSystemPosition(action.undoPayload.id, deserializeVector(action.undoPayload.position));
+            }
+            break;
+          case 'fleet_create':
+            if ('id' in action.undoPayload) {
+              get().removeCustomFleet(action.undoPayload.id);
+            }
+            break;
+          case 'fleet_delete':
+            if ('fleet' in action.undoPayload) {
+              get().addCustomFleet(deserializeFleet(action.undoPayload.fleet));
+            }
+            break;
+          case 'fleet_move':
+            if ('id' in action.undoPayload && 'position' in action.undoPayload) {
+              get().updateCustomFleetPosition(action.undoPayload.id, deserializeVector(action.undoPayload.position));
+            }
+            break;
+          case 'planet_stats_update':
+            if ('planetId' in action.undoPayload && 'systemId' in action.undoPayload) {
+              get().updatePlanetStats(
+                action.undoPayload.systemId,
+                action.undoPayload.planetId,
+                statsSnapshotToUpdate(action.undoPayload),
+              );
+            }
+            break;
+          default:
+            break;
+        }
+      });
+
+      await markActionUndone(action.id, true);
+      void logActivity({
+        eventType: 'history_undo',
+        entityType: 'history',
+        entityId: String(action.id),
+        message: `Admin undo applied: ${action.actionType}`,
+      });
+      const availability = await fetchUndoRedoAvailability();
+      set({ ...availability, historyBusy: false });
+    } catch (err) {
+      console.error('Failed to execute global undo:', err);
+      set({ historyBusy: false });
+    }
+  },
+
+  redoGlobalAction: async () => {
+    if (!useAuthStore.getState().hasAdminPermission('run_global_history')) {
+      set({ canUndo: false, canRedo: false, historyBusy: false });
+      return;
+    }
+
+    set({ historyBusy: true });
+    try {
+      const action = await fetchLatestRedoAction();
+      if (!action) {
+        const availability = await fetchUndoRedoAvailability();
+        set({ ...availability, historyBusy: false });
+        return;
+      }
+
+      await withHistoryReplay(async () => {
+        switch (action.actionType) {
+          case 'system_create':
+            if ('system' in action.doPayload) {
+              get().addCustomSystem(deserializeSystem(action.doPayload.system));
+            }
+            break;
+          case 'system_delete':
+            if ('id' in action.doPayload) {
+              get().removeCustomSystem(action.doPayload.id);
+            }
+            break;
+          case 'system_move':
+            if ('id' in action.doPayload && 'position' in action.doPayload) {
+              get().updateCustomSystemPosition(action.doPayload.id, deserializeVector(action.doPayload.position));
+            }
+            break;
+          case 'fleet_create':
+            if ('fleet' in action.doPayload) {
+              get().addCustomFleet(deserializeFleet(action.doPayload.fleet));
+            }
+            break;
+          case 'fleet_delete':
+            if ('id' in action.doPayload) {
+              get().removeCustomFleet(action.doPayload.id);
+            }
+            break;
+          case 'fleet_move':
+            if ('id' in action.doPayload && 'position' in action.doPayload) {
+              get().updateCustomFleetPosition(action.doPayload.id, deserializeVector(action.doPayload.position));
+            }
+            break;
+          case 'planet_stats_update':
+            if ('planetId' in action.doPayload && 'systemId' in action.doPayload) {
+              get().updatePlanetStats(
+                action.doPayload.systemId,
+                action.doPayload.planetId,
+                statsSnapshotToUpdate(action.doPayload),
+              );
+            }
+            break;
+          default:
+            break;
+        }
+      });
+
+      await markActionUndone(action.id, false);
+      void logActivity({
+        eventType: 'history_redo',
+        entityType: 'history',
+        entityId: String(action.id),
+        message: `Admin redo applied: ${action.actionType}`,
+      });
+      const availability = await fetchUndoRedoAvailability();
+      set({ ...availability, historyBusy: false });
+    } catch (err) {
+      console.error('Failed to execute global redo:', err);
+      set({ historyBusy: false });
+    }
   },
 }));

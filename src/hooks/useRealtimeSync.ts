@@ -129,12 +129,12 @@ export function useRealtimeSync() {
         (payload) => {
           const row = payload.new as PlanetRow;
           store.getState().handleRemotePlanetStatsUpdate(row.id, {
-            population: row.population || undefined,
+            population: row.population ?? undefined,
             factionControl: row.faction_control as Partial<Record<Faction, number>> | undefined,
-            description: row.description || undefined,
-            climate: row.climate || undefined,
-            terrain: row.terrain || undefined,
-            notable: row.notable || undefined,
+            description: row.description ?? '',
+            climate: row.climate ?? undefined,
+            terrain: row.terrain ?? undefined,
+            notable: row.notable ?? undefined,
           });
         },
       )
@@ -146,12 +146,12 @@ export function useRealtimeSync() {
           if (payload.eventType === 'DELETE') return;
           const row = payload.new as StatsRow;
           store.getState().handleRemotePlanetStatsUpdate(row.planet_id, {
-            population: row.population || undefined,
+            population: row.population ?? undefined,
             factionControl: row.faction_control as Partial<Record<Faction, number>> | undefined,
-            description: row.description || undefined,
-            climate: row.climate || undefined,
-            terrain: row.terrain || undefined,
-            notable: row.notable || undefined,
+            description: row.description ?? '',
+            climate: row.climate ?? undefined,
+            terrain: row.terrain ?? undefined,
+            notable: row.notable ?? undefined,
           });
         },
       )

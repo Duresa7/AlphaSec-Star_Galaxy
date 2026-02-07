@@ -1,19 +1,24 @@
 import { useEffect, type ReactNode } from 'react';
 import { useAuthStore } from '@/store/authStore';
+import { AuthScreen } from '@/components/auth/AuthScreen';
 
 interface AuthGateProps {
   children: ReactNode;
 }
 
 export function AuthGate({ children }: AuthGateProps) {
-  const { isLoading, initialize } = useAuthStore();
+  const { isLoading, user, initialize } = useAuthStore();
 
   useEffect(() => {
     initialize();
   }, [initialize]);
 
   if (isLoading) {
-    return null; // The app's own LoadingScreen will handle the visual
+    return null;
+  }
+
+  if (!user) {
+    return <AuthScreen />;
   }
 
   return <>{children}</>;

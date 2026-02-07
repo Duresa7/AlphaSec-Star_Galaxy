@@ -116,6 +116,15 @@ export interface SearchResult {
   parentName?: string;
 }
 
+export interface PlanetStatsUpdate {
+  population?: string | null;
+  factionControl?: Partial<Record<Faction, number>> | null;
+  description?: string | null;
+  climate?: string | null;
+  terrain?: string | null;
+  notable?: string[] | null;
+}
+
 // App state store type
 export interface GalaxyStore {
   // View state
@@ -178,14 +187,7 @@ export interface GalaxyStore {
   handleRemotePlanetStatsUpdate: (planetId: string, stats: Partial<Planet>) => void;
 
   // Planet stats editing
-  updatePlanetStats: (systemId: string, planetId: string, stats: {
-    population?: string;
-    factionControl?: Partial<Record<Faction, number>>;
-    description?: string;
-    climate?: string;
-    terrain?: string;
-    notable?: string[];
-  }) => void;
+  updatePlanetStats: (systemId: string, planetId: string, stats: PlanetStatsUpdate) => void;
 
   // Custom planet creation
   placementMode: boolean;
@@ -193,7 +195,8 @@ export interface GalaxyStore {
   setPlacementMode: (mode: boolean, pending?: { name: string; color: string } | null) => void;
   addCustomSystem: (system: StarSystem) => void;
   removeCustomSystem: (id: string) => void;
-  updateCustomSystemPosition: (id: string, position: THREE.Vector3) => void;
+  previewCustomSystemPosition: (id: string, position: THREE.Vector3) => void;
+  updateCustomSystemPosition: (id: string, position: THREE.Vector3, previousPosition?: THREE.Vector3) => void;
   updateCustomSystemMarkerSize: (id: string, markerSize: number) => void;
   draggingCustomPlanet: boolean;
   setDraggingCustomPlanet: (dragging: boolean) => void;
@@ -204,7 +207,16 @@ export interface GalaxyStore {
   setFleetPlacementMode: (mode: boolean, pending?: { name: string; faction: Faction; shipCount: number } | null) => void;
   addCustomFleet: (fleet: Fleet) => void;
   removeCustomFleet: (id: string) => void;
-  updateCustomFleetPosition: (id: string, position: THREE.Vector3) => void;
+  previewCustomFleetPosition: (id: string, position: THREE.Vector3) => void;
+  updateCustomFleetPosition: (id: string, position: THREE.Vector3, previousPosition?: THREE.Vector3) => void;
   draggingCustomFleet: boolean;
   setDraggingCustomFleet: (dragging: boolean) => void;
+
+  // Global history (admin)
+  historyBusy: boolean;
+  canUndo: boolean;
+  canRedo: boolean;
+  refreshHistoryAvailability: () => Promise<void>;
+  undoGlobalAction: () => Promise<void>;
+  redoGlobalAction: () => Promise<void>;
 }

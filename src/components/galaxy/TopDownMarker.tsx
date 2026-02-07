@@ -31,6 +31,8 @@ export function TopDownMarker({ system }: TopDownMarkerProps) {
   const isDraggingRef = useRef(false);
   const dragStartRef = useRef<{ x: number; y: number } | null>(null);
   const didDragRef = useRef(false);
+  const dragOriginRef = useRef<THREE.Vector3 | null>(null);
+  const dragPositionRef = useRef<THREE.Vector3 | null>(null);
   const { gl, camera } = useThree();
   const cameraRef = useRef(camera);
   cameraRef.current = camera;
@@ -40,6 +42,7 @@ export function TopDownMarker({ system }: TopDownMarkerProps) {
     setSelectedPlanet,
     setInfoPanelData,
     showLabels,
+    previewCustomSystemPosition,
     updateCustomSystemPosition,
     setDraggingCustomPlanet,
     placementMode,
@@ -77,6 +80,8 @@ export function TopDownMarker({ system }: TopDownMarkerProps) {
     if (!system.isCustom || placementMode) return;
     e.stopPropagation();
     dragStartRef.current = { x: e.clientX, y: e.clientY };
+    dragOriginRef.current = system.position.clone();
+    dragPositionRef.current = system.position.clone();
     didDragRef.current = false;
 
     const onPointerMove = (moveEvent: PointerEvent) => {
@@ -99,15 +104,24 @@ export function TopDownMarker({ system }: TopDownMarkerProps) {
         const intersection = new THREE.Vector3();
         raycaster.ray.intersectPlane(plane, intersection);
         if (intersection) {
-          updateCustomSystemPosition(system.id, new THREE.Vector3(intersection.x, 0, intersection.z));
+          const nextPosition = new THREE.Vector3(intersection.x, 0, intersection.z);
+          dragPositionRef.current = nextPosition.clone();
+          previewCustomSystemPosition(system.id, nextPosition);
         }
       }
     };
 
     const onPointerUp = () => {
+      if (didDragRef.current && dragPositionRef.current) {
+        const origin = dragOriginRef.current ?? system.position.clone();
+        updateCustomSystemPosition(system.id, dragPositionRef.current, origin);
+      }
+
       dragStartRef.current = null;
       isDraggingRef.current = false;
       setDraggingCustomPlanet(false);
+      dragOriginRef.current = null;
+      dragPositionRef.current = null;
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
     };
