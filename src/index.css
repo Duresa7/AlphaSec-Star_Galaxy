@@ -253,6 +253,16 @@ body {
   box-shadow: 0 0 12px rgba(200, 170, 110, 0.15), inset 0 0 8px rgba(200, 170, 110, 0.05);
 }
 
+/* Hide number input spinners for clean KOTOR look */
+.holo-number-input::-webkit-inner-spin-button,
+.holo-number-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.holo-number-input {
+  -moz-appearance: textfield;
+}
+
 /* Button — angular KOTOR style */
 .holo-button {
   display: flex;

@@ -135,7 +135,7 @@ export function InfoPanel() {
 }
 
 function SystemInfo({ system }: { system: StarSystem }) {
-  const { removeCustomSystem, setInfoPanelData, setSelectedSystem, setSelectedPlanet } = useGalaxyStore();
+  const { removeCustomSystem, setInfoPanelData, setSelectedSystem, setSelectedPlanet, updateCustomSystemMarkerSize } = useGalaxyStore();
 
   return (
     <div className="space-y-4">
@@ -167,6 +167,27 @@ function SystemInfo({ system }: { system: StarSystem }) {
         <InfoRow label="Star Type" value={capitalizeFirst(system.starType)} />
         <InfoRow label="Importance" value={capitalizeFirst(system.importance)} />
       </div>
+
+      {/* Marker Size — custom systems only */}
+      {system.isCustom && (
+        <div>
+          <label className="holo-label" style={{ marginBottom: '8px' }}>Marker Size</label>
+          <div className="flex items-center gap-2">
+            <input
+              type="range"
+              min={0.5}
+              max={6}
+              step={0.1}
+              value={system.markerSize ?? 1.8}
+              onChange={(e) => updateCustomSystemMarkerSize(system.id, parseFloat(e.target.value))}
+              className="holo-slider flex-1"
+            />
+            <span style={{ fontFamily: 'Orbitron, monospace', fontSize: '10px', color: 'var(--holo-text-primary)', width: '24px', textAlign: 'right' }}>
+              {(system.markerSize ?? 1.8).toFixed(1)}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Description */}
       <p className="text-sm leading-relaxed" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Rajdhani, sans-serif' }}>{system.description}</p>
@@ -254,6 +275,14 @@ function PlanetInfo({ planet }: { planet: Planet }) {
   const { updatePlanetStats } = useGalaxyStore();
   const [editingPopulation, setEditingPopulation] = useState(false);
   const [populationDraft, setPopulationDraft] = useState(planet.population || '');
+  const [editingDescription, setEditingDescription] = useState(false);
+  const [descriptionDraft, setDescriptionDraft] = useState(planet.description || '');
+  const [editingClimate, setEditingClimate] = useState(false);
+  const [climateDraft, setClimateDraft] = useState(planet.climate || '');
+  const [editingTerrain, setEditingTerrain] = useState(false);
+  const [terrainDraft, setTerrainDraft] = useState(planet.terrain || '');
+  const [editingNotable, setEditingNotable] = useState(false);
+  const [notableDraft, setNotableDraft] = useState((planet.notable || []).join(', '));
 
   const planetTypeColors: Record<string, string> = {
     terrestrial: 'text-green-400',
@@ -305,41 +334,42 @@ function PlanetInfo({ planet }: { planet: Planet }) {
 
       {/* Info grid */}
       <div className="holo-info-grid space-y-2">
-        {planet.climate && <InfoRow label="Climate" value={planet.climate} />}
-        {planet.terrain && <InfoRow label="Terrain" value={planet.terrain} />}
-        {/* Editable population */}
-        <div className="flex justify-between items-center text-sm">
-          <span style={{ color: 'var(--holo-text-muted)', fontFamily: 'Orbitron, monospace', fontSize: '10px' }}>Population</span>
-          {editingPopulation ? (
-            <div className="flex items-center gap-1">
-              <input
-                type="text"
-                value={populationDraft}
-                onChange={(e) => setPopulationDraft(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') handlePopulationSave(); if (e.key === 'Escape') setEditingPopulation(false); }}
-                autoFocus
-                className="holo-input w-28 text-right"
-                style={{ padding: '2px 6px', fontSize: '12px' }}
-              />
-              <button
-                onClick={handlePopulationSave}
-                className="text-xs px-1"
-                style={{ color: 'var(--holo-cyan)' }}
-              >
-                ✓
-              </button>
-            </div>
-          ) : (
-            <span
-              onClick={() => { setPopulationDraft(planet.population || ''); setEditingPopulation(true); }}
-              className="cursor-pointer hover:underline"
-              style={{ color: 'var(--holo-text-primary)', fontFamily: 'Rajdhani, sans-serif', textDecorationColor: 'var(--holo-cyan)' }}
-              title="Click to edit"
-            >
-              {planet.population || 'Unknown'}
-            </span>
-          )}
-        </div>
+        {/* Editable Climate */}
+        <EditableInfoRow
+          label="Climate"
+          value={planet.climate || ''}
+          placeholder="Unknown"
+          editing={editingClimate}
+          draft={climateDraft}
+          onStartEdit={() => { setClimateDraft(planet.climate || ''); setEditingClimate(true); }}
+          onDraftChange={setClimateDraft}
+          onSave={() => { updatePlanetStats(planet.systemId, planet.id, { climate: climateDraft }); setEditingClimate(false); }}
+          onCancel={() => setEditingClimate(false)}
+        />
+        {/* Editable Terrain */}
+        <EditableInfoRow
+          label="Terrain"
+          value={planet.terrain || ''}
+          placeholder="Unknown"
+          editing={editingTerrain}
+          draft={terrainDraft}
+          onStartEdit={() => { setTerrainDraft(planet.terrain || ''); setEditingTerrain(true); }}
+          onDraftChange={setTerrainDraft}
+          onSave={() => { updatePlanetStats(planet.systemId, planet.id, { terrain: terrainDraft }); setEditingTerrain(false); }}
+          onCancel={() => setEditingTerrain(false)}
+        />
+        {/* Editable Population */}
+        <EditableInfoRow
+          label="Population"
+          value={planet.population || ''}
+          placeholder="Unknown"
+          editing={editingPopulation}
+          draft={populationDraft}
+          onStartEdit={() => { setPopulationDraft(planet.population || ''); setEditingPopulation(true); }}
+          onDraftChange={setPopulationDraft}
+          onSave={() => { handlePopulationSave(); }}
+          onCancel={() => setEditingPopulation(false)}
+        />
       </div>
 
       {/* Faction Control Percentages */}
@@ -399,25 +429,124 @@ function PlanetInfo({ planet }: { planet: Planet }) {
         </div>
       </div>
 
-      {/* Description */}
-      <p className="text-sm leading-relaxed" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Rajdhani, sans-serif' }}>{planet.description}</p>
-
-      {/* Notable locations */}
-      {planet.notable && planet.notable.length > 0 && (
-        <div>
-          <label className="holo-label" style={{ marginBottom: '8px' }}>Points of Interest</label>
-          <div className="flex flex-wrap gap-2 mt-2">
-            {planet.notable.map((loc, i) => (
-              <span
-                key={i}
-                className="holo-badge bg-cyan-900/30 border border-cyan-500/30 text-cyan-200"
+      {/* Editable Description */}
+      <div>
+        <label className="holo-label" style={{ marginBottom: '6px' }}>Description</label>
+        {editingDescription ? (
+          <div className="mt-1">
+            <textarea
+              value={descriptionDraft}
+              onChange={(e) => setDescriptionDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  updatePlanetStats(planet.systemId, planet.id, { description: descriptionDraft });
+                  setEditingDescription(false);
+                }
+                if (e.key === 'Escape') setEditingDescription(false);
+              }}
+              autoFocus
+              rows={3}
+              className="holo-input w-full text-sm"
+              style={{ padding: '6px 8px', fontSize: '13px', fontFamily: 'Rajdhani, sans-serif', resize: 'vertical' }}
+            />
+            <div className="flex gap-2 mt-1">
+              <button
+                onClick={() => { updatePlanetStats(planet.systemId, planet.id, { description: descriptionDraft }); setEditingDescription(false); }}
+                className="text-[9px] uppercase tracking-wide"
+                style={{ color: 'var(--holo-cyan)', fontFamily: 'Orbitron, monospace' }}
               >
-                {loc}
-              </span>
-            ))}
+                Save
+              </button>
+              <button
+                onClick={() => setEditingDescription(false)}
+                className="text-[9px] uppercase tracking-wide"
+                style={{ color: 'var(--holo-text-muted)', fontFamily: 'Orbitron, monospace' }}
+              >
+                Cancel
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        ) : (
+          <p
+            onClick={() => { setDescriptionDraft(planet.description || ''); setEditingDescription(true); }}
+            className="text-sm leading-relaxed cursor-pointer hover:underline"
+            style={{ color: 'var(--holo-text-muted)', fontFamily: 'Rajdhani, sans-serif', textDecorationColor: 'var(--holo-cyan)' }}
+            title="Click to edit"
+          >
+            {planet.description || 'No description'}
+          </p>
+        )}
+      </div>
+
+      {/* Editable Notable Locations */}
+      <div>
+        <label className="holo-label" style={{ marginBottom: '8px' }}>Points of Interest</label>
+        {editingNotable ? (
+          <div className="mt-1">
+            <input
+              type="text"
+              value={notableDraft}
+              onChange={(e) => setNotableDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const locations = notableDraft.split(',').map(s => s.trim()).filter(Boolean);
+                  updatePlanetStats(planet.systemId, planet.id, { notable: locations });
+                  setEditingNotable(false);
+                }
+                if (e.key === 'Escape') setEditingNotable(false);
+              }}
+              autoFocus
+              placeholder="Location 1, Location 2, ..."
+              className="holo-input w-full text-sm"
+              style={{ padding: '4px 8px', fontSize: '12px' }}
+            />
+            <div className="flex gap-2 mt-1">
+              <button
+                onClick={() => {
+                  const locations = notableDraft.split(',').map(s => s.trim()).filter(Boolean);
+                  updatePlanetStats(planet.systemId, planet.id, { notable: locations });
+                  setEditingNotable(false);
+                }}
+                className="text-[9px] uppercase tracking-wide"
+                style={{ color: 'var(--holo-cyan)', fontFamily: 'Orbitron, monospace' }}
+              >
+                Save
+              </button>
+              <button
+                onClick={() => setEditingNotable(false)}
+                className="text-[9px] uppercase tracking-wide"
+                style={{ color: 'var(--holo-text-muted)', fontFamily: 'Orbitron, monospace' }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div
+            onClick={() => { setNotableDraft((planet.notable || []).join(', ')); setEditingNotable(true); }}
+            className="cursor-pointer"
+            title="Click to edit"
+          >
+            {planet.notable && planet.notable.length > 0 ? (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {planet.notable.map((loc, i) => (
+                  <span
+                    key={i}
+                    className="holo-badge bg-cyan-900/30 border border-cyan-500/30 text-cyan-200"
+                  >
+                    {loc}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <span className="text-[11px]" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Rajdhani, sans-serif' }}>
+                Click to add locations
+              </span>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Special warnings */}
       {planet.type === 'destroyed' && (
@@ -616,6 +745,59 @@ function AnomalyInfo({ anomaly }: { anomaly: Anomaly }) {
             <span>NAVIGATION HAZARD - CAUTION</span>
           </div>
         </div>
+      )}
+    </div>
+  );
+}
+
+function EditableInfoRow({
+  label,
+  value,
+  placeholder,
+  editing,
+  draft,
+  onStartEdit,
+  onDraftChange,
+  onSave,
+  onCancel,
+}: {
+  label: string;
+  value: string;
+  placeholder: string;
+  editing: boolean;
+  draft: string;
+  onStartEdit: () => void;
+  onDraftChange: (v: string) => void;
+  onSave: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div className="flex justify-between items-center text-sm">
+      <span style={{ color: 'var(--holo-text-muted)', fontFamily: 'Orbitron, monospace', fontSize: '10px' }}>{label}</span>
+      {editing ? (
+        <div className="flex items-center gap-1">
+          <input
+            type="text"
+            value={draft}
+            onChange={(e) => onDraftChange(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter') onSave(); if (e.key === 'Escape') onCancel(); }}
+            autoFocus
+            className="holo-input w-28 text-right"
+            style={{ padding: '2px 6px', fontSize: '12px' }}
+          />
+          <button onClick={onSave} className="text-xs px-1" style={{ color: 'var(--holo-cyan)' }}>
+            &#10003;
+          </button>
+        </div>
+      ) : (
+        <span
+          onClick={onStartEdit}
+          className="cursor-pointer hover:underline"
+          style={{ color: 'var(--holo-text-primary)', fontFamily: 'Rajdhani, sans-serif', textDecorationColor: 'var(--holo-cyan)' }}
+          title="Click to edit"
+        >
+          {value || placeholder}
+        </span>
       )}
     </div>
   );

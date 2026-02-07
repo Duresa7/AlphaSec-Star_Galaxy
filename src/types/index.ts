@@ -62,6 +62,7 @@ export interface StarSystem {
   region: GalaxyRegion;
   isCustom?: boolean;
   customColor?: string;
+  markerSize?: number;
 }
 
 // Galaxy regions
@@ -164,8 +165,27 @@ export interface GalaxyStore {
   getSearchResults: () => SearchResult[];
   getFactionStats: () => Record<Faction, { planets: number; fleetShips: number }>;
 
+  // Data initialization (Supabase)
+  initializeData: () => Promise<void>;
+
+  // Remote event handlers (Supabase Realtime)
+  handleRemoteSystemInsert: (system: StarSystem) => void;
+  handleRemoteSystemDelete: (id: string) => void;
+  handleRemoteSystemUpdate: (id: string, updates: Partial<StarSystem>) => void;
+  handleRemoteFleetInsert: (fleet: Fleet) => void;
+  handleRemoteFleetDelete: (id: string) => void;
+  handleRemoteFleetUpdate: (id: string, updates: Partial<Fleet>) => void;
+  handleRemotePlanetStatsUpdate: (planetId: string, stats: Partial<Planet>) => void;
+
   // Planet stats editing
-  updatePlanetStats: (systemId: string, planetId: string, stats: { population?: string; factionControl?: Partial<Record<Faction, number>> }) => void;
+  updatePlanetStats: (systemId: string, planetId: string, stats: {
+    population?: string;
+    factionControl?: Partial<Record<Faction, number>>;
+    description?: string;
+    climate?: string;
+    terrain?: string;
+    notable?: string[];
+  }) => void;
 
   // Custom planet creation
   placementMode: boolean;
@@ -174,6 +194,7 @@ export interface GalaxyStore {
   addCustomSystem: (system: StarSystem) => void;
   removeCustomSystem: (id: string) => void;
   updateCustomSystemPosition: (id: string, position: THREE.Vector3) => void;
+  updateCustomSystemMarkerSize: (id: string, markerSize: number) => void;
   draggingCustomPlanet: boolean;
   setDraggingCustomPlanet: (dragging: boolean) => void;
 
