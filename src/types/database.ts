@@ -13,14 +13,20 @@ export type Database = {
         Row: {
           id: string;
           display_name: string | null;
+          is_admin: boolean;
+          admin_permissions: Json;
           created_at: string;
         };
         Insert: {
           id: string;
           display_name?: string | null;
+          is_admin?: boolean;
+          admin_permissions?: Json;
         };
         Update: {
           display_name?: string | null;
+          is_admin?: boolean;
+          admin_permissions?: Json;
         };
         Relationships: [];
       };
@@ -175,6 +181,73 @@ export type Database = {
           terrain?: string | null;
           notable?: string[] | null;
           updated_by?: string;
+        };
+        Relationships: [];
+      };
+      activity_logs: {
+        Row: {
+          id: number;
+          event_type: string;
+          entity_type: string | null;
+          entity_id: string | null;
+          message: string;
+          metadata: Json | null;
+          actor_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          event_type: string;
+          entity_type?: string | null;
+          entity_id?: string | null;
+          message: string;
+          metadata?: Json | null;
+          actor_id: string;
+          created_at?: string;
+        };
+        Update: {
+          event_type?: string;
+          entity_type?: string | null;
+          entity_id?: string | null;
+          message?: string;
+          metadata?: Json | null;
+          actor_id?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      action_history: {
+        Row: {
+          id: number;
+          action_type: string;
+          do_payload: Json;
+          undo_payload: Json;
+          actor_id: string;
+          undone_at: string | null;
+          undone_by: string | null;
+          discarded: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          action_type: string;
+          do_payload: Json;
+          undo_payload: Json;
+          actor_id: string;
+          undone_at?: string | null;
+          undone_by?: string | null;
+          discarded?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          action_type?: string;
+          do_payload?: Json;
+          undo_payload?: Json;
+          actor_id?: string;
+          undone_at?: string | null;
+          undone_by?: string | null;
+          discarded?: boolean;
+          created_at?: string;
         };
         Relationships: [];
       };

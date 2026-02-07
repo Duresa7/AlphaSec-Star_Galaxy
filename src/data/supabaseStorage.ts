@@ -228,12 +228,12 @@ export async function updateFleetPosition(id: string, x: number, z: number): Pro
 // ─── Planet Stats Overrides (built-in planets) ───────
 
 export interface PlanetStatsOverride {
-  population?: string;
-  factionControl?: Partial<Record<Faction, number>>;
-  description?: string;
-  climate?: string;
-  terrain?: string;
-  notable?: string[];
+  population?: string | null;
+  factionControl?: Partial<Record<Faction, number>> | null;
+  description?: string | null;
+  climate?: string | null;
+  terrain?: string | null;
+  notable?: string[] | null;
 }
 
 export async function fetchPlanetStatsOverrides(): Promise<Map<string, PlanetStatsOverride>> {
@@ -249,12 +249,12 @@ export async function fetchPlanetStatsOverrides(): Promise<Map<string, PlanetSta
   const map = new Map<string, PlanetStatsOverride>();
   for (const row of rows) {
     map.set(row.planet_id, {
-      population: row.population || undefined,
+      population: row.population ?? undefined,
       factionControl: row.faction_control as unknown as Partial<Record<Faction, number>> | undefined,
-      description: row.description || undefined,
-      climate: row.climate || undefined,
-      terrain: row.terrain || undefined,
-      notable: row.notable || undefined,
+      description: row.description ?? undefined,
+      climate: row.climate ?? undefined,
+      terrain: row.terrain ?? undefined,
+      notable: row.notable ?? undefined,
     });
   }
   return map;
@@ -271,7 +271,7 @@ export async function upsertPlanetStats(
     planet_id: planetId,
     system_id: systemId,
     population: stats.population,
-    faction_control: (stats.factionControl as unknown as Json) || undefined,
+    faction_control: stats.factionControl === undefined ? undefined : (stats.factionControl as unknown as Json),
     description: stats.description,
     climate: stats.climate,
     terrain: stats.terrain,
@@ -287,17 +287,17 @@ export async function upsertPlanetStats(
 export async function updateCustomPlanetStats(
   planetId: string,
   stats: {
-    population?: string;
-    factionControl?: Partial<Record<Faction, number>>;
-    description?: string;
-    climate?: string;
-    terrain?: string;
-    notable?: string[];
+    population?: string | null;
+    factionControl?: Partial<Record<Faction, number>> | null;
+    description?: string | null;
+    climate?: string | null;
+    terrain?: string | null;
+    notable?: string[] | null;
   },
 ): Promise<void> {
   const { error } = await supabase.from('custom_planets').update({
     population: stats.population,
-    faction_control: (stats.factionControl as unknown as Json) || undefined,
+    faction_control: stats.factionControl === undefined ? undefined : (stats.factionControl as unknown as Json),
     description: stats.description,
     climate: stats.climate,
     terrain: stats.terrain,

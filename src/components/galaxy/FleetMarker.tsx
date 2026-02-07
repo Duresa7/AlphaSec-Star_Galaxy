@@ -39,6 +39,8 @@ export function FleetMarker({ fleet }: FleetMarkerProps) {
   const isDraggingRef = useRef(false);
   const dragStartRef = useRef<{ x: number; y: number } | null>(null);
   const didDragRef = useRef(false);
+  const dragOriginRef = useRef<THREE.Vector3 | null>(null);
+  const dragPositionRef = useRef<THREE.Vector3 | null>(null);
   const { gl, camera } = useThree();
   const cameraRef = useRef(camera);
   cameraRef.current = camera;
@@ -47,6 +49,7 @@ export function FleetMarker({ fleet }: FleetMarkerProps) {
     setInfoPanelData,
     setSelectedFleet,
     showLabels,
+    previewCustomFleetPosition,
     updateCustomFleetPosition,
     setDraggingCustomFleet,
     fleetPlacementMode,
@@ -82,6 +85,8 @@ export function FleetMarker({ fleet }: FleetMarkerProps) {
     if (!fleet.isCustom || fleetPlacementMode) return;
     e.stopPropagation();
     dragStartRef.current = { x: e.clientX, y: e.clientY };
+    dragOriginRef.current = fleet.position.clone();
+    dragPositionRef.current = fleet.position.clone();
     didDragRef.current = false;
 
     const onPointerMove = (moveEvent: PointerEvent) => {
@@ -103,15 +108,24 @@ export function FleetMarker({ fleet }: FleetMarkerProps) {
         const intersection = new THREE.Vector3();
         raycaster.ray.intersectPlane(plane, intersection);
         if (intersection) {
-          updateCustomFleetPosition(fleet.id, new THREE.Vector3(intersection.x, 0, intersection.z));
+          const nextPosition = new THREE.Vector3(intersection.x, 0, intersection.z);
+          dragPositionRef.current = nextPosition.clone();
+          previewCustomFleetPosition(fleet.id, nextPosition);
         }
       }
     };
 
     const onPointerUp = () => {
+      if (didDragRef.current && dragPositionRef.current) {
+        const origin = dragOriginRef.current ?? fleet.position.clone();
+        updateCustomFleetPosition(fleet.id, dragPositionRef.current, origin);
+      }
+
       dragStartRef.current = null;
       isDraggingRef.current = false;
       setDraggingCustomFleet(false);
+      dragOriginRef.current = null;
+      dragPositionRef.current = null;
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
     };
