@@ -22,6 +22,7 @@ interface SerializedCustomSystem {
   name: string;
   position: { x: number; y: number; z: number };
   customColor?: string;
+  markerSize?: number;
   planets?: SerializedCustomPlanet[];
 }
 
@@ -75,6 +76,7 @@ export function loadCustomSystems(): StarSystem[] {
         region: 'unknown_regions' as const,
         isCustom: true,
         customColor: s.customColor || '#FFFFFF',
+        markerSize: s.markerSize,
         planets,
       };
     });
@@ -89,6 +91,7 @@ export function saveCustomSystems(systems: StarSystem[]): void {
     name: s.name,
     position: { x: s.position.x, y: s.position.y, z: s.position.z },
     customColor: s.customColor || '#FFFFFF',
+    markerSize: s.markerSize,
     planets: s.planets.map((p) => ({
       id: p.id,
       name: p.name,

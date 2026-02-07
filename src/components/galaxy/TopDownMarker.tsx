@@ -48,7 +48,7 @@ export function TopDownMarker({ system }: TopDownMarkerProps) {
   const factionColor = system.isCustom && system.customColor
     ? system.customColor
     : FACTION_COLORS[system.faction];
-  const markerSize = IMPORTANCE_SIZE[system.importance] || 1.8;
+  const markerSize = system.markerSize ?? IMPORTANCE_SIZE[system.importance] ?? 1.8;
 
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     if (didDragRef.current) {

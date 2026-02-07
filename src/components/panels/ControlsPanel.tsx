@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useGalaxyStore } from '@/store/galaxyStore';
 import type { Faction } from '@/types';
 
@@ -47,9 +47,26 @@ export function ControlsPanel() {
   const [newFleetName, setNewFleetName] = useState('');
   const [newFleetFaction, setNewFleetFaction] = useState<Faction>('neutral');
   const [newFleetShipCount, setNewFleetShipCount] = useState(10);
+  const [yearDraft, setYearDraft] = useState(String(currentYear));
   const searchRef = useRef<HTMLInputElement>(null);
   const searchResults = getSearchResults();
   const factionStats = getFactionStats();
+
+  // Sync year draft when store value changes externally
+  useEffect(() => {
+    setYearDraft(String(currentYear));
+  }, [currentYear]);
+
+  const commitYear = useCallback(() => {
+    const parsed = parseInt(yearDraft, 10);
+    if (isNaN(parsed)) {
+      setYearDraft(String(currentYear));
+      return;
+    }
+    const clamped = Math.max(3900, Math.min(4100, parsed));
+    setCurrentYear(clamped);
+    setYearDraft(String(clamped));
+  }, [yearDraft, currentYear, setCurrentYear]);
 
   // Handle search result selection
   const handleSelectResult = (result: { type: 'system' | 'planet' | 'fleet'; id: string; name: string; parentName?: string }) => {
@@ -169,32 +186,35 @@ export function ControlsPanel() {
         )}
       </div>
 
-      {/* Timeline with Year Slider */}
+      {/* Timeline with Year Input */}
       <div className="holo-panel" style={{ marginTop: '16px' }}>
-        <div className="flex items-center justify-between">
-          <div>
-            <label className="holo-label">Timeline</label>
-            <p className="text-[13px] mt-1" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Rajdhani, sans-serif' }}>Old Republic Era</p>
-          </div>
-          <div className="text-right">
-            <span className="text-lg font-semibold" style={{ fontFamily: 'Orbitron, monospace', color: 'var(--holo-amber)' }}>{currentYear}</span>
-            <span className="text-[11px] ml-1" style={{ color: 'var(--holo-text-muted)' }}>BBY</span>
-          </div>
+        <div>
+          <label className="holo-label">Timeline</label>
+          <p className="text-[13px] mt-1" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Rajdhani, sans-serif' }}>Old Republic Era</p>
         </div>
-        {/* Year slider */}
-        <div className="mt-3">
+        <div className="mt-3 flex items-center gap-2">
           <input
-            type="range"
+            type="number"
             min={3900}
             max={4100}
-            value={currentYear}
-            onChange={(e) => setCurrentYear(parseInt(e.target.value))}
-            className="holo-slider w-full"
+            value={yearDraft}
+            onChange={(e) => setYearDraft(e.target.value)}
+            onBlur={commitYear}
+            onKeyDown={(e) => { if (e.key === 'Enter') commitYear(); }}
+            className="holo-input holo-number-input text-center"
+            style={{
+              fontFamily: 'Orbitron, monospace',
+              fontSize: '14px',
+              width: '80px',
+              padding: '4px 8px',
+              color: 'var(--holo-amber)',
+            }}
           />
-          <div className="flex justify-between mt-1">
-            <span style={{ fontFamily: 'Orbitron, monospace', fontSize: '8px', color: 'var(--holo-text-muted)' }}>3900</span>
-            <span style={{ fontFamily: 'Orbitron, monospace', fontSize: '8px', color: 'var(--holo-text-muted)' }}>4100</span>
-          </div>
+          <span style={{ fontFamily: 'Orbitron, monospace', fontSize: '10px', color: 'var(--holo-text-muted)' }}>BBY</span>
+        </div>
+        <div className="flex justify-between mt-1">
+          <span style={{ fontFamily: 'Orbitron, monospace', fontSize: '8px', color: 'var(--holo-text-muted)' }}>3900</span>
+          <span style={{ fontFamily: 'Orbitron, monospace', fontSize: '8px', color: 'var(--holo-text-muted)' }}>4100</span>
         </div>
       </div>
 
