@@ -23,6 +23,7 @@ interface AuthStore {
 }
 
 let hasInitializedAuthListener = false;
+let initializeInFlight: Promise<void> | null = null;
 
 async function loadProfile(userId: string) {
   const { data, error } = await supabase
@@ -57,57 +58,103 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   authError: null,
 
   initialize: async () => {
-    // Check for existing session
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-
-    if (session) {
-      const profile = await loadProfile(session.user.id);
-      set({
-        user: session.user,
-        session,
-        displayName: profile.displayName,
-        isAdmin: profile.isAdmin,
-        adminPermissions: profile.adminPermissions,
-        isLoading: false,
-        authError: null,
-      });
-    } else {
-      set({
-        user: null,
-        session: null,
-        displayName: null,
-        isAdmin: false,
-        adminPermissions: { ...DEFAULT_ADMIN_PERMISSIONS },
-        isLoading: false,
-      });
+    if (initializeInFlight) {
+      return initializeInFlight;
     }
 
-    if (!hasInitializedAuthListener) {
-      hasInitializedAuthListener = true;
-      supabase.auth.onAuthStateChange(async (_event, nextSession) => {
-        if (!nextSession) {
+    initializeInFlight = (async () => {
+      try {
+        // Check for existing session
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (session) {
+          const userId = session.user.id;
+          set({
+            user: session.user,
+            session,
+            displayName: null,
+            isAdmin: false,
+            adminPermissions: { ...DEFAULT_ADMIN_PERMISSIONS },
+            authError: null,
+          });
+
+          void loadProfile(userId)
+            .then((profile) => {
+              set((state) => (state.user?.id === userId ? {
+                displayName: profile.displayName,
+                isAdmin: profile.isAdmin,
+                adminPermissions: profile.adminPermissions,
+              } : {}));
+            })
+            .catch((error) => {
+              console.error('Failed to load profile after auth initialization:', error);
+            });
+        } else {
           set({
             user: null,
             session: null,
             displayName: null,
             isAdmin: false,
             adminPermissions: { ...DEFAULT_ADMIN_PERMISSIONS },
+            authError: null,
           });
-          return;
         }
 
-        const profile = await loadProfile(nextSession.user.id);
+        if (!hasInitializedAuthListener) {
+          hasInitializedAuthListener = true;
+          supabase.auth.onAuthStateChange((_event, nextSession) => {
+            if (!nextSession) {
+              set({
+                user: null,
+                session: null,
+                displayName: null,
+                isAdmin: false,
+                adminPermissions: { ...DEFAULT_ADMIN_PERMISSIONS },
+              });
+              return;
+            }
+
+            const userId = nextSession.user.id;
+            set({
+              user: nextSession.user,
+              session: nextSession,
+              displayName: null,
+              isAdmin: false,
+              adminPermissions: { ...DEFAULT_ADMIN_PERMISSIONS },
+            });
+
+            void loadProfile(userId)
+              .then((profile) => {
+                set((state) => (state.user?.id === userId ? {
+                  displayName: profile.displayName,
+                  isAdmin: profile.isAdmin,
+                  adminPermissions: profile.adminPermissions,
+                } : {}));
+              })
+              .catch((error) => {
+                console.error('Failed to load profile after auth state change:', error);
+              });
+          });
+        }
+      } catch (error) {
+        console.error('Failed to initialize auth store:', error);
         set({
-          user: nextSession.user,
-          session: nextSession,
-          displayName: profile.displayName,
-          isAdmin: profile.isAdmin,
-          adminPermissions: profile.adminPermissions,
+          user: null,
+          session: null,
+          displayName: null,
+          isAdmin: false,
+          adminPermissions: { ...DEFAULT_ADMIN_PERMISSIONS },
+          authError: 'Unable to initialize authentication.',
         });
-      });
-    }
+      } finally {
+        set({ isLoading: false });
+        initializeInFlight = null;
+      }
+    })();
+
+    return initializeInFlight;
   },
 
   signIn: async (email, password) => {

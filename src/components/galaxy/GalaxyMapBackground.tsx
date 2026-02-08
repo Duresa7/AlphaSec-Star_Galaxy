@@ -228,4 +228,4 @@ function GridOverlay() {
 // Placeholder for texture-based version - now redirects to procedural
 export function GalaxyMapBackground() {
   return <ProceduralGalaxyMap />;
-}`n
+}

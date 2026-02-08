@@ -1465,6 +1465,124 @@ body {
 }
 
 /*
+  ROUTE AUTH LOADING
+  Landing-style loading state for protected routes.
+*/
+
+.route-auth-loading {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  background: #080b13;
+  color: #f5f7fb;
+}
+
+.route-auth-loading__layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.route-auth-loading__layer--base {
+  background: var(--portfolio-hero-bg-image, url("/homepage-bg.jpg")) center / cover no-repeat;
+  transform: scale(1.04);
+  filter: saturate(0.92) contrast(1.04);
+}
+
+.route-auth-loading__layer--grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 60px 60px;
+  opacity: 0.18;
+}
+
+.route-auth-loading__veil {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 14% 18%, rgba(255, 255, 255, 0.2), transparent 44%),
+    radial-gradient(circle at 82% 10%, rgba(138, 191, 255, 0.18), transparent 46%),
+    linear-gradient(180deg, rgba(8, 11, 19, 0.66), rgba(8, 11, 19, 0.86));
+}
+
+.route-auth-loading__card {
+  position: relative;
+  z-index: 1;
+  width: min(560px, calc(100vw - 40px));
+  border-radius: 20px;
+  padding: clamp(20px, 3vw, 30px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(10, 14, 24, 0.68);
+  backdrop-filter: blur(8px);
+  box-shadow:
+    0 24px 50px rgba(0, 0, 0, 0.36),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.route-auth-loading__eyebrow {
+  margin: 0;
+  font-family: "Oxanium", "Spline Sans", sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(225, 232, 245, 0.68);
+}
+
+.route-auth-loading__title {
+  margin: 10px 0 8px;
+  font-family: "Playfair Display", "Times New Roman", serif;
+  font-size: clamp(1.5rem, 3.2vw, 2.1rem);
+  line-height: 1.1;
+  letter-spacing: 0.03em;
+  color: #ffffff;
+}
+
+.route-auth-loading__copy {
+  margin: 0;
+  color: rgba(226, 233, 246, 0.8);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.route-auth-loading__bar {
+  margin-top: 18px;
+  height: 6px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.route-auth-loading__bar > span {
+  display: block;
+  width: 40%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(145, 208, 255, 0.35), rgba(255, 255, 255, 0.95), rgba(145, 208, 255, 0.35));
+  box-shadow: 0 0 18px rgba(159, 216, 255, 0.7);
+  animation: routeAuthLoadingBar 900ms ease-in-out infinite;
+}
+
+@keyframes routeAuthLoadingBar {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(260%);
+  }
+}
+
+@media (max-width: 640px) {
+  .route-auth-loading__card {
+    width: min(560px, calc(100vw - 24px));
+    padding: 18px;
+  }
+}
+
+/*
   ADMIN CONSOLE
   Landing-style glass panels layered over the portfolio hero background.
 */
