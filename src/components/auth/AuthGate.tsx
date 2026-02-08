@@ -6,15 +6,11 @@ interface AuthGateProps {
 }
 
 export function AuthGate({ children }: AuthGateProps) {
-  const { isLoading, initialize } = useAuthStore();
+  const initialize = useAuthStore((state) => state.initialize);
 
   useEffect(() => {
-    initialize();
+    void initialize();
   }, [initialize]);
-
-  if (isLoading) {
-    return null;
-  }
 
   return <>{children}</>;
 }
