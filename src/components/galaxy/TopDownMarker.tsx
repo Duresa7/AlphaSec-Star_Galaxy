@@ -4,6 +4,7 @@ import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import type { StarSystem, Faction } from '@/types';
 import { useGalaxyStore } from '@/store/galaxyStore';
+import { useAuthStore } from '@/store/authStore';
 
 interface TopDownMarkerProps {
   system: StarSystem;
@@ -27,6 +28,7 @@ const IMPORTANCE_SIZE: Record<string, number> = {
 const DRAG_THRESHOLD = 2; // pixels before a click becomes a drag
 
 export function TopDownMarker({ system }: TopDownMarkerProps) {
+  const { isAdmin } = useAuthStore();
   const [hovered, setHovered] = useState(false);
   const isDraggingRef = useRef(false);
   const dragStartRef = useRef<{ x: number; y: number } | null>(null);
@@ -77,7 +79,7 @@ export function TopDownMarker({ system }: TopDownMarkerProps) {
   };
 
   const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
-    if (!system.isCustom || placementMode) return;
+    if (!isAdmin || !system.isCustom || placementMode) return;
     e.stopPropagation();
     dragStartRef.current = { x: e.clientX, y: e.clientY };
     dragOriginRef.current = system.position.clone();
@@ -133,7 +135,7 @@ export function TopDownMarker({ system }: TopDownMarkerProps) {
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     setHovered(true);
-    document.body.style.cursor = system.isCustom ? 'grab' : 'pointer';
+    document.body.style.cursor = system.isCustom && isAdmin ? 'grab' : 'pointer';
   };
 
   const handlePointerOut = () => {

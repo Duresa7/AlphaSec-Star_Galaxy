@@ -3,7 +3,11 @@ import { useAuthStore } from '@/store/authStore';
 
 type Mode = 'signin' | 'signup';
 
-export function AuthScreen() {
+interface AuthScreenProps {
+  embedded?: boolean;
+}
+
+export function AuthScreen({ embedded = false }: AuthScreenProps) {
   const { signIn, signUp, isLoading, authError, clearAuthError } = useAuthStore();
 
   const [mode, setMode] = useState<Mode>('signin');
@@ -29,6 +33,97 @@ export function AuthScreen() {
     await signUp(email.trim(), password, displayName.trim());
   };
 
+  if (embedded) {
+    return (
+      <div className="portfolio-auth-card">
+        <div className="portfolio-auth-card__header">
+          <h2 className="portfolio-auth-card__title">Alpha Sec Access</h2>
+          <span className="portfolio-auth-card__status">Secure</span>
+        </div>
+
+        <p className="portfolio-auth-card__copy">
+          Sign in or create an account to unlock Alpha Sec apps.
+        </p>
+
+        <div className="portfolio-auth-card__tabs">
+          <button
+            type="button"
+            className={`portfolio-auth-card__tab${mode === 'signin' ? ' is-active' : ''}`}
+            onClick={() => {
+              clearAuthError();
+              setMode('signin');
+            }}
+          >
+            Sign In
+          </button>
+          <button
+            type="button"
+            className={`portfolio-auth-card__tab${mode === 'signup' ? ' is-active' : ''}`}
+            onClick={() => {
+              clearAuthError();
+              setMode('signup');
+            }}
+          >
+            Sign Up
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="portfolio-auth-card__form">
+          {mode === 'signup' && (
+            <div>
+              <label className="portfolio-auth-card__label">Display Name</label>
+              <input
+                type="text"
+                value={displayName}
+                onChange={(event) => setDisplayName(event.target.value)}
+                className="portfolio-auth-card__input"
+                placeholder="Optional"
+                autoComplete="name"
+              />
+            </div>
+          )}
+
+          <div>
+            <label className="portfolio-auth-card__label">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              className="portfolio-auth-card__input"
+              placeholder="name@domain.com"
+              autoComplete="email"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="portfolio-auth-card__label">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              className="portfolio-auth-card__input"
+              placeholder={mode === 'signup' ? 'At least 6 characters' : 'Enter password'}
+              autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+              minLength={mode === 'signup' ? 6 : 1}
+              required
+            />
+          </div>
+
+          {authError && <div className="portfolio-auth-card__error">{authError}</div>}
+
+          <button
+            type="submit"
+            disabled={!canSubmit || isLoading}
+            className="portfolio-auth-card__submit disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoading ? 'Processing...' : mode === 'signin' ? 'Sign In' : 'Create Account'}
+          </button>
+        </form>
+      </div>
+    );
+  }
+
   return (
     <div className="w-screen h-screen flex items-center justify-center bg-black px-4">
       <div className="holo-panel w-full max-w-md">
@@ -37,7 +132,7 @@ export function AuthScreen() {
             className="text-lg tracking-[0.2em] uppercase"
             style={{ fontFamily: 'Orbitron, monospace', color: 'var(--holo-amber)' }}
           >
-            Command Access
+            Alpha Sec Access
           </h1>
           <span className="holo-badge bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
             Secure
@@ -45,7 +140,7 @@ export function AuthScreen() {
         </div>
 
         <p className="text-sm mb-4" style={{ color: 'var(--holo-text-muted)' }}>
-          Sign in with your account to access the shared galaxy map.
+          Sign in with your account to unlock Alpha Sec apps.
         </p>
 
         <div className="flex gap-2 mb-4">

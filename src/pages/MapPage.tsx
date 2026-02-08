@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { GalaxyScene } from '@/components/galaxy/GalaxyScene';
 import { InfoPanel } from '@/components/panels/InfoPanel';
 import { ControlsPanel } from '@/components/panels/ControlsPanel';
@@ -27,6 +28,16 @@ export function MapPage() {
       <ControlsPanel />
       <InfoPanel />
       <LoadingScreen />
+
+      {/* Navigation */}
+      <div className="absolute top-24 left-1/2 -translate-x-1/2 z-40">
+        <Link to="/" className="holo-button" style={{ padding: '8px 14px' }}>
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+          </svg>
+          <span>Alpha Sec</span>
+        </Link>
+      </div>
 
       {/* Title — KOTOR Holoterm style */}
       <div className="absolute top-6 left-1/2 -translate-x-1/2 text-center pointer-events-none z-0 mix-blend-screen opacity-80">

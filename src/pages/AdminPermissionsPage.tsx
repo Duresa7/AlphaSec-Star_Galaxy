@@ -115,109 +115,111 @@ export function AdminPermissionsPage() {
   };
 
   return (
-    <div className="w-screen h-screen overflow-y-auto bg-black text-white">
-      <div className="max-w-6xl mx-auto px-6 py-6">
-        <div className="holo-panel mb-5">
-          <div className="flex items-center justify-between gap-3">
+    <section className="portfolio-hero admin-console-hero" aria-label="Admin permission management">
+      <div className="portfolio-hero__layer portfolio-hero__base-image" aria-hidden="true" />
+      <div className="portfolio-hero__layer portfolio-hero__grid" aria-hidden="true" />
+      <div className="portfolio-hero__layer portfolio-hero__alt-image admin-console-hero__alt" aria-hidden="true" />
+      <div className="admin-console-hero__veil" aria-hidden="true" />
+
+      <div className="admin-console">
+        <div className="admin-console__container">
+          <header className="admin-console__masthead">
             <div>
-              <p className="holo-label mb-2">Admin Console</p>
-              <h1
-                className="text-xl uppercase tracking-[0.2em]"
-                style={{ fontFamily: 'Orbitron, monospace', color: 'var(--holo-amber)' }}
-              >
-                Permission Management
-              </h1>
+              <p className="admin-console__eyebrow">Administrative Console</p>
+              <h1 className="admin-console__title">Permission Management</h1>
+              <p className="admin-console__subtitle">
+                Control who can access high-impact admin tools and operational permissions.
+              </p>
             </div>
-            <div className="flex items-center gap-2">
-              <Link to="/admin/activity" className="holo-button" style={{ padding: '8px 12px' }}>
+            <div className="admin-console__actions">
+              <Link to="/admin/activity" className="admin-console__action">
                 Activity Log
               </Link>
-              <Link to="/map" className="holo-button" style={{ padding: '8px 12px' }}>
+              <Link to="/map" className="admin-console__action admin-console__action--primary">
                 Back to Map
               </Link>
             </div>
-          </div>
-        </div>
+          </header>
 
-        <div className="holo-panel mb-5">
-          <p className="text-sm" style={{ color: 'var(--holo-text-muted)' }}>
-            Admin users: {admins.length}
-          </p>
-          {error && (
-            <p className="mt-2 text-sm border px-3 py-2" style={{ borderColor: 'rgba(220,20,60,0.35)', color: '#fca5a5' }}>
-              {error}
-            </p>
-          )}
-        </div>
-
-        <div className="holo-panel">
-          {isLoading ? (
-            <p style={{ color: 'var(--holo-text-muted)' }}>Loading profiles...</p>
-          ) : (
-            <div className="space-y-3">
-              {profiles.map((profile) => {
-                const isCurrentUser = profile.id === user?.id;
-                return (
-                  <div key={profile.id} className="holo-info-grid">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold truncate" style={{ color: 'var(--holo-text-primary)' }}>
-                          {formatName(profile)}
-                        </p>
-                        <p className="text-[11px] break-all" style={{ color: 'var(--holo-text-muted)' }}>
-                          {profile.id}
-                        </p>
-                        {isCurrentUser && (
-                          <span className="holo-badge mt-2 inline-block bg-cyan-500/20 border border-cyan-500/30 text-cyan-200">
-                            You
-                          </span>
-                        )}
-                      </div>
-
-                      <label className="flex items-center gap-2 text-xs uppercase tracking-wider" style={{ color: 'var(--holo-text-muted)' }}>
-                        <input
-                          type="checkbox"
-                          checked={profile.isAdmin}
-                          disabled={Boolean(isSaving)}
-                          onChange={(event) => {
-                            void handleAdminToggle(profile, event.target.checked);
-                          }}
-                        />
-                        Admin
-                      </label>
-                    </div>
-
-                    {profile.isAdmin && (
-                      <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2">
-                        {PERMISSION_KEYS.map((permission) => (
-                          <label
-                            key={permission}
-                            className="flex items-center gap-2 text-xs uppercase tracking-wider border px-2 py-2"
-                            style={{
-                              borderColor: 'rgba(200, 170, 110, 0.2)',
-                              color: 'var(--holo-text-muted)',
-                            }}
-                          >
-                            <input
-                              type="checkbox"
-                              checked={profile.permissions[permission]}
-                              disabled={Boolean(isSaving)}
-                              onChange={(event) => {
-                                void handlePermissionToggle(profile, permission, event.target.checked);
-                              }}
-                            />
-                            <span>{PERMISSION_LABELS[permission]}</span>
-                          </label>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+          <section className="admin-console__panel">
+            <div className="admin-console__panel-head">
+              <h2 className="admin-console__panel-title">Access Summary</h2>
+              <span className="admin-console__pill">{admins.length} Admins</span>
             </div>
-          )}
+            <p className="admin-console__copy">
+              Assign admin roles and fine-grained permissions per operator profile.
+            </p>
+            {error && <p className="admin-console__alert">{error}</p>}
+          </section>
+
+          <section className="admin-console__panel">
+            <div className="admin-console__panel-head">
+              <h2 className="admin-console__panel-title">Profiles</h2>
+              <span className="admin-console__pill admin-console__pill--muted">{profiles.length} Operators</span>
+            </div>
+
+            {isLoading ? (
+              <p className="admin-console__copy">Loading profiles...</p>
+            ) : (
+              <div className="admin-console__profile-grid">
+                {profiles.map((profile) => {
+                  const isCurrentUser = profile.id === user?.id;
+                  const savingProfile = isSaving === profile.id;
+                  return (
+                    <article
+                      key={profile.id}
+                      className={`admin-console__profile-card${savingProfile ? ' is-saving' : ''}`}
+                    >
+                      <div className="admin-console__profile-head">
+                        <div className="admin-console__identity">
+                          <p className="admin-console__profile-name">{formatName(profile)}</p>
+                          <p className="admin-console__profile-id">{profile.id}</p>
+                          <div className="admin-console__badge-row">
+                            {isCurrentUser && <span className="admin-console__badge">You</span>}
+                            {profile.isAdmin && (
+                              <span className="admin-console__badge admin-console__badge--admin">Admin</span>
+                            )}
+                          </div>
+                        </div>
+
+                        <label className="admin-console__toggle">
+                          <input
+                            type="checkbox"
+                            checked={profile.isAdmin}
+                            disabled={Boolean(isSaving)}
+                            onChange={(event) => {
+                              void handleAdminToggle(profile, event.target.checked);
+                            }}
+                          />
+                          <span>Admin Access</span>
+                        </label>
+                      </div>
+
+                      {profile.isAdmin && (
+                        <div className="admin-console__permissions-grid">
+                          {PERMISSION_KEYS.map((permission) => (
+                            <label key={permission} className="admin-console__permission-item">
+                              <input
+                                type="checkbox"
+                                checked={profile.permissions[permission]}
+                                disabled={Boolean(isSaving)}
+                                onChange={(event) => {
+                                  void handlePermissionToggle(profile, permission, event.target.checked);
+                                }}
+                              />
+                              <span>{PERMISSION_LABELS[permission]}</span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </section>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
