@@ -1,13 +1,12 @@
 import { useEffect, type ReactNode } from 'react';
 import { useAuthStore } from '@/store/authStore';
-import { AuthScreen } from '@/components/auth/AuthScreen';
 
 interface AuthGateProps {
   children: ReactNode;
 }
 
 export function AuthGate({ children }: AuthGateProps) {
-  const { isLoading, user, initialize } = useAuthStore();
+  const { isLoading, initialize } = useAuthStore();
 
   useEffect(() => {
     initialize();
@@ -15,10 +14,6 @@ export function AuthGate({ children }: AuthGateProps) {
 
   if (isLoading) {
     return null;
-  }
-
-  if (!user) {
-    return <AuthScreen />;
   }
 
   return <>{children}</>;

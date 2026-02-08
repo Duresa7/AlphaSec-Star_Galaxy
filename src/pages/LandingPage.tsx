@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useRef, useState, type ComponentType } from 'react';
+import { useCallback, useEffect, useRef, useState, type ComponentType, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuthStore } from '@/store/authStore';
+import { AuthScreen } from '@/components/auth/AuthScreen';
 
 type Point = {
   x: number;
@@ -79,6 +81,8 @@ const SOCIAL_LINKS: SocialLink[] = [
 ];
 
 export function LandingPage() {
+  const { user } = useAuthStore();
+  const heroImageUrl = `${import.meta.env.BASE_URL}homepage-bg.jpg`;
   const heroRef = useRef<HTMLElement | null>(null);
   const boundsRef = useRef<Bounds>({ left: 0, top: 0, width: 1, height: 1 });
   const targetCursorRef = useRef<Point>({ x: 0, y: 0 });
@@ -299,12 +303,14 @@ export function LandingPage() {
       </div>
 
       <div className="portfolio-hero__nav-block portfolio-hero__parallax">
-        {interactive ? (
+        {interactive && user ? (
           <Link className="portfolio-hero__nav-link" to="/map">
             Interactive Galaxy Map
           </Link>
         ) : (
-          <span className="portfolio-hero__nav-link">Interactive Galaxy Map</span>
+          <span className="portfolio-hero__nav-link">
+            {user ? 'Interactive Galaxy Map' : 'Login Required for Map'}
+          </span>
         )}
       </div>
 
@@ -317,6 +323,7 @@ export function LandingPage() {
       ref={heroRef}
       className={`portfolio-hero${prefersReducedMotion ? ' portfolio-hero--reduced-motion' : ''}`}
       aria-label="Portfolio homepage"
+      style={{ '--portfolio-hero-bg-image': `url("${heroImageUrl}")` } as CSSProperties}
     >
       <div className="portfolio-hero__layer portfolio-hero__base-image" aria-hidden="true" />
       <div className="portfolio-hero__layer portfolio-hero__grid" aria-hidden="true" />
@@ -335,6 +342,12 @@ export function LandingPage() {
       >
         {renderOverlayContent(false)}
       </div>
+
+      {!user && (
+        <div className="portfolio-hero__auth-wrap">
+          <AuthScreen embedded />
+        </div>
+      )}
 
       <div className="portfolio-hero__cursor-layer" aria-hidden="true">
         {echoes.map((echo) => (

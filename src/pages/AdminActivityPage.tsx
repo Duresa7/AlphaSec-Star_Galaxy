@@ -43,65 +43,67 @@ export function AdminActivityPage() {
   }
 
   return (
-    <div className="w-screen h-screen overflow-y-auto bg-black text-white">
-      <div className="max-w-5xl mx-auto px-6 py-6">
-        <div className="holo-panel mb-5">
-          <div className="flex items-center justify-between gap-3">
+    <section className="portfolio-hero admin-console-hero" aria-label="Admin activity log">
+      <div className="portfolio-hero__layer portfolio-hero__base-image" aria-hidden="true" />
+      <div className="portfolio-hero__layer portfolio-hero__grid" aria-hidden="true" />
+      <div className="portfolio-hero__layer portfolio-hero__alt-image admin-console-hero__alt" aria-hidden="true" />
+      <div className="admin-console-hero__veil" aria-hidden="true" />
+
+      <div className="admin-console">
+        <div className="admin-console__container">
+          <header className="admin-console__masthead">
             <div>
-              <p className="holo-label mb-2">Admin Console</p>
-              <h1
-                className="text-xl uppercase tracking-[0.2em]"
-                style={{ fontFamily: 'Orbitron, monospace', color: 'var(--holo-amber)' }}
-              >
-                Activity Log
-              </h1>
+              <p className="admin-console__eyebrow">Administrative Console</p>
+              <h1 className="admin-console__title">Activity Log</h1>
+              <p className="admin-console__subtitle">
+                Live audit feed for system actions, edits, and operator behavior.
+              </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="admin-console__actions">
               {canManagePermissions && (
-                <Link to="/admin/permissions" className="holo-button" style={{ padding: '8px 12px' }}>
+                <Link to="/admin/permissions" className="admin-console__action">
                   Permissions
                 </Link>
               )}
-              <Link to="/map" className="holo-button" style={{ padding: '8px 12px' }}>
+              <Link to="/map" className="admin-console__action admin-console__action--primary">
                 Back to Map
               </Link>
             </div>
-          </div>
-        </div>
+          </header>
 
-        <div className="holo-panel">
-          {isLoading ? (
-            <p style={{ color: 'var(--holo-text-muted)' }}>Loading activity log...</p>
-          ) : entries.length === 0 ? (
-            <p style={{ color: 'var(--holo-text-muted)' }}>No activity yet.</p>
-          ) : (
-            <div className="space-y-2">
-              {entries.map((entry) => (
-                <div key={entry.id} className="holo-info-grid">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="holo-badge bg-cyan-500/20 border border-cyan-500/30 text-cyan-200">
-                      {entry.eventType}
-                    </span>
-                    <span className="text-xs" style={{ color: 'var(--holo-text-muted)' }}>
-                      {formatTimestamp(entry.createdAt)}
-                    </span>
-                  </div>
-
-                  <p className="text-sm mt-2" style={{ color: 'var(--holo-text-primary)' }}>
-                    {entry.message}
-                  </p>
-
-                  <div className="mt-2 flex flex-wrap gap-2 text-[11px]" style={{ color: 'var(--holo-text-muted)' }}>
-                    {entry.entityType && <span>entity: {entry.entityType}</span>}
-                    {entry.entityId && <span>id: {entry.entityId}</span>}
-                    <span>actor: {entry.actorId}</span>
-                  </div>
-                </div>
-              ))}
+          <section className="admin-console__panel">
+            <div className="admin-console__panel-head">
+              <h2 className="admin-console__panel-title">Event Stream</h2>
+              <span className="admin-console__pill">{entries.length} Events</span>
             </div>
-          )}
+
+            {isLoading ? (
+              <p className="admin-console__copy">Loading activity log...</p>
+            ) : entries.length === 0 ? (
+              <p className="admin-console__copy">No activity yet.</p>
+            ) : (
+              <div className="admin-console__log-list">
+                {entries.map((entry) => (
+                  <article key={entry.id} className="admin-console__log-item">
+                    <div className="admin-console__log-meta">
+                      <span className="admin-console__event-chip">{entry.eventType}</span>
+                      <time className="admin-console__timestamp">{formatTimestamp(entry.createdAt)}</time>
+                    </div>
+
+                    <p className="admin-console__message">{entry.message}</p>
+
+                    <div className="admin-console__tag-row">
+                      {entry.entityType && <span className="admin-console__tag">entity: {entry.entityType}</span>}
+                      {entry.entityId && <span className="admin-console__tag">id: {entry.entityId}</span>}
+                      <span className="admin-console__tag">actor: {entry.actorId}</span>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

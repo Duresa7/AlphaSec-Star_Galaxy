@@ -98,6 +98,7 @@ const statsSnapshotToUpdate = (
 
 let historyReplayDepth = 0;
 const isReplayingHistory = () => historyReplayDepth > 0;
+const canEditMap = () => useAuthStore.getState().isAdmin;
 
 async function withHistoryReplay(task: () => void | Promise<void>) {
   historyReplayDepth += 1;
@@ -358,6 +359,7 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
 
   // ─── Planet Stats Editing ──────────────────────────
   updatePlanetStats: (systemId, planetId, updates) => {
+    if (!canEditMap()) return;
     const state = get();
     const resolvedSystem =
       state.systems.find((s) => s.id === systemId) ?? state.systems.find((s) => s.planets.some((p) => p.id === planetId));
@@ -432,15 +434,27 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
   draggingCustomPlanet: false,
 
   setPlacementMode: (mode, pending = null) =>
-    set({
-      placementMode: mode,
-      pendingCustomPlanet: pending ?? null,
-      ...(mode ? { fleetPlacementMode: false, pendingCustomFleet: null } : {}),
+    set((state) => {
+      if (!canEditMap()) {
+        return {
+          placementMode: false,
+          pendingCustomPlanet: null,
+          fleetPlacementMode: state.fleetPlacementMode,
+          pendingCustomFleet: state.pendingCustomFleet,
+        };
+      }
+
+      return {
+        placementMode: mode,
+        pendingCustomPlanet: pending ?? null,
+        ...(mode ? { fleetPlacementMode: false, pendingCustomFleet: null } : {}),
+      };
     }),
 
   setDraggingCustomPlanet: (dragging) => set({ draggingCustomPlanet: dragging }),
 
   addCustomSystem: (system) => {
+    if (!canEditMap()) return;
     // Optimistic local update
     set((state) => ({
       systems: [...state.systems, system],
@@ -463,6 +477,7 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
   },
 
   removeCustomSystem: (id) => {
+    if (!canEditMap()) return;
     const existing = get().systems.find((s) => s.id === id && s.isCustom);
 
     // Optimistic local update
@@ -491,12 +506,14 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
   },
 
   previewCustomSystemPosition: (id, position) => {
+    if (!canEditMap()) return;
     set((state) => ({
       systems: state.systems.map((s) => (s.id === id ? { ...s, position: position.clone() } : s)),
     }));
   },
 
   updateCustomSystemPosition: (id, position, previousPosition) => {
+    if (!canEditMap()) return;
     const existing = get().systems.find((s) => s.id === id && s.isCustom);
     const previous = previousPosition?.clone() ?? existing?.position.clone();
     if (!existing || !previous) return;
@@ -531,6 +548,7 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
   },
 
   updateCustomSystemMarkerSize: (id, markerSize) => {
+    if (!canEditMap()) return;
     // Optimistic local update
     set((state) => ({
       systems: state.systems.map((s) => (s.id === id ? { ...s, markerSize } : s)),
@@ -545,15 +563,27 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
   draggingCustomFleet: false,
 
   setFleetPlacementMode: (mode, pending = null) =>
-    set({
-      fleetPlacementMode: mode,
-      pendingCustomFleet: pending ?? null,
-      ...(mode ? { placementMode: false, pendingCustomPlanet: null } : {}),
+    set((state) => {
+      if (!canEditMap()) {
+        return {
+          fleetPlacementMode: false,
+          pendingCustomFleet: null,
+          placementMode: state.placementMode,
+          pendingCustomPlanet: state.pendingCustomPlanet,
+        };
+      }
+
+      return {
+        fleetPlacementMode: mode,
+        pendingCustomFleet: pending ?? null,
+        ...(mode ? { placementMode: false, pendingCustomPlanet: null } : {}),
+      };
     }),
 
   setDraggingCustomFleet: (dragging) => set({ draggingCustomFleet: dragging }),
 
   addCustomFleet: (fleet) => {
+    if (!canEditMap()) return;
     // Optimistic local update
     set((state) => ({
       fleets: [...state.fleets, fleet],
@@ -575,6 +605,7 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
   },
 
   removeCustomFleet: (id) => {
+    if (!canEditMap()) return;
     const existing = get().fleets.find((f) => f.id === id && f.isCustom);
 
     // Optimistic local update
@@ -602,12 +633,14 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
   },
 
   previewCustomFleetPosition: (id, position) => {
+    if (!canEditMap()) return;
     set((state) => ({
       fleets: state.fleets.map((f) => (f.id === id ? { ...f, position: position.clone() } : f)),
     }));
   },
 
   updateCustomFleetPosition: (id, position, previousPosition) => {
+    if (!canEditMap()) return;
     const existing = get().fleets.find((f) => f.id === id && f.isCustom);
     const previous = previousPosition?.clone() ?? existing?.position.clone();
     if (!existing || !previous) return;

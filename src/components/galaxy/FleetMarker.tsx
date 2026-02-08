@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import type { Fleet, Faction } from '@/types';
 import { useGalaxyStore } from '@/store/galaxyStore';
 import { ShipModel } from '@/components/three/ModelLoader';
+import { useAuthStore } from '@/store/authStore';
 
 interface FleetMarkerProps {
   fleet: Fleet;
@@ -34,6 +35,7 @@ function useDiamondShape(size: number) {
 }
 
 export function FleetMarker({ fleet }: FleetMarkerProps) {
+  const { isAdmin } = useAuthStore();
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
   const isDraggingRef = useRef(false);
@@ -82,7 +84,7 @@ export function FleetMarker({ fleet }: FleetMarkerProps) {
   };
 
   const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
-    if (!fleet.isCustom || fleetPlacementMode) return;
+    if (!isAdmin || !fleet.isCustom || fleetPlacementMode) return;
     e.stopPropagation();
     dragStartRef.current = { x: e.clientX, y: e.clientY };
     dragOriginRef.current = fleet.position.clone();
@@ -137,7 +139,7 @@ export function FleetMarker({ fleet }: FleetMarkerProps) {
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     setHovered(true);
-    document.body.style.cursor = fleet.isCustom ? 'grab' : 'pointer';
+    document.body.style.cursor = fleet.isCustom && isAdmin ? 'grab' : 'pointer';
   };
 
   const handlePointerOut = () => {
