@@ -1089,8 +1089,8 @@ body {
   width: clamp(84px, 10vw, 118px);
   height: clamp(84px, 10vw, 118px);
   max-width: none;
-  border: 1px solid rgba(12, 12, 12, 0.4);
-  border-bottom: 1px solid rgba(12, 12, 12, 0.4);
+  border: 4px solid #000;
+  border-bottom: 4px solid #000;
   border-radius: 22px;
   padding: 0;
   background: rgba(255, 255, 255, 0.72);
@@ -1638,8 +1638,8 @@ body {
   overflow: hidden;
   display: grid;
   place-items: center;
-  background: #080b13;
-  color: #f5f7fb;
+  background: #e5e7eb;
+  color: #111;
 }
 
 .route-auth-loading__layer {
@@ -1649,17 +1649,20 @@ body {
 }
 
 .route-auth-loading__layer--base {
-  background: var(--portfolio-hero-bg-image, url("/homepage-bg.jpg")) center / cover no-repeat;
-  transform: scale(1.04);
-  filter: saturate(0.92) contrast(1.04);
+  background:
+    linear-gradient(140deg, rgba(230, 233, 237, 0.72), rgba(219, 223, 229, 0.9)),
+    var(--portfolio-hero-bg-image, url("/homepage-bg.jpg")) center / cover no-repeat;
+  transform: scale(1.03);
+  filter: saturate(0.9) contrast(1.04);
 }
 
 .route-auth-loading__layer--grid {
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
-  background-size: 60px 60px;
-  opacity: 0.18;
+    linear-gradient(rgba(18, 20, 24, 0.14) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(18, 20, 24, 0.14) 1px, transparent 1px);
+  background-size: 72px 72px;
+  opacity: 0.2;
+  animation: routeAuthGridFloat 18s ease-in-out infinite alternate;
 }
 
 .route-auth-loading__veil {
@@ -1667,23 +1670,25 @@ body {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at 14% 18%, rgba(255, 255, 255, 0.2), transparent 44%),
-    radial-gradient(circle at 82% 10%, rgba(138, 191, 255, 0.18), transparent 46%),
-    linear-gradient(180deg, rgba(8, 11, 19, 0.66), rgba(8, 11, 19, 0.86));
+    radial-gradient(circle at 14% 18%, rgba(232, 235, 239, 0.58), transparent 44%),
+    radial-gradient(circle at 82% 10%, rgba(196, 200, 207, 0.26), transparent 46%),
+    linear-gradient(180deg, rgba(224, 227, 232, 0.5), rgba(220, 224, 230, 0.88));
 }
 
 .route-auth-loading__card {
   position: relative;
   z-index: 1;
   width: min(560px, calc(100vw - 40px));
-  border-radius: 20px;
-  padding: clamp(20px, 3vw, 30px);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  background: rgba(10, 14, 24, 0.68);
-  backdrop-filter: blur(8px);
+  border-radius: 24px;
+  padding: clamp(22px, 3vw, 34px);
+  border: 1px solid rgba(20, 22, 26, 0.26);
+  background:
+    radial-gradient(circle at 88% 12%, rgba(190, 194, 201, 0.28), transparent 44%),
+    linear-gradient(150deg, rgba(234, 237, 242, 0.92), rgba(217, 221, 228, 0.8));
+  backdrop-filter: blur(8px) saturate(1.02);
   box-shadow:
-    0 24px 50px rgba(0, 0, 0, 0.36),
-    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    0 24px 50px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62);
 }
 
 .route-auth-loading__eyebrow {
@@ -1692,7 +1697,7 @@ body {
   font-size: 10px;
   letter-spacing: 0.24em;
   text-transform: uppercase;
-  color: rgba(225, 232, 245, 0.68);
+  color: rgba(28, 30, 36, 0.6);
 }
 
 .route-auth-loading__title {
@@ -1701,32 +1706,52 @@ body {
   font-size: clamp(1.5rem, 3.2vw, 2.1rem);
   line-height: 1.1;
   letter-spacing: 0.03em;
-  color: #ffffff;
+  color: #111;
 }
 
 .route-auth-loading__copy {
   margin: 0;
-  color: rgba(226, 233, 246, 0.8);
+  color: rgba(32, 35, 42, 0.74);
   font-size: 0.95rem;
   line-height: 1.6;
 }
 
 .route-auth-loading__bar {
   margin-top: 18px;
-  height: 6px;
+  height: 7px;
   border-radius: 999px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(24, 27, 34, 0.18);
 }
 
 .route-auth-loading__bar > span {
   display: block;
-  width: 40%;
+  width: 36%;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, rgba(145, 208, 255, 0.35), rgba(255, 255, 255, 0.95), rgba(145, 208, 255, 0.35));
-  box-shadow: 0 0 18px rgba(159, 216, 255, 0.7);
-  animation: routeAuthLoadingBar 900ms ease-in-out infinite;
+  background: linear-gradient(90deg, rgba(157, 161, 168, 0.42), rgba(34, 37, 42, 0.92), rgba(157, 161, 168, 0.42));
+  box-shadow: 0 0 14px rgba(121, 127, 137, 0.38);
+  animation: routeAuthLoadingBar 1100ms ease-in-out infinite;
+}
+
+.route-auth-loading__card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.52);
+  mask-image: linear-gradient(150deg, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.2));
+  -webkit-mask-image: linear-gradient(150deg, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.2));
+}
+
+@keyframes routeAuthGridFloat {
+  0% {
+    background-position: 0 0, 0 0;
+  }
+  100% {
+    background-position: 20px -16px, -14px 18px;
+  }
 }
 
 @keyframes routeAuthLoadingBar {
