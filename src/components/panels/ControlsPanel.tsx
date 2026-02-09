@@ -1,5 +1,8 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { useGalaxyStore } from '@/store/galaxyStore';
+import { useAuthStore } from '@/store/authStore';
+import { subscribeToActionHistory } from '@/data/actionHistory';
 import type { Faction } from '@/types';
 
 const FACTION_STAT_CONFIG: { key: Faction; label: string; color: string }[] = [
@@ -9,6 +12,19 @@ const FACTION_STAT_CONFIG: { key: Faction; label: string; color: string }[] = [
   { key: 'neutral', label: 'Neutral', color: '#9E9E9E' },
   { key: 'contested', label: 'Contested', color: '#FFA726' },
 ];
+
+type SectionKey =
+  | 'navigation'
+  | 'operator'
+  | 'adminPermissions'
+  | 'currentView'
+  | 'timeline'
+  | 'galaxyOverview'
+  | 'mapAccess'
+  | 'customPlanets'
+  | 'customFleets'
+  | 'filters'
+  | 'layers';
 
 export function ControlsPanel() {
   const {
@@ -37,7 +53,17 @@ export function ControlsPanel() {
     fleets,
     fleetPlacementMode,
     setFleetPlacementMode,
+    canUndo,
+    canRedo,
+    historyBusy,
+    refreshHistoryAvailability,
+    undoGlobalAction,
+    redoGlobalAction,
   } = useGalaxyStore();
+  const { user, displayName, isAdmin, signOut, hasAdminPermission } = useAuthStore();
+  const canViewActivityLog = hasAdminPermission('view_activity_log');
+  const canRunGlobalHistory = hasAdminPermission('run_global_history');
+  const canManageAdminPermissions = hasAdminPermission('manage_admin_permissions');
 
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -47,9 +73,63 @@ export function ControlsPanel() {
   const [newFleetName, setNewFleetName] = useState('');
   const [newFleetFaction, setNewFleetFaction] = useState<Faction>('neutral');
   const [newFleetShipCount, setNewFleetShipCount] = useState(10);
+  const [yearDraft, setYearDraft] = useState(String(currentYear));
+  const [collapsedSections, setCollapsedSections] = useState<Record<SectionKey, boolean>>({
+    navigation: false,
+    operator: false,
+    adminPermissions: false,
+    currentView: false,
+    timeline: false,
+    galaxyOverview: false,
+    mapAccess: false,
+    customPlanets: false,
+    customFleets: false,
+    filters: false,
+    layers: false,
+  });
   const searchRef = useRef<HTMLInputElement>(null);
   const searchResults = getSearchResults();
   const factionStats = getFactionStats();
+  const operatorDisplayIdentity = displayName?.trim() || user?.email || 'Authenticated User';
+
+  // Sync year draft when store value changes externally
+  useEffect(() => {
+    setYearDraft(String(currentYear));
+  }, [currentYear]);
+
+  useEffect(() => {
+    if (!canRunGlobalHistory) return;
+    void refreshHistoryAvailability();
+    const unsubscribe = subscribeToActionHistory(() => {
+      void refreshHistoryAvailability();
+    });
+    return unsubscribe;
+  }, [canRunGlobalHistory, refreshHistoryAvailability]);
+
+  useEffect(() => {
+    if (collapsedSections.navigation) {
+      setIsSearchFocused(false);
+    }
+  }, [collapsedSections.navigation]);
+
+  const toggleSection = useCallback((section: SectionKey) => {
+    setCollapsedSections((prev) => ({ ...prev, [section]: !prev[section] }));
+  }, []);
+
+  const sectionArrow = useCallback(
+    (section: SectionKey) => (collapsedSections[section] ? '\u25b8' : '\u25be'),
+    [collapsedSections]
+  );
+
+  const commitYear = useCallback(() => {
+    const parsed = parseInt(yearDraft, 10);
+    if (isNaN(parsed)) {
+      setYearDraft(String(currentYear));
+      return;
+    }
+    setCurrentYear(parsed);
+    setYearDraft(String(parsed));
+  }, [yearDraft, currentYear, setCurrentYear]);
 
   // Handle search result selection
   const handleSelectResult = (result: { type: 'system' | 'planet' | 'fleet'; id: string; name: string; parentName?: string }) => {
@@ -92,29 +172,34 @@ export function ControlsPanel() {
   }, []);
 
   return (
-    <div className="absolute left-5 top-5 space-y-5 max-h-[calc(100vh-3rem)] overflow-y-auto w-[280px] animate-slide-in-left pb-4">
+    <div className="holo-scroll-invisible absolute left-5 top-5 space-y-5 max-h-[calc(100vh-3rem)] overflow-y-auto w-[280px] animate-slide-in-left pb-4">
       {/* Search Box */}
       <div ref={searchRef} className="relative z-50">
         <div className="holo-panel">
-          <label className="holo-label" style={{ marginBottom: '12px' }}>
-            <span style={{ color: 'var(--holo-amber)', opacity: 0.5 }}>&#9668; </span>
-            Navigation
-            <span style={{ color: 'var(--holo-amber)', opacity: 0.5 }}> &#9658;</span>
+          <label
+            className="holo-label flex items-center justify-between gap-2"
+            style={{ marginBottom: collapsedSections.navigation ? '0' : '12px', cursor: 'pointer', userSelect: 'none' }}
+            onClick={() => toggleSection('navigation')}
+          >
+            <span>Navigation</span>
+            <span aria-hidden="true" style={{ color: 'var(--holo-amber)', opacity: 0.7 }}>{sectionArrow('navigation')}</span>
           </label>
-          <div className="relative">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onFocus={() => setIsSearchFocused(true)}
-              placeholder=""
-              className="holo-input w-full px-4 py-2.5 text-[14px]"
-            />
-          </div>
+          {!collapsedSections.navigation && (
+            <div className="relative">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setIsSearchFocused(true)}
+                placeholder=""
+                className="holo-input w-full px-4 py-2.5 text-[14px]"
+              />
+            </div>
+          )}
         </div>
 
         {/* Search Results Dropdown */}
-        {isSearchFocused && searchResults.length > 0 && (
+        {!collapsedSections.navigation && isSearchFocused && searchResults.length > 0 && (
           <div className="absolute top-full left-0 right-0 mt-2 z-50">
             <div className="holo-panel overflow-hidden">
               {searchResults.map((result) => (
@@ -147,399 +232,590 @@ export function ControlsPanel() {
 
       {/* View Status */}
       <div className="holo-panel" style={{ marginTop: '16px' }}>
-        <label className="holo-label">Current View</label>
-        <h2 className="text-lg font-semibold mt-2" style={{ fontFamily: 'Orbitron, monospace', color: 'var(--holo-text-primary)' }}>
-          {viewMode === 'topdown' ? 'Galaxy Map' : (viewMode === 'system' ? 'Planet View' : 'Fleet View')}
-        </h2>
-        {viewMode !== 'topdown' && (
-          <button
-            onClick={() => {
-              setSelectedSystem(null);
-              setSelectedFleet(null);
-              setInfoPanelData(null);
-            }}
-            className="holo-button mt-4 w-full"
-            style={{ padding: '6px 16px' }}
-          >
-            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
-            </svg>
-            <span>Return to Galaxy</span>
-          </button>
+        <label
+          className="holo-label flex items-center justify-between gap-2"
+          style={{ cursor: 'pointer', userSelect: 'none' }}
+          onClick={() => toggleSection('operator')}
+        >
+          <span>Operator Display Name</span>
+          <span aria-hidden="true" style={{ color: 'var(--holo-amber)', opacity: 0.7 }}>{sectionArrow('operator')}</span>
+        </label>
+        {!collapsedSections.operator && (
+          <>
+            <div className="mt-2 flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p
+                  className="truncate text-[13px]"
+                  style={{ color: 'var(--holo-text-primary)', fontFamily: 'Rajdhani, sans-serif' }}
+                >
+                  {operatorDisplayIdentity}
+                </p>
+                <p className="text-[10px]" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Orbitron, monospace' }}>
+                  {isAdmin ? 'Administrator' : 'Standard User'}
+                </p>
+              </div>
+              {isAdmin && (
+                <span className="holo-badge bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                  Admin
+                </span>
+              )}
+            </div>
+
+            <button
+              onClick={() => {
+                void signOut();
+              }}
+              className="holo-button mt-3 w-full"
+              style={{ padding: '6px 16px' }}
+            >
+              <span>Sign Out</span>
+            </button>
+          </>
         )}
       </div>
 
-      {/* Timeline with Year Slider */}
+      {(canRunGlobalHistory || canViewActivityLog || canManageAdminPermissions) && (
+        <div className="holo-panel" style={{ marginTop: '16px' }}>
+          <label
+            className="holo-label flex items-center justify-between gap-2"
+            style={{ cursor: 'pointer', userSelect: 'none' }}
+            onClick={() => toggleSection('adminPermissions')}
+          >
+            <span>Admin Permissions</span>
+            <span aria-hidden="true" style={{ color: 'var(--holo-amber)', opacity: 0.7 }}>{sectionArrow('adminPermissions')}</span>
+          </label>
+
+          {!collapsedSections.adminPermissions && (
+            <>
+              {canRunGlobalHistory && (
+                <div className="mt-3">
+                  <p className="text-[10px] mb-2 uppercase tracking-wider" style={{ color: 'var(--holo-text-muted)' }}>
+                    Global History
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => {
+                        void undoGlobalAction();
+                      }}
+                      disabled={!canUndo || historyBusy}
+                      className="holo-button disabled:opacity-35 disabled:cursor-not-allowed"
+                      style={{ padding: '6px 12px' }}
+                    >
+                      Undo
+                    </button>
+                    <button
+                      onClick={() => {
+                        void redoGlobalAction();
+                      }}
+                      disabled={!canRedo || historyBusy}
+                      className="holo-button disabled:opacity-35 disabled:cursor-not-allowed"
+                      style={{ padding: '6px 12px' }}
+                    >
+                      Redo
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {canViewActivityLog && (
+                <Link to="/admin/activity" className="holo-button mt-3 w-full text-center" style={{ padding: '6px 12px' }}>
+                  Open Activity Log
+                </Link>
+              )}
+
+              {canManageAdminPermissions && (
+                <Link to="/admin/permissions" className="holo-button mt-3 w-full text-center" style={{ padding: '6px 12px' }}>
+                  Manage Admin Permissions
+                </Link>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
+      {/* View Status */}
       <div className="holo-panel" style={{ marginTop: '16px' }}>
-        <div className="flex items-center justify-between">
-          <div>
-            <label className="holo-label">Timeline</label>
+        <label
+          className="holo-label flex items-center justify-between gap-2"
+          style={{ cursor: 'pointer', userSelect: 'none' }}
+          onClick={() => toggleSection('currentView')}
+        >
+          <span>Current View</span>
+          <span aria-hidden="true" style={{ color: 'var(--holo-amber)', opacity: 0.7 }}>{sectionArrow('currentView')}</span>
+        </label>
+        {!collapsedSections.currentView && (
+          <>
+            <h2 className="text-lg font-semibold mt-2" style={{ fontFamily: 'Orbitron, monospace', color: 'var(--holo-text-primary)' }}>
+              {viewMode === 'topdown' ? 'Galaxy Map' : (viewMode === 'system' ? 'Planet View' : 'Fleet View')}
+            </h2>
+            {viewMode !== 'topdown' && (
+              <button
+                onClick={() => {
+                  setSelectedSystem(null);
+                  setSelectedFleet(null);
+                  setInfoPanelData(null);
+                }}
+                className="holo-button mt-4 w-full"
+                style={{ padding: '6px 16px' }}
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+                </svg>
+                <span>Return to Galaxy</span>
+              </button>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Timeline with Year Input */}
+      <div className="holo-panel" style={{ marginTop: '16px' }}>
+        <div>
+          <label
+            className="holo-label flex items-center justify-between gap-2"
+            style={{ cursor: 'pointer', userSelect: 'none' }}
+            onClick={() => toggleSection('timeline')}
+          >
+            <span>Timeline</span>
+            <span aria-hidden="true" style={{ color: 'var(--holo-amber)', opacity: 0.7 }}>{sectionArrow('timeline')}</span>
+          </label>
+          {!collapsedSections.timeline && (
             <p className="text-[13px] mt-1" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Rajdhani, sans-serif' }}>Old Republic Era</p>
-          </div>
-          <div className="text-right">
-            <span className="text-lg font-semibold" style={{ fontFamily: 'Orbitron, monospace', color: 'var(--holo-amber)' }}>{currentYear}</span>
-            <span className="text-[11px] ml-1" style={{ color: 'var(--holo-text-muted)' }}>BBY</span>
-          </div>
+          )}
         </div>
-        {/* Year slider */}
-        <div className="mt-3">
-          <input
-            type="range"
-            min={3900}
-            max={4100}
-            value={currentYear}
-            onChange={(e) => setCurrentYear(parseInt(e.target.value))}
-            className="holo-slider w-full"
-          />
-          <div className="flex justify-between mt-1">
-            <span style={{ fontFamily: 'Orbitron, monospace', fontSize: '8px', color: 'var(--holo-text-muted)' }}>3900</span>
-            <span style={{ fontFamily: 'Orbitron, monospace', fontSize: '8px', color: 'var(--holo-text-muted)' }}>4100</span>
-          </div>
-        </div>
+        {!collapsedSections.timeline && (
+          <>
+            <div className="mt-3 flex items-center gap-2">
+              <input
+                type="number"
+                value={yearDraft}
+                onChange={(e) => setYearDraft(e.target.value)}
+                onBlur={commitYear}
+                onKeyDown={(e) => { if (e.key === 'Enter') commitYear(); }}
+                className="holo-input holo-number-input text-center"
+                style={{
+                  fontFamily: 'Orbitron, monospace',
+                  fontSize: '14px',
+                  width: '80px',
+                  padding: '4px 8px',
+                  color: 'var(--holo-amber)',
+                }}
+              />
+              <span style={{ fontFamily: 'Orbitron, monospace', fontSize: '10px', color: 'var(--holo-text-muted)' }}>BBY</span>
+            </div>
+            <div className="mt-1">
+            </div>
+          </>
+        )}
       </div>
 
       {/* Galaxy Overview — Faction Stats */}
       <div className="holo-panel" style={{ marginTop: '16px' }}>
-        <label className="holo-label" style={{ marginBottom: '10px' }}>
-          <span style={{ color: 'var(--holo-cyan)', opacity: 0.5 }}>&#9668; </span>
-          Galaxy Overview
-          <span style={{ color: 'var(--holo-cyan)', opacity: 0.5 }}> &#9658;</span>
+        <label
+          className="holo-label flex items-center justify-between gap-2"
+          style={{ marginBottom: collapsedSections.galaxyOverview ? '0' : '10px', cursor: 'pointer', userSelect: 'none' }}
+          onClick={() => toggleSection('galaxyOverview')}
+        >
+          <span>Galaxy Overview</span>
+          <span aria-hidden="true" style={{ color: 'var(--holo-cyan)', opacity: 0.8 }}>{sectionArrow('galaxyOverview')}</span>
         </label>
 
-        <div className="space-y-2">
-          {FACTION_STAT_CONFIG.map(({ key, label, color }) => {
-            const stats = factionStats[key];
-            if (!stats || (stats.planets === 0 && stats.fleetShips === 0)) return null;
-            return (
-              <div
-                key={key}
-                className="flex items-center gap-3 py-2 px-2"
-                style={{
-                  background: 'rgba(200, 170, 110, 0.03)',
-                  border: '1px solid rgba(200, 170, 110, 0.08)',
-                  clipPath: 'polygon(4px 0%, calc(100% - 4px) 0%, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 0% calc(100% - 4px), 0% 4px)',
-                }}
-              >
-                {/* Faction diamond indicator */}
+        {!collapsedSections.galaxyOverview && (
+          <div className="space-y-2">
+            {FACTION_STAT_CONFIG.map(({ key, label, color }) => {
+              const stats = factionStats[key];
+              if (!stats || (stats.planets === 0 && stats.fleetShips === 0)) return null;
+              return (
                 <div
-                  className="w-2.5 h-2.5 flex-shrink-0"
+                  key={key}
+                  className="flex items-center gap-3 py-2 px-2"
                   style={{
-                    backgroundColor: color,
-                    clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
-                    boxShadow: `0 0 6px ${color}60`,
+                    background: 'rgba(200, 170, 110, 0.03)',
+                    border: '1px solid rgba(200, 170, 110, 0.08)',
+                    clipPath: 'polygon(4px 0%, calc(100% - 4px) 0%, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 0% calc(100% - 4px), 0% 4px)',
                   }}
-                />
-                {/* Faction name */}
-                <span
-                  className="flex-1 text-[11px] font-medium"
-                  style={{ fontFamily: 'Rajdhani, sans-serif', color }}
                 >
-                  {label}
-                </span>
-                {/* Stats */}
-                <div className="flex gap-3 text-right">
-                  <div className="text-center">
-                    <div style={{ fontFamily: 'Orbitron, monospace', fontSize: '11px', color: 'var(--holo-text-primary)' }}>
-                      {stats.planets}
+                  {/* Faction diamond indicator */}
+                  <div
+                    className="w-2.5 h-2.5 flex-shrink-0"
+                    style={{
+                      backgroundColor: color,
+                      clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
+                      boxShadow: `0 0 6px ${color}60`,
+                    }}
+                  />
+                  {/* Faction name */}
+                  <span
+                    className="flex-1 text-[11px] font-medium"
+                    style={{ fontFamily: 'Rajdhani, sans-serif', color }}
+                  >
+                    {label}
+                  </span>
+                  {/* Stats */}
+                  <div className="flex gap-3 text-right">
+                    <div className="text-center">
+                      <div style={{ fontFamily: 'Orbitron, monospace', fontSize: '11px', color: 'var(--holo-text-primary)' }}>
+                        {stats.planets}
+                      </div>
+                      <div style={{ fontFamily: 'Orbitron, monospace', fontSize: '7px', color: 'var(--holo-text-muted)' }}>
+                        PLN
+                      </div>
                     </div>
-                    <div style={{ fontFamily: 'Orbitron, monospace', fontSize: '7px', color: 'var(--holo-text-muted)' }}>
-                      PLN
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <div style={{ fontFamily: 'Orbitron, monospace', fontSize: '11px', color: 'var(--holo-text-primary)' }}>
-                      {stats.fleetShips}
-                    </div>
-                    <div style={{ fontFamily: 'Orbitron, monospace', fontSize: '7px', color: 'var(--holo-text-muted)' }}>
-                      SHIPS
+                    <div className="text-center">
+                      <div style={{ fontFamily: 'Orbitron, monospace', fontSize: '11px', color: 'var(--holo-text-primary)' }}>
+                        {stats.fleetShips}
+                      </div>
+                      <div style={{ fontFamily: 'Orbitron, monospace', fontSize: '7px', color: 'var(--holo-text-muted)' }}>
+                        SHIPS
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      {/* Custom Planets */}
-      {viewMode === 'topdown' && (
+      {viewMode === 'topdown' && !isAdmin && (
         <div className="holo-panel" style={{ marginTop: '16px' }}>
-          <label className="holo-label">
-            <span style={{ color: 'var(--holo-cyan)', opacity: 0.5 }}>&#9668; </span>
-            Custom Planets
-            <span style={{ color: 'var(--holo-cyan)', opacity: 0.5 }}> &#9658;</span>
+          <label
+            className="holo-label flex items-center justify-between gap-2"
+            style={{ cursor: 'pointer', userSelect: 'none' }}
+            onClick={() => toggleSection('mapAccess')}
+          >
+            <span>Map Access</span>
+            <span aria-hidden="true" style={{ color: 'var(--holo-amber)', opacity: 0.7 }}>{sectionArrow('mapAccess')}</span>
           </label>
-
-          {/* Placement mode indicator */}
-          {placementMode && (
-            <div className="mt-3 p-3 border" style={{ borderColor: 'rgba(0, 240, 255, 0.3)', background: 'rgba(0, 240, 255, 0.05)', clipPath: 'polygon(6px 0%, calc(100% - 6px) 0%, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0% calc(100% - 6px), 0% 6px)' }}>
-              <p className="text-[12px] font-medium animate-pulse" style={{ color: 'var(--holo-cyan)', fontFamily: 'Orbitron, monospace', fontSize: '10px' }}>
-                Click on the map to place your planet
-              </p>
-              <button
-                onClick={() => setPlacementMode(false)}
-                className="mt-2 text-[11px] hover:text-white transition-colors"
-                style={{ color: 'var(--holo-text-muted)' }}
-              >
-                Cancel
-              </button>
-            </div>
-          )}
-
-          {/* Create form */}
-          {showCreateForm && !placementMode ? (
-            <div className="mt-3 space-y-3">
-              <input
-                type="text"
-                value={newPlanetName}
-                onChange={(e) => setNewPlanetName(e.target.value)}
-                placeholder="Planet name"
-                className="holo-input w-full px-3 py-2 text-[13px]"
-                maxLength={30}
-                autoFocus
-              />
-              <div className="flex items-center gap-3">
-                <label className="text-[11px] uppercase tracking-wide" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Orbitron, monospace', fontSize: '9px' }}>Color</label>
-                <input
-                  type="color"
-                  value={newPlanetColor}
-                  onChange={(e) => setNewPlanetColor(e.target.value)}
-                  className="w-8 h-8 border cursor-pointer bg-transparent"
-                  style={{ borderColor: 'rgba(200, 170, 110, 0.2)' }}
-                />
-                <div
-                  className="w-4 h-4"
-                  style={{ backgroundColor: newPlanetColor, boxShadow: `0 0 8px ${newPlanetColor}60`, clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)' }}
-                />
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => {
-                    if (newPlanetName.trim()) {
-                      setPlacementMode(true, { name: newPlanetName.trim(), color: newPlanetColor });
-                      setShowCreateForm(false);
-                    }
-                  }}
-                  disabled={!newPlanetName.trim()}
-                  className="holo-button flex-1 disabled:opacity-30 disabled:cursor-not-allowed"
-                  style={{ padding: '6px 12px' }}
-                >
-                  <span className="text-[11px]">Place on Map</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setShowCreateForm(false);
-                    setNewPlanetName('');
-                  }}
-                  className="text-[12px] hover:text-white transition-colors px-3"
-                  style={{ color: 'var(--holo-text-muted)' }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : !placementMode && (
-            <button
-              onClick={() => setShowCreateForm(true)}
-              className="holo-button mt-3 w-full"
-              style={{ padding: '6px 16px' }}
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              <span>Create Planet</span>
-            </button>
-          )}
-
-          {/* Count of custom planets */}
-          {systems.filter(s => s.isCustom).length > 0 && (
-            <p className="text-[11px] mt-2" style={{ color: 'var(--holo-text-muted)' }}>
-              {systems.filter(s => s.isCustom).length} custom planet{systems.filter(s => s.isCustom).length !== 1 ? 's' : ''} placed
+          {!collapsedSections.mapAccess && (
+            <p className="text-[12px] mt-2" style={{ color: 'var(--holo-text-muted)' }}>
+              View and inspect mode only. Editing is restricted to administrators.
             </p>
           )}
         </div>
       )}
 
-      {/* Custom Fleets */}
-      {viewMode === 'topdown' && (
+      {/* Custom Planets */}
+      {viewMode === 'topdown' && isAdmin && (
         <div className="holo-panel" style={{ marginTop: '16px' }}>
-          <label className="holo-label">
-            <span style={{ color: 'var(--holo-crimson)', opacity: 0.5 }}>&#9668; </span>
-            Custom Fleets
-            <span style={{ color: 'var(--holo-crimson)', opacity: 0.5 }}> &#9658;</span>
+          <label
+            className="holo-label flex items-center justify-between gap-2"
+            style={{ cursor: 'pointer', userSelect: 'none' }}
+            onClick={() => toggleSection('customPlanets')}
+          >
+            <span>Custom Planets</span>
+            <span aria-hidden="true" style={{ color: 'var(--holo-cyan)', opacity: 0.8 }}>{sectionArrow('customPlanets')}</span>
           </label>
 
-          {/* Placement mode indicator */}
-          {fleetPlacementMode && (
-            <div className="mt-3 p-3 border" style={{ borderColor: 'rgba(0, 240, 255, 0.3)', background: 'rgba(0, 240, 255, 0.05)', clipPath: 'polygon(6px 0%, calc(100% - 6px) 0%, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0% calc(100% - 6px), 0% 6px)' }}>
-              <p className="text-[12px] font-medium animate-pulse" style={{ color: 'var(--holo-cyan)', fontFamily: 'Orbitron, monospace', fontSize: '10px' }}>
-                Click on the map to place your fleet
-              </p>
-              <button
-                onClick={() => setFleetPlacementMode(false)}
-                className="mt-2 text-[11px] hover:text-white transition-colors"
-                style={{ color: 'var(--holo-text-muted)' }}
-              >
-                Cancel
-              </button>
-            </div>
-          )}
+          {!collapsedSections.customPlanets && (
+            <>
+              {/* Placement mode indicator */}
+              {placementMode && (
+                <div className="mt-3 p-3 border" style={{ borderColor: 'rgba(0, 240, 255, 0.3)', background: 'rgba(0, 240, 255, 0.05)', clipPath: 'polygon(6px 0%, calc(100% - 6px) 0%, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0% calc(100% - 6px), 0% 6px)' }}>
+                  <p className="text-[12px] font-medium animate-pulse" style={{ color: 'var(--holo-cyan)', fontFamily: 'Orbitron, monospace', fontSize: '10px' }}>
+                    Click on the map to place your planet
+                  </p>
+                  <button
+                    onClick={() => setPlacementMode(false)}
+                    className="mt-2 text-[11px] hover:text-white transition-colors"
+                    style={{ color: 'var(--holo-text-muted)' }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
 
-          {/* Create form */}
-          {showFleetCreateForm && !fleetPlacementMode ? (
-            <div className="mt-3 space-y-3">
-              <input
-                type="text"
-                value={newFleetName}
-                onChange={(e) => setNewFleetName(e.target.value)}
-                placeholder="Fleet name"
-                className="holo-input w-full px-3 py-2 text-[13px]"
-                maxLength={30}
-                autoFocus
-              />
-              <div className="flex items-center gap-3">
-                <label className="text-[11px] uppercase tracking-wide" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Orbitron, monospace', fontSize: '9px' }}>Faction</label>
-                <select
-                  value={newFleetFaction}
-                  onChange={(e) => setNewFleetFaction(e.target.value as Faction)}
-                  className="holo-input flex-1 px-2 py-1.5 text-[12px]"
-                  style={{ background: 'rgba(5, 5, 8, 0.7)' }}
-                >
-                  <option value="neutral">Neutral</option>
-                  <option value="galactic_republic">Republic</option>
-                  <option value="sith_empire">Sith Empire</option>
-                  <option value="hutt_cartel">Hutt Cartel</option>
-                  <option value="contested">Contested</option>
-                </select>
-              </div>
-              <div className="flex items-center gap-3">
-                <label className="text-[11px] uppercase tracking-wide" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Orbitron, monospace', fontSize: '9px' }}>Ships</label>
-                <input
-                  type="number"
-                  value={newFleetShipCount}
-                  onChange={(e) => setNewFleetShipCount(Math.max(1, parseInt(e.target.value) || 1))}
-                  min={1}
-                  max={500}
-                  className="holo-input flex-1 px-2 py-1.5 text-[12px]"
-                />
-              </div>
-              <div className="flex gap-2">
+              {/* Create form */}
+              {showCreateForm && !placementMode ? (
+                <div className="mt-3 space-y-3">
+                  <input
+                    type="text"
+                    value={newPlanetName}
+                    onChange={(e) => setNewPlanetName(e.target.value)}
+                    placeholder="Planet name"
+                    className="holo-input w-full px-3 py-2 text-[13px]"
+                    maxLength={30}
+                    autoFocus
+                  />
+                  <div className="flex items-center gap-3">
+                    <label className="text-[11px] uppercase tracking-wide" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Orbitron, monospace', fontSize: '9px' }}>Color</label>
+                    <input
+                      type="color"
+                      value={newPlanetColor}
+                      onChange={(e) => setNewPlanetColor(e.target.value)}
+                      className="w-8 h-8 border cursor-pointer bg-transparent"
+                      style={{ borderColor: 'rgba(200, 170, 110, 0.2)' }}
+                    />
+                    <div
+                      className="w-4 h-4"
+                      style={{ backgroundColor: newPlanetColor, boxShadow: `0 0 8px ${newPlanetColor}60`, clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)' }}
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        if (newPlanetName.trim()) {
+                          setPlacementMode(true, { name: newPlanetName.trim(), color: newPlanetColor });
+                          setShowCreateForm(false);
+                        }
+                      }}
+                      disabled={!newPlanetName.trim()}
+                      className="holo-button flex-1 disabled:opacity-30 disabled:cursor-not-allowed"
+                      style={{ padding: '6px 12px' }}
+                    >
+                      <span className="text-[11px]">Place on Map</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowCreateForm(false);
+                        setNewPlanetName('');
+                      }}
+                      className="text-[12px] hover:text-white transition-colors px-3"
+                      style={{ color: 'var(--holo-text-muted)' }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : !placementMode && (
                 <button
-                  onClick={() => {
-                    if (newFleetName.trim()) {
-                      setFleetPlacementMode(true, { name: newFleetName.trim(), faction: newFleetFaction, shipCount: newFleetShipCount });
-                      setShowFleetCreateForm(false);
-                    }
-                  }}
-                  disabled={!newFleetName.trim()}
-                  className="holo-button flex-1 disabled:opacity-30 disabled:cursor-not-allowed"
-                  style={{ padding: '6px 12px' }}
+                  onClick={() => setShowCreateForm(true)}
+                  className="holo-button mt-3 w-full"
+                  style={{ padding: '6px 16px' }}
                 >
-                  <span className="text-[11px]">Place on Map</span>
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  <span>Create Planet</span>
                 </button>
-                <button
-                  onClick={() => {
-                    setShowFleetCreateForm(false);
-                    setNewFleetName('');
-                  }}
-                  className="text-[12px] hover:text-white transition-colors px-3"
-                  style={{ color: 'var(--holo-text-muted)' }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : !fleetPlacementMode && (
-            <button
-              onClick={() => setShowFleetCreateForm(true)}
-              className="holo-button mt-3 w-full"
-              style={{ padding: '6px 16px' }}
-            >
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              <span>Create Fleet</span>
-            </button>
-          )}
+              )}
 
-          {/* Count of custom fleets */}
-          {fleets.filter(f => f.isCustom).length > 0 && (
-            <p className="text-[11px] mt-2" style={{ color: 'var(--holo-text-muted)' }}>
-              {fleets.filter(f => f.isCustom).length} custom fleet{fleets.filter(f => f.isCustom).length !== 1 ? 's' : ''} placed
-            </p>
+              {/* Count of custom planets */}
+              {systems.filter(s => s.isCustom).length > 0 && (
+                <p className="text-[11px] mt-2" style={{ color: 'var(--holo-text-muted)' }}>
+                  {systems.filter(s => s.isCustom).length} custom planet{systems.filter(s => s.isCustom).length !== 1 ? 's' : ''} placed
+                </p>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Custom Fleets */}
+      {viewMode === 'topdown' && isAdmin && (
+        <div className="holo-panel" style={{ marginTop: '16px' }}>
+          <label
+            className="holo-label flex items-center justify-between gap-2"
+            style={{ cursor: 'pointer', userSelect: 'none' }}
+            onClick={() => toggleSection('customFleets')}
+          >
+            <span>Custom Fleets</span>
+            <span aria-hidden="true" style={{ color: 'var(--holo-crimson)', opacity: 0.8 }}>{sectionArrow('customFleets')}</span>
+          </label>
+
+          {!collapsedSections.customFleets && (
+            <>
+              {/* Placement mode indicator */}
+              {fleetPlacementMode && (
+                <div className="mt-3 p-3 border" style={{ borderColor: 'rgba(0, 240, 255, 0.3)', background: 'rgba(0, 240, 255, 0.05)', clipPath: 'polygon(6px 0%, calc(100% - 6px) 0%, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0% calc(100% - 6px), 0% 6px)' }}>
+                  <p className="text-[12px] font-medium animate-pulse" style={{ color: 'var(--holo-cyan)', fontFamily: 'Orbitron, monospace', fontSize: '10px' }}>
+                    Click on the map to place your fleet
+                  </p>
+                  <button
+                    onClick={() => setFleetPlacementMode(false)}
+                    className="mt-2 text-[11px] hover:text-white transition-colors"
+                    style={{ color: 'var(--holo-text-muted)' }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
+
+              {/* Create form */}
+              {showFleetCreateForm && !fleetPlacementMode ? (
+                <div className="mt-3 space-y-3">
+                  <input
+                    type="text"
+                    value={newFleetName}
+                    onChange={(e) => setNewFleetName(e.target.value)}
+                    placeholder="Fleet name"
+                    className="holo-input w-full px-3 py-2 text-[13px]"
+                    maxLength={30}
+                    autoFocus
+                  />
+                  <div className="flex items-center gap-3">
+                    <label className="text-[11px] uppercase tracking-wide" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Orbitron, monospace', fontSize: '9px' }}>Faction</label>
+                    <div className="relative flex-1">
+                      <select
+                        value={newFleetFaction}
+                        onChange={(e) => setNewFleetFaction(e.target.value as Faction)}
+                        className="holo-input w-full px-2 py-1.5 pr-7 text-[12px]"
+                        style={{
+                          background: 'rgba(5, 5, 8, 0.7)',
+                          appearance: 'none',
+                          WebkitAppearance: 'none',
+                          MozAppearance: 'none',
+                          backgroundImage:
+                            'linear-gradient(45deg, transparent 50%, rgba(200, 170, 110, 0.9) 50%), linear-gradient(135deg, rgba(200, 170, 110, 0.9) 50%, transparent 50%)',
+                          backgroundPosition: 'calc(100% - 12px) calc(50% - 2px), calc(100% - 8px) calc(50% - 2px)',
+                          backgroundSize: '4px 4px, 4px 4px',
+                          backgroundRepeat: 'no-repeat',
+                        }}
+                      >
+                        <option value="neutral">Neutral</option>
+                        <option value="galactic_republic">Republic</option>
+                        <option value="sith_empire">Sith Empire</option>
+                        <option value="hutt_cartel">Hutt Cartel</option>
+                        <option value="contested">Contested</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <label className="text-[11px] uppercase tracking-wide" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Orbitron, monospace', fontSize: '9px' }}>Ships</label>
+                    <input
+                      type="number"
+                      value={newFleetShipCount}
+                      onChange={(e) => setNewFleetShipCount(Math.max(1, parseInt(e.target.value) || 1))}
+                      min={1}
+                      max={500}
+                      className="holo-input flex-1 px-2 py-1.5 text-[12px]"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        if (newFleetName.trim()) {
+                          setFleetPlacementMode(true, { name: newFleetName.trim(), faction: newFleetFaction, shipCount: newFleetShipCount });
+                          setShowFleetCreateForm(false);
+                        }
+                      }}
+                      disabled={!newFleetName.trim()}
+                      className="holo-button flex-1 disabled:opacity-30 disabled:cursor-not-allowed"
+                      style={{ padding: '6px 12px' }}
+                    >
+                      <span className="text-[11px]">Place on Map</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowFleetCreateForm(false);
+                        setNewFleetName('');
+                      }}
+                      className="text-[12px] hover:text-white transition-colors px-3"
+                      style={{ color: 'var(--holo-text-muted)' }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : !fleetPlacementMode && (
+                <button
+                  onClick={() => setShowFleetCreateForm(true)}
+                  className="holo-button mt-3 w-full"
+                  style={{ padding: '6px 16px' }}
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  <span>Create Fleet</span>
+                </button>
+              )}
+
+              {/* Count of custom fleets */}
+              {fleets.filter(f => f.isCustom).length > 0 && (
+                <p className="text-[11px] mt-2" style={{ color: 'var(--holo-text-muted)' }}>
+                  {fleets.filter(f => f.isCustom).length} custom fleet{fleets.filter(f => f.isCustom).length !== 1 ? 's' : ''} placed
+                </p>
+              )}
+            </>
           )}
         </div>
       )}
 
       {/* Filter Groups */}
       <div className="holo-panel space-y-4" style={{ marginTop: '16px' }}>
-        <label className="holo-label">
-          <span style={{ color: 'var(--holo-amber)', opacity: 0.5 }}>&#9668; </span>
-          Filters
-          <span style={{ color: 'var(--holo-amber)', opacity: 0.5 }}> &#9658;</span>
+        <label
+          className="holo-label flex items-center justify-between gap-2"
+          style={{ cursor: 'pointer', userSelect: 'none' }}
+          onClick={() => toggleSection('filters')}
+        >
+          <span>Filters</span>
+          <span aria-hidden="true" style={{ color: 'var(--holo-amber)', opacity: 0.7 }}>{sectionArrow('filters')}</span>
         </label>
 
-        {/* Faction Filters */}
-        <div className="grid grid-cols-2 gap-2">
-          <FilterBox
-            active={factionFilters.galactic_republic}
-            onClick={() => toggleFactionFilter('galactic_republic')}
-            label="Republic"
-            color="yellow"
-          />
-          <FilterBox
-            active={factionFilters.sith_empire}
-            onClick={() => toggleFactionFilter('sith_empire')}
-            label="Empire"
-            color="red"
-          />
-          <FilterBox
-            active={factionFilters.hutt_cartel}
-            onClick={() => toggleFactionFilter('hutt_cartel')}
-            label="Hutts"
-            color="olive"
-          />
-          <FilterBox
-            active={factionFilters.neutral}
-            onClick={() => toggleFactionFilter('neutral')}
-            label="Neutral"
-            color="gray"
-          />
-          <FilterBox
-            active={factionFilters.contested}
-            onClick={() => toggleFactionFilter('contested')}
-            label="Contested"
-            color="orange"
-          />
-        </div>
+        {!collapsedSections.filters && (
+          <>
+            {/* Faction Filters */}
+            <div className="grid grid-cols-2 gap-2">
+              <FilterBox
+                active={factionFilters.galactic_republic}
+                onClick={() => toggleFactionFilter('galactic_republic')}
+                label="Republic"
+                color="yellow"
+              />
+              <FilterBox
+                active={factionFilters.sith_empire}
+                onClick={() => toggleFactionFilter('sith_empire')}
+                label="Empire"
+                color="red"
+              />
+              <FilterBox
+                active={factionFilters.hutt_cartel}
+                onClick={() => toggleFactionFilter('hutt_cartel')}
+                label="Hutts"
+                color="olive"
+              />
+              <FilterBox
+                active={factionFilters.neutral}
+                onClick={() => toggleFactionFilter('neutral')}
+                label="Neutral"
+                color="gray"
+              />
+              <FilterBox
+                active={factionFilters.contested}
+                onClick={() => toggleFactionFilter('contested')}
+                label="Contested"
+                color="orange"
+              />
+            </div>
 
-        <div className="holo-divider" />
+            <div className="holo-divider" />
 
-        <label className="holo-label mb-2">Layers</label>
+            <label
+              className="holo-label mb-2 flex items-center justify-between gap-2"
+              style={{ cursor: 'pointer', userSelect: 'none' }}
+              onClick={() => toggleSection('layers')}
+            >
+              <span>Layers</span>
+              <span aria-hidden="true" style={{ color: 'var(--holo-amber)', opacity: 0.7 }}>{sectionArrow('layers')}</span>
+            </label>
 
-        {/* Layer toggles */}
-        <div className="grid grid-cols-2 gap-2">
-          <FilterBox
-            active={showFleets}
-            onClick={toggleFleets}
-            label="Fleets"
-            color="red"
-          />
+            {/* Layer toggles */}
+            {!collapsedSections.layers && (
+              <div className="grid grid-cols-2 gap-2">
+                <FilterBox
+                  active={showFleets}
+                  onClick={toggleFleets}
+                  label="Fleets"
+                  color="red"
+                />
 
-          <FilterBox
-            active={showAnomalies}
-            onClick={toggleAnomalies}
-            label="Anomalies"
-            color="purple"
-          />
+                <FilterBox
+                  active={showAnomalies}
+                  onClick={toggleAnomalies}
+                  label="Anomalies"
+                  color="purple"
+                />
 
-          <FilterBox
-            active={showLabels}
-            onClick={toggleLabels}
-            label="Labels"
-            color="yellow"
-          />
-        </div>
+                <FilterBox
+                  active={showLabels}
+                  onClick={toggleLabels}
+                  label="Labels"
+                  color="yellow"
+                />
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

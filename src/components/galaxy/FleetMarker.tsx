@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import type { Fleet, Faction } from '@/types';
 import { useGalaxyStore } from '@/store/galaxyStore';
 import { ShipModel } from '@/components/three/ModelLoader';
+import { useAuthStore } from '@/store/authStore';
 
 interface FleetMarkerProps {
   fleet: Fleet;
@@ -34,11 +35,14 @@ function useDiamondShape(size: number) {
 }
 
 export function FleetMarker({ fleet }: FleetMarkerProps) {
+  const { isAdmin } = useAuthStore();
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
   const isDraggingRef = useRef(false);
   const dragStartRef = useRef<{ x: number; y: number } | null>(null);
   const didDragRef = useRef(false);
+  const dragOriginRef = useRef<THREE.Vector3 | null>(null);
+  const dragPositionRef = useRef<THREE.Vector3 | null>(null);
   const { gl, camera } = useThree();
   const cameraRef = useRef(camera);
   cameraRef.current = camera;
@@ -47,6 +51,7 @@ export function FleetMarker({ fleet }: FleetMarkerProps) {
     setInfoPanelData,
     setSelectedFleet,
     showLabels,
+    previewCustomFleetPosition,
     updateCustomFleetPosition,
     setDraggingCustomFleet,
     fleetPlacementMode,
@@ -79,9 +84,11 @@ export function FleetMarker({ fleet }: FleetMarkerProps) {
   };
 
   const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
-    if (!fleet.isCustom || fleetPlacementMode) return;
+    if (!isAdmin || !fleet.isCustom || fleetPlacementMode) return;
     e.stopPropagation();
     dragStartRef.current = { x: e.clientX, y: e.clientY };
+    dragOriginRef.current = fleet.position.clone();
+    dragPositionRef.current = fleet.position.clone();
     didDragRef.current = false;
 
     const onPointerMove = (moveEvent: PointerEvent) => {
@@ -103,15 +110,24 @@ export function FleetMarker({ fleet }: FleetMarkerProps) {
         const intersection = new THREE.Vector3();
         raycaster.ray.intersectPlane(plane, intersection);
         if (intersection) {
-          updateCustomFleetPosition(fleet.id, new THREE.Vector3(intersection.x, 0, intersection.z));
+          const nextPosition = new THREE.Vector3(intersection.x, 0, intersection.z);
+          dragPositionRef.current = nextPosition.clone();
+          previewCustomFleetPosition(fleet.id, nextPosition);
         }
       }
     };
 
     const onPointerUp = () => {
+      if (didDragRef.current && dragPositionRef.current) {
+        const origin = dragOriginRef.current ?? fleet.position.clone();
+        updateCustomFleetPosition(fleet.id, dragPositionRef.current, origin);
+      }
+
       dragStartRef.current = null;
       isDraggingRef.current = false;
       setDraggingCustomFleet(false);
+      dragOriginRef.current = null;
+      dragPositionRef.current = null;
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
     };
@@ -123,7 +139,7 @@ export function FleetMarker({ fleet }: FleetMarkerProps) {
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     setHovered(true);
-    document.body.style.cursor = fleet.isCustom ? 'grab' : 'pointer';
+    document.body.style.cursor = fleet.isCustom && isAdmin ? 'grab' : 'pointer';
   };
 
   const handlePointerOut = () => {

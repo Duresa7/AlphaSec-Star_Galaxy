@@ -4,6 +4,7 @@ import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import type { StarSystem, Faction } from '@/types';
 import { useGalaxyStore } from '@/store/galaxyStore';
+import { useAuthStore } from '@/store/authStore';
 
 interface TopDownMarkerProps {
   system: StarSystem;
@@ -27,10 +28,13 @@ const IMPORTANCE_SIZE: Record<string, number> = {
 const DRAG_THRESHOLD = 2; // pixels before a click becomes a drag
 
 export function TopDownMarker({ system }: TopDownMarkerProps) {
+  const { isAdmin } = useAuthStore();
   const [hovered, setHovered] = useState(false);
   const isDraggingRef = useRef(false);
   const dragStartRef = useRef<{ x: number; y: number } | null>(null);
   const didDragRef = useRef(false);
+  const dragOriginRef = useRef<THREE.Vector3 | null>(null);
+  const dragPositionRef = useRef<THREE.Vector3 | null>(null);
   const { gl, camera } = useThree();
   const cameraRef = useRef(camera);
   cameraRef.current = camera;
@@ -40,6 +44,7 @@ export function TopDownMarker({ system }: TopDownMarkerProps) {
     setSelectedPlanet,
     setInfoPanelData,
     showLabels,
+    previewCustomSystemPosition,
     updateCustomSystemPosition,
     setDraggingCustomPlanet,
     placementMode,
@@ -48,7 +53,7 @@ export function TopDownMarker({ system }: TopDownMarkerProps) {
   const factionColor = system.isCustom && system.customColor
     ? system.customColor
     : FACTION_COLORS[system.faction];
-  const markerSize = IMPORTANCE_SIZE[system.importance] || 1.8;
+  const markerSize = system.markerSize ?? IMPORTANCE_SIZE[system.importance] ?? 1.8;
 
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     if (didDragRef.current) {
@@ -74,9 +79,11 @@ export function TopDownMarker({ system }: TopDownMarkerProps) {
   };
 
   const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
-    if (!system.isCustom || placementMode) return;
+    if (!isAdmin || !system.isCustom || placementMode) return;
     e.stopPropagation();
     dragStartRef.current = { x: e.clientX, y: e.clientY };
+    dragOriginRef.current = system.position.clone();
+    dragPositionRef.current = system.position.clone();
     didDragRef.current = false;
 
     const onPointerMove = (moveEvent: PointerEvent) => {
@@ -99,15 +106,24 @@ export function TopDownMarker({ system }: TopDownMarkerProps) {
         const intersection = new THREE.Vector3();
         raycaster.ray.intersectPlane(plane, intersection);
         if (intersection) {
-          updateCustomSystemPosition(system.id, new THREE.Vector3(intersection.x, 0, intersection.z));
+          const nextPosition = new THREE.Vector3(intersection.x, 0, intersection.z);
+          dragPositionRef.current = nextPosition.clone();
+          previewCustomSystemPosition(system.id, nextPosition);
         }
       }
     };
 
     const onPointerUp = () => {
+      if (didDragRef.current && dragPositionRef.current) {
+        const origin = dragOriginRef.current ?? system.position.clone();
+        updateCustomSystemPosition(system.id, dragPositionRef.current, origin);
+      }
+
       dragStartRef.current = null;
       isDraggingRef.current = false;
       setDraggingCustomPlanet(false);
+      dragOriginRef.current = null;
+      dragPositionRef.current = null;
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
     };
@@ -119,7 +135,7 @@ export function TopDownMarker({ system }: TopDownMarkerProps) {
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     setHovered(true);
-    document.body.style.cursor = system.isCustom ? 'grab' : 'pointer';
+    document.body.style.cursor = system.isCustom && isAdmin ? 'grab' : 'pointer';
   };
 
   const handlePointerOut = () => {
