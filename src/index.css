@@ -1007,6 +1007,7 @@ body {
 }
 
 .portfolio-hero__content--invert .portfolio-hero__nav-link,
+.portfolio-hero__content--invert .portfolio-hero__nav-button,
 .portfolio-hero__content--invert .portfolio-hero__social-link {
   pointer-events: none;
 }
@@ -1074,9 +1075,49 @@ body {
     border-color var(--portfolio-transition);
 }
 
+.portfolio-hero__nav-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  font-family: "Manrope", "Spline Sans", sans-serif;
+  font-size: clamp(0.66rem, 0.95vw, 0.78rem);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: inherit;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.36);
+  padding: 0 12px;
+  opacity: 0.9;
+  pointer-events: auto;
+  cursor: pointer;
+  transition:
+    transform var(--portfolio-transition),
+    color var(--portfolio-transition),
+    opacity var(--portfolio-transition),
+    border-color var(--portfolio-transition),
+    background-color var(--portfolio-transition),
+    box-shadow var(--portfolio-transition);
+}
+
+.portfolio-hero__signout-block {
+  position: absolute;
+  left: clamp(18px, 3.4vw, 52px);
+  bottom: clamp(18px, 3.2vw, 42px);
+  text-align: left;
+}
+
 .portfolio-hero__content--base .portfolio-hero__nav-link:hover {
   transform: translateY(-1px);
   opacity: 0.72;
+}
+
+.portfolio-hero__content--base .portfolio-hero__nav-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  opacity: 0.78;
+  background: rgba(255, 255, 255, 0.55);
 }
 
 .portfolio-hero__content--base .portfolio-hero__nav-link:focus-visible {
@@ -1084,6 +1125,18 @@ body {
   box-shadow:
     0 0 0 3px rgba(255, 255, 255, 0.95),
     0 0 0 5px rgba(12, 12, 12, 0.55);
+}
+
+.portfolio-hero__content--base .portfolio-hero__nav-button:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px rgba(255, 255, 255, 0.95),
+    0 0 0 5px rgba(12, 12, 12, 0.55);
+}
+
+.portfolio-hero__content--base .portfolio-hero__nav-button:disabled {
+  opacity: 0.58;
+  cursor: progress;
 }
 
 .portfolio-hero__social-block {
@@ -1404,7 +1457,8 @@ body {
     font-size: clamp(2.2rem, 13vw, 4.4rem);
   }
 
-  .portfolio-hero__nav-link {
+  .portfolio-hero__nav-link,
+  .portfolio-hero__nav-button {
     letter-spacing: 0.11em;
   }
 
@@ -1436,6 +1490,11 @@ body {
     gap: 10px;
   }
 
+  .portfolio-hero__signout-block {
+    left: 16px;
+    bottom: 20px;
+  }
+
   .portfolio-hero__auth-wrap {
     right: 14px;
     left: 14px;
@@ -1443,10 +1502,19 @@ body {
     width: auto;
   }
 
-  .portfolio-hero__nav-link {
+  .portfolio-hero__nav-link,
+  .portfolio-hero__nav-button {
     max-width: 210px;
     font-size: 0.68rem;
+  }
+
+  .portfolio-hero__nav-link {
     padding-bottom: 3px;
+  }
+
+  .portfolio-hero__nav-button {
+    min-height: 28px;
+    padding: 0 10px;
   }
 }
 
