@@ -67,6 +67,28 @@ function XIcon() {
   );
 }
 
+function GalaxyMapIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path
+        fill="currentColor"
+        d="M5.25 3.5a1.75 1.75 0 1 0 0 3.5 1.75 1.75 0 0 0 0-3.5Zm13.5 0a1.75 1.75 0 1 0 0 3.5 1.75 1.75 0 0 0 0-3.5ZM3.5 18.75a1.75 1.75 0 1 0 3.5 0 1.75 1.75 0 0 0-3.5 0Zm13.5 0a1.75 1.75 0 1 0 3.5 0 1.75 1.75 0 0 0-3.5 0ZM12 8.25a3.75 3.75 0 1 0 0 7.5 3.75 3.75 0 0 0 0-7.5Zm-6.2-2.28a.75.75 0 0 1 1.06 0l1.88 1.88a.75.75 0 0 1-1.06 1.06L5.8 7.03a.75.75 0 0 1 0-1.06Zm12.4 0a.75.75 0 0 1 0 1.06L16.32 8.9a.75.75 0 0 1-1.06-1.06l1.88-1.88a.75.75 0 0 1 1.06 0ZM6.86 17.14a.75.75 0 0 1 0 1.06L4.98 20.1a.75.75 0 1 1-1.06-1.06l1.88-1.9a.75.75 0 0 1 1.06 0Zm10.28 0 1.88 1.9a.75.75 0 0 1-1.06 1.06l-1.88-1.9a.75.75 0 0 1 1.06-1.06ZM12 0a.75.75 0 0 1 .75.75v4a.75.75 0 0 1-1.5 0v-4A.75.75 0 0 1 12 0Zm0 19.25a.75.75 0 0 1 .75.75v3.25a.75.75 0 0 1-1.5 0V20a.75.75 0 0 1 .75-.75ZM0 12a.75.75 0 0 1 .75-.75h4a.75.75 0 0 1 0 1.5h-4A.75.75 0 0 1 0 12Zm19.25 0a.75.75 0 0 1 .75-.75h3.25a.75.75 0 0 1 0 1.5H20a.75.75 0 0 1-.75-.75Z"
+      />
+    </svg>
+  );
+}
+
+function ResumeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path
+        fill="currentColor"
+        d="M7.75 2.5A2.25 2.25 0 0 0 5.5 4.75v14.5A2.25 2.25 0 0 0 7.75 21.5h8.5a2.25 2.25 0 0 0 2.25-2.25V8.78a2.25 2.25 0 0 0-.66-1.59l-3.03-3.03a2.25 2.25 0 0 0-1.59-.66H7.75Zm5.5 1.7v3.55c0 .55.45 1 1 1h3.55v10.5a1.55 1.55 0 0 1-1.55 1.55h-8.5a1.55 1.55 0 0 1-1.55-1.55V4.75c0-.86.7-1.55 1.55-1.55h5.5Zm1.7.5 2.85 2.85H14.95V4.7ZM8.5 11.2c0-.2.16-.35.35-.35h6.3a.35.35 0 0 1 0 .7h-6.3a.35.35 0 0 1-.35-.35Zm0 3.1c0-.2.16-.35.35-.35h6.3a.35.35 0 1 1 0 .7h-6.3a.35.35 0 0 1-.35-.35Zm0 3.1c0-.2.16-.35.35-.35h3.7a.35.35 0 1 1 0 .7h-3.7a.35.35 0 0 1-.35-.35Z"
+      />
+    </svg>
+  );
+}
+
 const SOCIAL_LINKS: SocialLink[] = [
   {
     href: 'https://github.com/Duresa7',
@@ -81,7 +103,7 @@ const SOCIAL_LINKS: SocialLink[] = [
 ];
 
 export function LandingPage() {
-  const { user } = useAuthStore();
+  const { user, signOut, isLoading } = useAuthStore();
   const heroImageUrl = `${import.meta.env.BASE_URL}homepage-bg.jpg`;
   const heroRef = useRef<HTMLElement | null>(null);
   const boundsRef = useRef<Bounds>({ left: 0, top: 0, width: 1, height: 1 });
@@ -303,16 +325,74 @@ export function LandingPage() {
       </div>
 
       <div className="portfolio-hero__nav-block portfolio-hero__parallax">
-        {interactive && user ? (
-          <Link className="portfolio-hero__nav-link" to="/map">
-            Interactive Galaxy Map
-          </Link>
-        ) : (
-          <span className="portfolio-hero__nav-link">
-            {user ? 'Interactive Galaxy Map' : 'Login Required for Map'}
-          </span>
-        )}
+        <div className="portfolio-hero__nav-actions">
+          {interactive ? (
+            <Link
+              className="portfolio-hero__nav-link portfolio-hero__nav-link--icon"
+              to="/resume"
+              aria-label="Duresa Kadi Resume"
+              data-hover-label="Duresa Kadi Resume"
+            >
+              <ResumeIcon />
+            </Link>
+          ) : (
+            <span
+              className="portfolio-hero__nav-link portfolio-hero__nav-link--icon"
+              aria-label="Duresa Kadi Resume"
+              data-hover-label="Duresa Kadi Resume"
+            >
+              <ResumeIcon />
+            </span>
+          )}
+          {user ? (
+            interactive ? (
+              <Link
+                className="portfolio-hero__nav-link portfolio-hero__nav-link--icon"
+                to="/map-loading"
+                aria-label="Interactive Galaxy Map"
+                data-hover-label="Interactive Galaxy Map"
+              >
+                <GalaxyMapIcon />
+              </Link>
+            ) : (
+              <span
+                className="portfolio-hero__nav-link portfolio-hero__nav-link--icon"
+                aria-label="Interactive Galaxy Map"
+                data-hover-label="Interactive Galaxy Map"
+              >
+                <GalaxyMapIcon />
+              </span>
+            )
+          ) : (
+            <span
+              className="portfolio-hero__nav-link portfolio-hero__nav-link--icon is-disabled"
+              aria-label="Interactive Galaxy Map"
+              data-hover-label="Interactive Galaxy Map"
+            >
+              <GalaxyMapIcon />
+            </span>
+          )}
+        </div>
       </div>
+
+      {user && (
+        <div className="portfolio-hero__signout-block portfolio-hero__parallax">
+          {interactive ? (
+            <button
+              type="button"
+              className="portfolio-hero__nav-button"
+              onClick={() => {
+                void signOut();
+              }}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Signing Out...' : 'Sign Out'}
+            </button>
+          ) : (
+            <span className="portfolio-hero__nav-button">Sign Out</span>
+          )}
+        </div>
+      )}
 
       <div className="portfolio-hero__social-block portfolio-hero__parallax">{renderSocialLinks(interactive)}</div>
     </>
