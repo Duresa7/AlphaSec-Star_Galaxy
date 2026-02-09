@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ThreeEvent, useThree } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
@@ -26,6 +26,7 @@ const IMPORTANCE_SIZE: Record<string, number> = {
 };
 
 const DRAG_THRESHOLD = 2; // pixels before a click becomes a drag
+const SINGLE_CLICK_DELAY = 220;
 
 export function TopDownMarker({ system }: TopDownMarkerProps) {
   const { isAdmin } = useAuthStore();
@@ -35,12 +36,14 @@ export function TopDownMarker({ system }: TopDownMarkerProps) {
   const didDragRef = useRef(false);
   const dragOriginRef = useRef<THREE.Vector3 | null>(null);
   const dragPositionRef = useRef<THREE.Vector3 | null>(null);
+  const clickTimeoutRef = useRef<number | null>(null);
   const { gl, camera } = useThree();
   const cameraRef = useRef(camera);
   cameraRef.current = camera;
 
   const {
     setSelectedSystem,
+    setTopDownSelection,
     setSelectedPlanet,
     setInfoPanelData,
     showLabels,
@@ -55,6 +58,30 @@ export function TopDownMarker({ system }: TopDownMarkerProps) {
     : FACTION_COLORS[system.faction];
   const markerSize = system.markerSize ?? IMPORTANCE_SIZE[system.importance] ?? 1.8;
 
+  useEffect(() => {
+    return () => {
+      if (clickTimeoutRef.current !== null) {
+        window.clearTimeout(clickTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const openTopDownPlanetEditor = () => {
+    const primaryPlanet = system.planets[0];
+    setTopDownSelection(system.id, primaryPlanet?.id ?? null);
+    if (primaryPlanet) {
+      setInfoPanelData({
+        type: 'planet',
+        data: primaryPlanet,
+      });
+      return;
+    }
+    setInfoPanelData({
+      type: 'system',
+      data: system,
+    });
+  };
+
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     if (didDragRef.current) {
       didDragRef.current = false;
@@ -62,6 +89,24 @@ export function TopDownMarker({ system }: TopDownMarkerProps) {
     }
     if (placementMode) return;
     e.stopPropagation();
+    if (clickTimeoutRef.current !== null) return;
+    clickTimeoutRef.current = window.setTimeout(() => {
+      clickTimeoutRef.current = null;
+      openTopDownPlanetEditor();
+    }, SINGLE_CLICK_DELAY);
+  };
+
+  const handleDoubleClick = (e: ThreeEvent<MouseEvent>) => {
+    if (didDragRef.current) {
+      didDragRef.current = false;
+      return;
+    }
+    if (placementMode) return;
+    e.stopPropagation();
+    if (clickTimeoutRef.current !== null) {
+      window.clearTimeout(clickTimeoutRef.current);
+      clickTimeoutRef.current = null;
+    }
     const primaryPlanet = system.planets[0];
     setSelectedSystem(system.id);
     if (primaryPlanet) {
@@ -79,7 +124,7 @@ export function TopDownMarker({ system }: TopDownMarkerProps) {
   };
 
   const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
-    if (!isAdmin || !system.isCustom || placementMode) return;
+    if (!isAdmin || placementMode) return;
     e.stopPropagation();
     dragStartRef.current = { x: e.clientX, y: e.clientY };
     dragOriginRef.current = system.position.clone();
@@ -135,7 +180,7 @@ export function TopDownMarker({ system }: TopDownMarkerProps) {
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     setHovered(true);
-    document.body.style.cursor = system.isCustom && isAdmin ? 'grab' : 'pointer';
+    document.body.style.cursor = isAdmin ? 'grab' : 'pointer';
   };
 
   const handlePointerOut = () => {
@@ -150,6 +195,7 @@ export function TopDownMarker({ system }: TopDownMarkerProps) {
       {/* Main marker dot */}
       <mesh
         onClick={handleClick}
+        onDoubleClick={handleDoubleClick}
         onPointerDown={handlePointerDown}
         onPointerOver={handlePointerOver}
         onPointerOut={handlePointerOut}
