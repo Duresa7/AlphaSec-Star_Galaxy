@@ -6,6 +6,11 @@ import type { Fleet, Faction } from '@/types';
 import { useGalaxyStore } from '@/store/galaxyStore';
 import { ShipModel } from '@/components/three/ModelLoader';
 import { useAuthStore } from '@/store/authStore';
+import {
+  DRAG_THRESHOLD_PX,
+  SINGLE_CLICK_DELAY_MS,
+  DEFAULT_TOPDOWN_FLEET_MARKER_SIZE,
+} from '@/config/topDownMarkerConfig';
 
 interface FleetMarkerProps {
   fleet: Fleet;
@@ -18,9 +23,6 @@ const FACTION_COLORS: Record<Faction, string> = {
   contested: '#FF8C00',
   hutt_cartel: '#8B9A46',
 };
-
-const DRAG_THRESHOLD = 2;
-const SINGLE_CLICK_DELAY = 220;
 
 // Diamond shape geometry for custom fleet markers in top-down view
 function useDiamondShape(size: number) {
@@ -62,8 +64,8 @@ export function FleetMarker({ fleet }: FleetMarkerProps) {
 
   const color = FACTION_COLORS[fleet.faction];
   const shipType = fleet.faction === 'sith_empire' ? 'sith' : 'republic';
-  const markerSize = fleet.markerSize ?? 2.2;
-  const markerScale = markerSize / 2.2;
+  const markerSize = fleet.markerSize ?? DEFAULT_TOPDOWN_FLEET_MARKER_SIZE;
+  const markerScale = markerSize / DEFAULT_TOPDOWN_FLEET_MARKER_SIZE;
   const diamondGeo = useDiamondShape(markerSize);
 
   useEffect(() => {
@@ -100,7 +102,7 @@ export function FleetMarker({ fleet }: FleetMarkerProps) {
     clickTimeoutRef.current = window.setTimeout(() => {
       clickTimeoutRef.current = null;
       openTopDownFleetEditor();
-    }, SINGLE_CLICK_DELAY);
+    }, SINGLE_CLICK_DELAY_MS);
   };
 
   const handleDoubleClick = (e: ThreeEvent<MouseEvent>) => {
@@ -133,7 +135,7 @@ export function FleetMarker({ fleet }: FleetMarkerProps) {
       if (!dragStartRef.current) return;
       const dx = moveEvent.clientX - dragStartRef.current.x;
       const dy = moveEvent.clientY - dragStartRef.current.y;
-      if (!isDraggingRef.current && Math.sqrt(dx * dx + dy * dy) > DRAG_THRESHOLD) {
+      if (!isDraggingRef.current && Math.sqrt(dx * dx + dy * dy) > DRAG_THRESHOLD_PX) {
         isDraggingRef.current = true;
         setDraggingCustomFleet(true);
         didDragRef.current = true;

@@ -791,31 +791,28 @@ export function ControlsPanel() {
 
             {/* Layer toggles */}
             {!collapsedSections.layers && (
-              <>
-                <div className="grid grid-cols-2 gap-2">
-                  <FilterBox
-                    active={showFleets}
-                    onClick={toggleFleets}
-                    label="Fleets"
-                    color="red"
-                  />
+              <div className="grid grid-cols-2 gap-2">
+                <FilterBox
+                  active={showFleets}
+                  onClick={toggleFleets}
+                  label="Fleets"
+                  color="red"
+                />
 
-                  <FilterBox
-                    active={showAnomalies}
-                    onClick={toggleAnomalies}
-                    label="Anomalies"
-                    color="purple"
-                  />
+                <FilterBox
+                  active={showAnomalies}
+                  onClick={toggleAnomalies}
+                  label="Anomalies"
+                  color="purple"
+                />
 
-                  <FilterBox
-                    active={showLabels}
-                    onClick={toggleLabels}
-                    label="Labels"
-                    color="yellow"
-                  />
-                </div>
-
-              </>
+                <FilterBox
+                  active={showLabels}
+                  onClick={toggleLabels}
+                  label="Labels"
+                  color="yellow"
+                />
+              </div>
             )}
           </>
         )}

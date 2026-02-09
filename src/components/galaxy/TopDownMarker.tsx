@@ -5,6 +5,12 @@ import * as THREE from 'three';
 import type { StarSystem, Faction } from '@/types';
 import { useGalaxyStore } from '@/store/galaxyStore';
 import { useAuthStore } from '@/store/authStore';
+import {
+  DRAG_THRESHOLD_PX,
+  SINGLE_CLICK_DELAY_MS,
+  TOPDOWN_SYSTEM_MARKER_SIZE_BY_IMPORTANCE,
+  DEFAULT_TOPDOWN_SYSTEM_MARKER_SIZE,
+} from '@/config/topDownMarkerConfig';
 
 interface TopDownMarkerProps {
   system: StarSystem;
@@ -17,16 +23,6 @@ const FACTION_COLORS: Record<Faction, string> = {
   contested: '#FF8C00',
   hutt_cartel: '#8B9A46',
 };
-
-const IMPORTANCE_SIZE: Record<string, number> = {
-  capital: 3.5,
-  major: 2.5,
-  minor: 1.8,
-  outpost: 1.2,
-};
-
-const DRAG_THRESHOLD = 2; // pixels before a click becomes a drag
-const SINGLE_CLICK_DELAY = 220;
 
 export function TopDownMarker({ system }: TopDownMarkerProps) {
   const { isAdmin } = useAuthStore();
@@ -56,7 +52,10 @@ export function TopDownMarker({ system }: TopDownMarkerProps) {
   const factionColor = system.isCustom && system.customColor
     ? system.customColor
     : FACTION_COLORS[system.faction];
-  const markerSize = system.markerSize ?? IMPORTANCE_SIZE[system.importance] ?? 1.8;
+  const markerSize =
+    system.markerSize ??
+    TOPDOWN_SYSTEM_MARKER_SIZE_BY_IMPORTANCE[system.importance] ??
+    DEFAULT_TOPDOWN_SYSTEM_MARKER_SIZE;
 
   useEffect(() => {
     return () => {
@@ -93,7 +92,7 @@ export function TopDownMarker({ system }: TopDownMarkerProps) {
     clickTimeoutRef.current = window.setTimeout(() => {
       clickTimeoutRef.current = null;
       openTopDownPlanetEditor();
-    }, SINGLE_CLICK_DELAY);
+    }, SINGLE_CLICK_DELAY_MS);
   };
 
   const handleDoubleClick = (e: ThreeEvent<MouseEvent>) => {
@@ -135,7 +134,7 @@ export function TopDownMarker({ system }: TopDownMarkerProps) {
       if (!dragStartRef.current) return;
       const dx = moveEvent.clientX - dragStartRef.current.x;
       const dy = moveEvent.clientY - dragStartRef.current.y;
-      if (!isDraggingRef.current && Math.sqrt(dx * dx + dy * dy) > DRAG_THRESHOLD) {
+      if (!isDraggingRef.current && Math.sqrt(dx * dx + dy * dy) > DRAG_THRESHOLD_PX) {
         isDraggingRef.current = true;
         setDraggingCustomPlanet(true);
         didDragRef.current = true;

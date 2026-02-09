@@ -2,6 +2,11 @@ import { useState } from 'react';
 import { useGalaxyStore } from '@/store/galaxyStore';
 import { useAuthStore } from '@/store/authStore';
 import type { StarSystem, Fleet, Anomaly, Planet, Faction, InfoPanelData, ViewMode } from '@/types';
+import {
+  DEFAULT_TOPDOWN_FLEET_MARKER_SIZE,
+  DEFAULT_TOPDOWN_SYSTEM_MARKER_SIZE,
+  TOPDOWN_SYSTEM_MARKER_SIZE_BY_IMPORTANCE,
+} from '@/config/topDownMarkerConfig';
 
 const FACTION_LABELS: Record<Faction, string> = {
   sith_empire: 'Sith Empire',
@@ -17,13 +22,6 @@ const FACTION_COLORS: Record<Faction, string> = {
   neutral: 'text-gray-400',
   contested: 'text-orange-400',
   hutt_cartel: 'text-green-500',
-};
-
-const DEFAULT_MARKER_SIZE_BY_IMPORTANCE: Record<StarSystem['importance'], number> = {
-  capital: 3.5,
-  major: 2.5,
-  minor: 1.8,
-  outpost: 1.2,
 };
 
 function resolvePanelData({
@@ -187,12 +185,12 @@ function SystemInfo({ system }: { system: StarSystem }) {
               min={0.5}
               max={6}
               step={0.1}
-              value={system.markerSize ?? 1.8}
+              value={system.markerSize ?? DEFAULT_TOPDOWN_SYSTEM_MARKER_SIZE}
               onChange={(e) => updateCustomSystemMarkerSize(system.id, parseFloat(e.target.value))}
               className="holo-slider flex-1"
             />
             <span style={{ fontFamily: 'Orbitron, monospace', fontSize: '10px', color: 'var(--holo-text-primary)', width: '24px', textAlign: 'right' }}>
-              {(system.markerSize ?? 1.8).toFixed(1)}
+              {(system.markerSize ?? DEFAULT_TOPDOWN_SYSTEM_MARKER_SIZE).toFixed(1)}
             </span>
           </div>
         </div>
@@ -309,7 +307,9 @@ function PlanetInfo({ planet }: { planet: Planet }) {
 
   const factionControl = planet.factionControl || { [planet.faction]: 100 };
   const system = systems.find((s) => s.id === planet.systemId);
-  const markerSize = system?.markerSize ?? (system ? DEFAULT_MARKER_SIZE_BY_IMPORTANCE[system.importance] : 1.8);
+  const markerSize =
+    system?.markerSize ??
+    (system ? TOPDOWN_SYSTEM_MARKER_SIZE_BY_IMPORTANCE[system.importance] : DEFAULT_TOPDOWN_SYSTEM_MARKER_SIZE);
 
   const handlePopulationSave = () => {
     if (!isAdmin) return;
@@ -664,7 +664,7 @@ function AddFactionControl({ existingFactions, onAdd }: { existingFactions: Fact
 function FleetInfo({ fleet }: { fleet: Fleet }) {
   const { removeCustomFleet, setInfoPanelData, setSelectedFleet, updateFleetMarkerSize, viewMode } = useGalaxyStore();
   const { isAdmin } = useAuthStore();
-  const markerSize = fleet.markerSize ?? 2.2;
+  const markerSize = fleet.markerSize ?? DEFAULT_TOPDOWN_FLEET_MARKER_SIZE;
 
   // Segmented meter for fleet strength
   const totalSegments = 10;
