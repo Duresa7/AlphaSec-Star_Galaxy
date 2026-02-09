@@ -81,7 +81,7 @@ const SOCIAL_LINKS: SocialLink[] = [
 ];
 
 export function LandingPage() {
-  const { user } = useAuthStore();
+  const { user, signOut, isLoading } = useAuthStore();
   const heroImageUrl = `${import.meta.env.BASE_URL}homepage-bg.jpg`;
   const heroRef = useRef<HTMLElement | null>(null);
   const boundsRef = useRef<Bounds>({ left: 0, top: 0, width: 1, height: 1 });
@@ -303,16 +303,39 @@ export function LandingPage() {
       </div>
 
       <div className="portfolio-hero__nav-block portfolio-hero__parallax">
-        {interactive && user ? (
-          <Link className="portfolio-hero__nav-link" to="/map">
-            Interactive Galaxy Map
-          </Link>
+        {user ? (
+          interactive ? (
+            <Link className="portfolio-hero__nav-link" to="/map-loading">
+              Interactive Galaxy Map
+            </Link>
+          ) : (
+            <span className="portfolio-hero__nav-link">Interactive Galaxy Map</span>
+          )
         ) : (
           <span className="portfolio-hero__nav-link">
-            {user ? 'Interactive Galaxy Map' : 'Login Required for Map'}
+            Login Required for Map
           </span>
         )}
       </div>
+
+      {user && (
+        <div className="portfolio-hero__signout-block portfolio-hero__parallax">
+          {interactive ? (
+            <button
+              type="button"
+              className="portfolio-hero__nav-button"
+              onClick={() => {
+                void signOut();
+              }}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Signing Out...' : 'Sign Out'}
+            </button>
+          ) : (
+            <span className="portfolio-hero__nav-button">Sign Out</span>
+          )}
+        </div>
+      )}
 
       <div className="portfolio-hero__social-block portfolio-hero__parallax">{renderSocialLinks(interactive)}</div>
     </>
