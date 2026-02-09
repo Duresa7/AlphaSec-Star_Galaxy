@@ -4,6 +4,9 @@ import { LandingPage } from '@/pages/LandingPage';
 import { MapPage } from '@/pages/MapPage';
 import { MapLoadingPage } from '@/pages/MapLoadingPage';
 import { ResumePage } from '@/pages/ResumePage';
+import { BlogPage } from '@/pages/BlogPage';
+import { BlogPostPage } from '@/pages/BlogPostPage';
+import { BlogManagePage } from '@/pages/BlogManagePage';
 import { AdminActivityPage } from '@/pages/AdminActivityPage';
 import { AdminPermissionsPage } from '@/pages/AdminPermissionsPage';
 import { AuthGate } from '@/components/auth/AuthGate';
@@ -51,6 +54,16 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/resume" element={<ResumePage />} />
+        <Route path="/blog" element={<BlogPage />} />
+        <Route path="/blog/:slug" element={<BlogPostPage />} />
+        <Route
+          path="/blog/manage"
+          element={(
+            <RequireAuth>
+              <BlogManagePage />
+            </RequireAuth>
+          )}
+        />
         <Route
           path="/map-loading"
           element={(

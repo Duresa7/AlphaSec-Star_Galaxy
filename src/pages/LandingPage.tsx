@@ -89,6 +89,17 @@ function ResumeIcon() {
   );
 }
 
+function BlogIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path
+        fill="currentColor"
+        d="M4 3.5A1.5 1.5 0 0 0 2.5 5v14A1.5 1.5 0 0 0 4 20.5h16A1.5 1.5 0 0 0 21.5 19V5A1.5 1.5 0 0 0 20 3.5H4Zm0 1h16a.5.5 0 0 1 .5.5v2.9h-17V5a.5.5 0 0 1 .5-.5Zm-.5 4.4h17V19a.5.5 0 0 1-.5.5H4a.5.5 0 0 1-.5-.5V8.9Zm2.5 1.6a.5.5 0 0 0 0 1h5.7a.5.5 0 0 0 0-1H6Zm0 3a.5.5 0 0 0 0 1h8.8a.5.5 0 0 0 0-1H6Zm0 3a.5.5 0 0 0 0 1h6.3a.5.5 0 0 0 0-1H6Zm9-6.1a1.4 1.4 0 1 0 0 2.8 1.4 1.4 0 0 0 0-2.8Zm0 3.7a2.2 2.2 0 0 0-2.2 2.2.4.4 0 0 0 .4.4h3.6a.4.4 0 0 0 .4-.4 2.2 2.2 0 0 0-2.2-2.2Z"
+      />
+    </svg>
+  );
+}
+
 const SOCIAL_LINKS: SocialLink[] = [
   {
     href: 'https://github.com/Duresa7',
@@ -326,6 +337,24 @@ export function LandingPage() {
 
       <div className="portfolio-hero__nav-block portfolio-hero__parallax">
         <div className="portfolio-hero__nav-actions">
+          {interactive ? (
+            <Link
+              className="portfolio-hero__nav-link portfolio-hero__nav-link--icon"
+              to="/blog"
+              aria-label="Alpha Blog"
+              data-hover-label="Alpha Blog"
+            >
+              <BlogIcon />
+            </Link>
+          ) : (
+            <span
+              className="portfolio-hero__nav-link portfolio-hero__nav-link--icon"
+              aria-label="Alpha Blog"
+              data-hover-label="Alpha Blog"
+            >
+              <BlogIcon />
+            </span>
+          )}
           {interactive ? (
             <Link
               className="portfolio-hero__nav-link portfolio-hero__nav-link--icon"
