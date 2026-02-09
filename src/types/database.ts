@@ -149,6 +149,53 @@ export type Database = {
         };
         Relationships: [];
       };
+      blog_posts: {
+        Row: {
+          id: string;
+          slug: string;
+          title: string;
+          excerpt: string;
+          content: string;
+          cover_image_url: string | null;
+          tags: string[];
+          status: 'draft' | 'published';
+          reading_time_minutes: number;
+          published_at: string | null;
+          created_by: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          slug: string;
+          title: string;
+          excerpt?: string;
+          content: string;
+          cover_image_url?: string | null;
+          tags?: string[];
+          status?: 'draft' | 'published';
+          reading_time_minutes?: number;
+          published_at?: string | null;
+          created_by: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          slug?: string;
+          title?: string;
+          excerpt?: string;
+          content?: string;
+          cover_image_url?: string | null;
+          tags?: string[];
+          status?: 'draft' | 'published';
+          reading_time_minutes?: number;
+          published_at?: string | null;
+          created_by?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       planet_stats_overrides: {
         Row: {
           planet_id: string;
