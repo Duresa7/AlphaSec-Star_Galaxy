@@ -19,6 +19,13 @@ const FACTION_COLORS: Record<Faction, string> = {
   hutt_cartel: 'text-green-500',
 };
 
+const DEFAULT_MARKER_SIZE_BY_IMPORTANCE: Record<StarSystem['importance'], number> = {
+  capital: 3.5,
+  major: 2.5,
+  minor: 1.8,
+  outpost: 1.2,
+};
+
 function resolvePanelData({
   infoPanelData,
   viewMode,
@@ -122,7 +129,7 @@ export function InfoPanel() {
         {/* Close button */}
         <button
           onClick={handleClose}
-          className="holo-close-button absolute top-4 right-4 z-10"
+          className="holo-close-button absolute -top-2 right-4 z-10"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -136,7 +143,7 @@ export function InfoPanel() {
 }
 
 function SystemInfo({ system }: { system: StarSystem }) {
-  const { removeCustomSystem, setInfoPanelData, setSelectedSystem, setSelectedPlanet, updateCustomSystemMarkerSize } = useGalaxyStore();
+  const { removeCustomSystem, setInfoPanelData, setSelectedSystem, setSelectedPlanet, updateCustomSystemMarkerSize, viewMode } = useGalaxyStore();
   const { isAdmin } = useAuthStore();
 
   return (
@@ -171,7 +178,7 @@ function SystemInfo({ system }: { system: StarSystem }) {
       </div>
 
       {/* Marker Size — custom systems only */}
-      {system.isCustom && isAdmin && (
+      {system.isCustom && isAdmin && viewMode === 'topdown' && (
         <div>
           <label className="holo-label" style={{ marginBottom: '8px' }}>Marker Size</label>
           <div className="flex items-center gap-2">
@@ -274,7 +281,7 @@ const FACTION_BAR_COLORS: Record<Faction, string> = {
 };
 
 function PlanetInfo({ planet }: { planet: Planet }) {
-  const { updatePlanetStats } = useGalaxyStore();
+  const { updatePlanetStats, systems, updateCustomSystemMarkerSize, viewMode } = useGalaxyStore();
   const { isAdmin } = useAuthStore();
   const [editingPopulation, setEditingPopulation] = useState(false);
   const [populationDraft, setPopulationDraft] = useState(planet.population || '');
@@ -301,6 +308,8 @@ function PlanetInfo({ planet }: { planet: Planet }) {
   };
 
   const factionControl = planet.factionControl || { [planet.faction]: 100 };
+  const system = systems.find((s) => s.id === planet.systemId);
+  const markerSize = system?.markerSize ?? (system ? DEFAULT_MARKER_SIZE_BY_IMPORTANCE[system.importance] : 1.8);
 
   const handlePopulationSave = () => {
     if (!isAdmin) return;
@@ -495,6 +504,27 @@ function PlanetInfo({ planet }: { planet: Planet }) {
         )}
       </div>
 
+      {/* Per-selected system marker size (top-down view marker) */}
+      {viewMode === 'topdown' && (
+        <div>
+          <label className="holo-label" style={{ marginBottom: '8px' }}>Top-Down Marker Size</label>
+          <div className="flex items-center gap-2">
+            <input
+              type="range"
+              min={0.5}
+              max={6}
+              step={0.1}
+              value={markerSize}
+              onChange={(e) => updateCustomSystemMarkerSize(planet.systemId, parseFloat(e.target.value))}
+              className="holo-slider flex-1"
+            />
+            <span style={{ fontFamily: 'Orbitron, monospace', fontSize: '10px', color: 'var(--holo-text-primary)', width: '24px', textAlign: 'right' }}>
+              {markerSize.toFixed(1)}
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Editable Notable Locations */}
       <div>
         <label className="holo-label" style={{ marginBottom: '8px' }}>Points of Interest</label>
@@ -632,8 +662,9 @@ function AddFactionControl({ existingFactions, onAdd }: { existingFactions: Fact
 }
 
 function FleetInfo({ fleet }: { fleet: Fleet }) {
-  const { removeCustomFleet, setInfoPanelData, setSelectedFleet } = useGalaxyStore();
+  const { removeCustomFleet, setInfoPanelData, setSelectedFleet, updateFleetMarkerSize, viewMode } = useGalaxyStore();
   const { isAdmin } = useAuthStore();
+  const markerSize = fleet.markerSize ?? 2.2;
 
   // Segmented meter for fleet strength
   const totalSegments = 10;
@@ -680,6 +711,26 @@ function FleetInfo({ fleet }: { fleet: Fleet }) {
         {fleet.flagship && <InfoRow label="Flagship" value={fleet.flagship} />}
         {fleet.commander && <InfoRow label="Commander" value={fleet.commander} />}
       </div>
+
+      {viewMode === 'topdown' && (
+        <div>
+          <label className="holo-label" style={{ marginBottom: '8px' }}>Top-Down Marker Size</label>
+          <div className="flex items-center gap-2">
+            <input
+              type="range"
+              min={0.5}
+              max={6}
+              step={0.1}
+              value={markerSize}
+              onChange={(e) => updateFleetMarkerSize(fleet.id, parseFloat(e.target.value))}
+              className="holo-slider flex-1"
+            />
+            <span style={{ fontFamily: 'Orbitron, monospace', fontSize: '10px', color: 'var(--holo-text-primary)', width: '24px', textAlign: 'right' }}>
+              {markerSize.toFixed(1)}
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Fleet strength — KOTOR segmented meter */}
       <div>
