@@ -41,6 +41,7 @@ import {
 } from '@/data/actionHistory';
 import { logActivity } from '@/data/activityLog';
 import { useAuthStore } from '@/store/authStore';
+import { TOPDOWN_MARKER_MAX_SIZE, TOPDOWN_MARKER_MIN_SIZE } from '@/config/topDownMarkerConfig';
 
 const shouldClearPanelForSystem = (panel: InfoPanelData | null, systemId: string): boolean => {
   if (!panel) return false;
@@ -56,7 +57,7 @@ const shouldClearPanelForFleet = (panel: InfoPanelData | null, fleetId: string):
 const hasOwn = (obj: object, key: string): boolean => Object.prototype.hasOwnProperty.call(obj, key);
 
 const vectorChanged = (a: THREE.Vector3, b: THREE.Vector3): boolean => a.distanceToSquared(b) > 1e-9;
-const clampMarkerSize = (value: number): number => Math.max(0.5, Math.min(6, value));
+const clampMarkerSize = (value: number): number => Math.max(TOPDOWN_MARKER_MIN_SIZE, Math.min(TOPDOWN_MARKER_MAX_SIZE, value));
 
 const applyPlanetStatsPatch = (planet: Planet, updates: PlanetStatsUpdate): Planet => {
   const next: Planet = { ...planet };
