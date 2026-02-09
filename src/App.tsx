@@ -2,6 +2,8 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import type { CSSProperties, ReactNode } from 'react';
 import { LandingPage } from '@/pages/LandingPage';
 import { MapPage } from '@/pages/MapPage';
+import { MapLoadingPage } from '@/pages/MapLoadingPage';
+import { ResumePage } from '@/pages/ResumePage';
 import { AdminActivityPage } from '@/pages/AdminActivityPage';
 import { AdminPermissionsPage } from '@/pages/AdminPermissionsPage';
 import { AuthGate } from '@/components/auth/AuthGate';
@@ -48,6 +50,15 @@ function App() {
     <AuthGate>
       <Routes>
         <Route path="/" element={<LandingPage />} />
+        <Route path="/resume" element={<ResumePage />} />
+        <Route
+          path="/map-loading"
+          element={(
+            <RequireAuth>
+              <MapLoadingPage />
+            </RequireAuth>
+          )}
+        />
         <Route
           path="/map"
           element={(

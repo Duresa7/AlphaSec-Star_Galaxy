@@ -1007,6 +1007,7 @@ body {
 }
 
 .portfolio-hero__content--invert .portfolio-hero__nav-link,
+.portfolio-hero__content--invert .portfolio-hero__nav-button,
 .portfolio-hero__content--invert .portfolio-hero__social-link {
   pointer-events: none;
 }
@@ -1048,9 +1049,18 @@ body {
 
 .portfolio-hero__nav-block {
   position: absolute;
-  top: clamp(28px, 4.2vw, 60px);
-  right: clamp(18px, 3.4vw, 52px);
-  text-align: right;
+  top: clamp(44%, 49vh, 56%);
+  left: 0;
+  right: 0;
+  text-align: center;
+}
+
+.portfolio-hero__nav-actions {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(14px, 2.8vw, 28px);
 }
 
 .portfolio-hero__nav-link {
@@ -1074,9 +1084,120 @@ body {
     border-color var(--portfolio-transition);
 }
 
+.portfolio-hero__nav-link--icon {
+  justify-content: center;
+  width: clamp(84px, 10vw, 118px);
+  height: clamp(84px, 10vw, 118px);
+  max-width: none;
+  border: 4px solid #000;
+  border-bottom: 4px solid #000;
+  border-radius: 22px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 18px 30px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: visible;
+}
+
+.portfolio-hero__nav-link--icon svg {
+  width: clamp(34px, 4.8vw, 46px);
+  height: clamp(34px, 4.8vw, 46px);
+  display: block;
+}
+
+.portfolio-hero__nav-link--icon::after {
+  content: attr(data-hover-label);
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 10px);
+  transform: translate(-50%, 8px);
+  border-radius: 999px;
+  border: 1px solid rgba(12, 12, 12, 0.38);
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #111;
+  font-family: "Manrope", "Spline Sans", sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity var(--portfolio-transition),
+    transform var(--portfolio-transition);
+}
+
+.portfolio-hero__nav-link--icon.is-disabled {
+  opacity: 0.56;
+}
+
+.portfolio-hero__nav-link--message {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.portfolio-hero__nav-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  font-family: "Manrope", "Spline Sans", sans-serif;
+  font-size: clamp(0.66rem, 0.95vw, 0.78rem);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: inherit;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.36);
+  padding: 0 12px;
+  opacity: 0.9;
+  pointer-events: auto;
+  cursor: pointer;
+  transition:
+    transform var(--portfolio-transition),
+    color var(--portfolio-transition),
+    opacity var(--portfolio-transition),
+    border-color var(--portfolio-transition),
+    background-color var(--portfolio-transition),
+    box-shadow var(--portfolio-transition);
+}
+
+.portfolio-hero__signout-block {
+  position: absolute;
+  left: clamp(18px, 3.4vw, 52px);
+  bottom: clamp(18px, 3.2vw, 42px);
+  text-align: left;
+}
+
 .portfolio-hero__content--base .portfolio-hero__nav-link:hover {
   transform: translateY(-1px);
   opacity: 0.72;
+}
+
+.portfolio-hero__content--base .portfolio-hero__nav-link--icon {
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 18px 30px rgba(0, 0, 0, 0.2);
+}
+
+.portfolio-hero__content--base .portfolio-hero__nav-link--icon:hover {
+  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.94);
+  opacity: 1;
+}
+
+.portfolio-hero__content--base .portfolio-hero__nav-link--icon:hover::after,
+.portfolio-hero__content--base .portfolio-hero__nav-link--icon:focus-visible::after {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.portfolio-hero__content--base .portfolio-hero__nav-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  opacity: 0.78;
+  background: rgba(255, 255, 255, 0.55);
 }
 
 .portfolio-hero__content--base .portfolio-hero__nav-link:focus-visible {
@@ -1084,6 +1205,18 @@ body {
   box-shadow:
     0 0 0 3px rgba(255, 255, 255, 0.95),
     0 0 0 5px rgba(12, 12, 12, 0.55);
+}
+
+.portfolio-hero__content--base .portfolio-hero__nav-button:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px rgba(255, 255, 255, 0.95),
+    0 0 0 5px rgba(12, 12, 12, 0.55);
+}
+
+.portfolio-hero__content--base .portfolio-hero__nav-button:disabled {
+  opacity: 0.58;
+  cursor: progress;
 }
 
 .portfolio-hero__social-block {
@@ -1404,7 +1537,8 @@ body {
     font-size: clamp(2.2rem, 13vw, 4.4rem);
   }
 
-  .portfolio-hero__nav-link {
+  .portfolio-hero__nav-link,
+  .portfolio-hero__nav-button {
     letter-spacing: 0.11em;
   }
 
@@ -1426,14 +1560,22 @@ body {
   }
 
   .portfolio-hero__nav-block {
-    top: 24px;
-    right: 16px;
+    top: 52%;
+  }
+
+  .portfolio-hero__nav-actions {
+    gap: 12px;
   }
 
   .portfolio-hero__social-block {
     right: 16px;
     bottom: 20px;
     gap: 10px;
+  }
+
+  .portfolio-hero__signout-block {
+    left: 16px;
+    bottom: 20px;
   }
 
   .portfolio-hero__auth-wrap {
@@ -1443,10 +1585,31 @@ body {
     width: auto;
   }
 
-  .portfolio-hero__nav-link {
+  .portfolio-hero__nav-link,
+  .portfolio-hero__nav-button {
     max-width: 210px;
     font-size: 0.68rem;
+  }
+
+  .portfolio-hero__nav-link {
     padding-bottom: 3px;
+  }
+
+  .portfolio-hero__nav-button {
+    min-height: 28px;
+    padding: 0 10px;
+  }
+
+  .portfolio-hero__nav-link--icon {
+    width: 76px;
+    height: 76px;
+    border-radius: 18px;
+  }
+
+  .portfolio-hero__nav-link--icon::after {
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    padding: 5px 8px;
   }
 }
 
@@ -1475,8 +1638,8 @@ body {
   overflow: hidden;
   display: grid;
   place-items: center;
-  background: #080b13;
-  color: #f5f7fb;
+  background: #e5e7eb;
+  color: #111;
 }
 
 .route-auth-loading__layer {
@@ -1486,17 +1649,20 @@ body {
 }
 
 .route-auth-loading__layer--base {
-  background: var(--portfolio-hero-bg-image, url("/homepage-bg.jpg")) center / cover no-repeat;
-  transform: scale(1.04);
-  filter: saturate(0.92) contrast(1.04);
+  background:
+    linear-gradient(140deg, rgba(230, 233, 237, 0.72), rgba(219, 223, 229, 0.9)),
+    var(--portfolio-hero-bg-image, url("/homepage-bg.jpg")) center / cover no-repeat;
+  transform: scale(1.03);
+  filter: saturate(0.9) contrast(1.04);
 }
 
 .route-auth-loading__layer--grid {
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
-  background-size: 60px 60px;
-  opacity: 0.18;
+    linear-gradient(rgba(18, 20, 24, 0.14) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(18, 20, 24, 0.14) 1px, transparent 1px);
+  background-size: 72px 72px;
+  opacity: 0.2;
+  animation: routeAuthGridFloat 18s ease-in-out infinite alternate;
 }
 
 .route-auth-loading__veil {
@@ -1504,23 +1670,25 @@ body {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at 14% 18%, rgba(255, 255, 255, 0.2), transparent 44%),
-    radial-gradient(circle at 82% 10%, rgba(138, 191, 255, 0.18), transparent 46%),
-    linear-gradient(180deg, rgba(8, 11, 19, 0.66), rgba(8, 11, 19, 0.86));
+    radial-gradient(circle at 14% 18%, rgba(232, 235, 239, 0.58), transparent 44%),
+    radial-gradient(circle at 82% 10%, rgba(196, 200, 207, 0.26), transparent 46%),
+    linear-gradient(180deg, rgba(224, 227, 232, 0.5), rgba(220, 224, 230, 0.88));
 }
 
 .route-auth-loading__card {
   position: relative;
   z-index: 1;
   width: min(560px, calc(100vw - 40px));
-  border-radius: 20px;
-  padding: clamp(20px, 3vw, 30px);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  background: rgba(10, 14, 24, 0.68);
-  backdrop-filter: blur(8px);
+  border-radius: 24px;
+  padding: clamp(22px, 3vw, 34px);
+  border: 1px solid rgba(20, 22, 26, 0.26);
+  background:
+    radial-gradient(circle at 88% 12%, rgba(190, 194, 201, 0.28), transparent 44%),
+    linear-gradient(150deg, rgba(234, 237, 242, 0.92), rgba(217, 221, 228, 0.8));
+  backdrop-filter: blur(8px) saturate(1.02);
   box-shadow:
-    0 24px 50px rgba(0, 0, 0, 0.36),
-    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    0 24px 50px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62);
 }
 
 .route-auth-loading__eyebrow {
@@ -1529,7 +1697,7 @@ body {
   font-size: 10px;
   letter-spacing: 0.24em;
   text-transform: uppercase;
-  color: rgba(225, 232, 245, 0.68);
+  color: rgba(28, 30, 36, 0.6);
 }
 
 .route-auth-loading__title {
@@ -1538,32 +1706,52 @@ body {
   font-size: clamp(1.5rem, 3.2vw, 2.1rem);
   line-height: 1.1;
   letter-spacing: 0.03em;
-  color: #ffffff;
+  color: #111;
 }
 
 .route-auth-loading__copy {
   margin: 0;
-  color: rgba(226, 233, 246, 0.8);
+  color: rgba(32, 35, 42, 0.74);
   font-size: 0.95rem;
   line-height: 1.6;
 }
 
 .route-auth-loading__bar {
   margin-top: 18px;
-  height: 6px;
+  height: 7px;
   border-radius: 999px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(24, 27, 34, 0.18);
 }
 
 .route-auth-loading__bar > span {
   display: block;
-  width: 40%;
+  width: 36%;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, rgba(145, 208, 255, 0.35), rgba(255, 255, 255, 0.95), rgba(145, 208, 255, 0.35));
-  box-shadow: 0 0 18px rgba(159, 216, 255, 0.7);
-  animation: routeAuthLoadingBar 900ms ease-in-out infinite;
+  background: linear-gradient(90deg, rgba(157, 161, 168, 0.42), rgba(34, 37, 42, 0.92), rgba(157, 161, 168, 0.42));
+  box-shadow: 0 0 14px rgba(121, 127, 137, 0.38);
+  animation: routeAuthLoadingBar 1100ms ease-in-out infinite;
+}
+
+.route-auth-loading__card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.52);
+  mask-image: linear-gradient(150deg, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.2));
+  -webkit-mask-image: linear-gradient(150deg, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.2));
+}
+
+@keyframes routeAuthGridFloat {
+  0% {
+    background-position: 0 0, 0 0;
+  }
+  100% {
+    background-position: 20px -16px, -14px 18px;
+  }
 }
 
 @keyframes routeAuthLoadingBar {
@@ -1579,6 +1767,282 @@ body {
   .route-auth-loading__card {
     width: min(560px, calc(100vw - 24px));
     padding: 18px;
+  }
+}
+
+/*
+  RESUME PAGE
+  Public profile page that matches the portfolio hero language.
+*/
+
+.resume-page {
+  position: relative;
+  height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: #f7f8fb;
+  color: #111;
+}
+
+.resume-page__layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.resume-page__layer--base {
+  background:
+    linear-gradient(140deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.74)),
+    var(--portfolio-hero-bg-image, url("/homepage-bg.jpg")) center / cover no-repeat;
+  transform: scale(1.04);
+  filter: saturate(0.9) contrast(1.04);
+}
+
+.resume-page__layer--grid {
+  background-image:
+    linear-gradient(to right, rgba(12, 12, 12, 0.12) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(12, 12, 12, 0.12) 1px, transparent 1px);
+  background-size: 82px 82px;
+  opacity: 0.18;
+}
+
+.resume-page__layer--veil {
+  background:
+    radial-gradient(circle at 16% 12%, rgba(255, 255, 255, 0.44), transparent 42%),
+    radial-gradient(circle at 86% 16%, rgba(131, 181, 255, 0.24), transparent 46%),
+    linear-gradient(180deg, rgba(249, 251, 255, 0.6), rgba(248, 249, 252, 0.8));
+}
+
+.resume-page__content {
+  position: relative;
+  z-index: 2;
+  width: min(1040px, calc(100vw - 36px));
+  margin: 0 auto;
+  padding: clamp(20px, 3.4vw, 44px) 0 clamp(26px, 4.4vw, 54px);
+}
+
+.resume-page__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: clamp(18px, 3vw, 32px);
+}
+
+.resume-page__back-link,
+.resume-page__download {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  border-radius: 999px;
+  border: 1px solid rgba(13, 13, 13, 0.56);
+  padding: 0 14px;
+  font-family: "Manrope", "Spline Sans", sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.resume-page__back-link {
+  color: #111;
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.resume-page__back-link:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.resume-page__download {
+  color: rgba(12, 12, 12, 0.62);
+  background: rgba(255, 255, 255, 0.46);
+}
+
+.resume-page__download:disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+.resume-page__hero {
+  border-radius: 24px;
+  border: 1px solid rgba(12, 12, 12, 0.24);
+  padding: clamp(22px, 3.5vw, 36px);
+  background:
+    radial-gradient(circle at 88% 14%, rgba(167, 204, 255, 0.26), transparent 42%),
+    linear-gradient(150deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.64));
+  box-shadow:
+    0 22px 42px rgba(0, 0, 0, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.58);
+  backdrop-filter: blur(8px);
+}
+
+.resume-page__kicker {
+  margin: 0;
+  font-family: "Oxanium", "Spline Sans", sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(17, 17, 17, 0.58);
+}
+
+.resume-page__name {
+  margin: 10px 0 4px;
+  font-family: "Playfair Display", "Times New Roman", serif;
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  line-height: 1;
+}
+
+.resume-page__role {
+  margin: 0;
+  font-family: "Manrope", "Spline Sans", sans-serif;
+  font-size: clamp(0.95rem, 1.8vw, 1.2rem);
+  color: rgba(17, 17, 17, 0.78);
+}
+
+.resume-page__meta {
+  margin: 14px 0 0;
+  font-family: "Manrope", "Spline Sans", sans-serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(17, 17, 17, 0.62);
+}
+
+.resume-page__grid {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.resume-page__section {
+  border-radius: 20px;
+  border: 1px solid rgba(12, 12, 12, 0.2);
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.62));
+  box-shadow:
+    0 16px 30px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  padding: clamp(16px, 2.6vw, 24px);
+}
+
+.resume-page__section-title {
+  margin: 0 0 12px;
+  font-family: "Oxanium", "Spline Sans", sans-serif;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: rgba(17, 17, 17, 0.58);
+}
+
+.resume-page__entry-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.resume-page__entry {
+  border-radius: 14px;
+  border: 1px solid rgba(12, 12, 12, 0.12);
+  background: rgba(255, 255, 255, 0.56);
+  padding: 12px;
+}
+
+.resume-page__entry-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.resume-page__entry-title {
+  margin: 0;
+  font-family: "Playfair Display", "Times New Roman", serif;
+  font-size: 1.06rem;
+  letter-spacing: 0.02em;
+}
+
+.resume-page__entry-subtitle {
+  margin: 3px 0 0;
+  font-size: 0.82rem;
+  color: rgba(17, 17, 17, 0.68);
+}
+
+.resume-page__entry-date {
+  margin: 0;
+  font-family: "Oxanium", "Spline Sans", sans-serif;
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(17, 17, 17, 0.6);
+}
+
+.resume-page__entry-bullets {
+  margin: 10px 0 0;
+  padding-left: 16px;
+  display: grid;
+  gap: 6px;
+  color: rgba(17, 17, 17, 0.78);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.resume-page__skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.resume-page__skill-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(12, 12, 12, 0.16);
+  background: rgba(255, 255, 255, 0.64);
+  padding: 6px 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(17, 17, 17, 0.74);
+}
+
+@media (max-width: 900px) {
+  .resume-page__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .resume-page__content {
+    width: min(1040px, calc(100vw - 20px));
+    padding-top: 16px;
+  }
+
+  .resume-page__topbar {
+    flex-wrap: wrap;
+  }
+
+  .resume-page__back-link,
+  .resume-page__download {
+    min-height: 34px;
+    font-size: 9px;
+  }
+
+  .resume-page__meta {
+    font-size: 0.72rem;
+    line-height: 1.45;
   }
 }
 
