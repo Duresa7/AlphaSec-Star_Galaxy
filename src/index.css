@@ -1777,14 +1777,16 @@ body {
 
 .resume-page {
   position: relative;
-  min-height: 100vh;
-  overflow: hidden;
+  height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   background: #f7f8fb;
   color: #111;
 }
 
 .resume-page__layer {
-  position: absolute;
+  position: fixed;
   inset: 0;
   pointer-events: none;
 }
