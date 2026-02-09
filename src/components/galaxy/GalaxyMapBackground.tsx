@@ -176,7 +176,7 @@ function StarField() {
 // X-Y Axis Grid Overlay for galactic coordinates
 function GridOverlay() {
   const gridSpacing = 10; // Each grid line = 1 unit in SWTOR coords (scaled by 10)
-  const gridRange = 12; // -12 to +12 range (extended grid)
+  const gridRange = 20; // -20 to +20 range for a longer interactive grid span
   
   // Generate grid line objects
   const lineObjects = useMemo(() => {
