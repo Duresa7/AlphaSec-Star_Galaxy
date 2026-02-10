@@ -6,6 +6,7 @@ export interface BlogPost {
   title: string;
   excerpt: string;
   content: string;
+  category: string;
   coverImageUrl: string | null;
   tags: string[];
   status: BlogPostStatus;
@@ -21,6 +22,7 @@ export interface BlogPostMutationInput {
   title: string;
   excerpt: string;
   content: string;
+  category: string;
   coverImageUrl: string | null;
   tags: string[];
   status: BlogPostStatus;

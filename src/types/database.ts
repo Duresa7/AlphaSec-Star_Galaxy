@@ -156,6 +156,7 @@ export type Database = {
           title: string;
           excerpt: string;
           content: string;
+          category: string;
           cover_image_url: string | null;
           tags: string[];
           status: 'draft' | 'published';
@@ -171,6 +172,7 @@ export type Database = {
           title: string;
           excerpt?: string;
           content: string;
+          category?: string;
           cover_image_url?: string | null;
           tags?: string[];
           status?: 'draft' | 'published';
@@ -185,6 +187,7 @@ export type Database = {
           title?: string;
           excerpt?: string;
           content?: string;
+          category?: string;
           cover_image_url?: string | null;
           tags?: string[];
           status?: 'draft' | 'published';
