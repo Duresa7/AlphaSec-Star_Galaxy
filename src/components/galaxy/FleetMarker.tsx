@@ -124,6 +124,8 @@ function FleetMarker({ fleet }: FleetMarkerProps) {
   const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
     if (fleetPlacementMode) return;
     e.stopPropagation();
+    if (!fleet.isCustom) return;
+
     dragStartRef.current = { x: e.clientX, y: e.clientY };
     dragOriginRef.current = fleet.position.clone();
     dragPositionRef.current = fleet.position.clone();
@@ -177,7 +179,7 @@ function FleetMarker({ fleet }: FleetMarkerProps) {
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     setHovered(true);
-    document.body.style.cursor = 'grab';
+    document.body.style.cursor = fleet.isCustom ? 'grab' : 'pointer';
   };
 
   const handlePointerOut = () => {

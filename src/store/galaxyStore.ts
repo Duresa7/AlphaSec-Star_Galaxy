@@ -62,6 +62,22 @@ const persistFleets = (fleets: import('@/types').Fleet[]) => {
   saveCustomFleets(fleets.filter((f) => f.isCustom));
 };
 
+/** Add incoming entities only when their ids are not already present. */
+const appendMissingById = <T extends { id: string }>(current: T[], incoming: T[]): T[] => {
+  if (incoming.length === 0) return current;
+
+  const existingIds = new Set(current.map((item) => item.id));
+  const merged = [...current];
+
+  for (const item of incoming) {
+    if (existingIds.has(item.id)) continue;
+    merged.push(item);
+    existingIds.add(item.id);
+  }
+
+  return merged;
+};
+
 export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
   // View state
   viewMode: 'topdown',
@@ -235,8 +251,8 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
       const customFleets = loadCustomFleets();
 
       set((state) => ({
-        systems: [...state.systems, ...customSystems],
-        fleets: [...state.fleets, ...customFleets],
+        systems: appendMissingById(state.systems, customSystems),
+        fleets: appendMissingById(state.fleets, customFleets),
         isLoading: false,
       }));
     } catch (err) {
@@ -309,6 +325,9 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
   },
 
   previewCustomSystemPosition: (id, position) => {
+    const existing = get().systems.find((s) => s.id === id && s.isCustom);
+    if (!existing) return;
+
     set((state) => ({
       systems: state.systems.map((s) => (s.id === id ? { ...s, position: position.clone() } : s)),
     }));
@@ -327,6 +346,9 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
   },
 
   updateCustomSystemMarkerSize: (id, markerSize) => {
+    const existing = get().systems.find((s) => s.id === id && s.isCustom);
+    if (!existing) return;
+
     const size = clampMarkerSize(markerSize);
     set((state) => ({
       systems: state.systems.map((s) => (s.id === id ? { ...s, markerSize: size } : s)),
@@ -371,27 +393,32 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
   },
 
   previewCustomFleetPosition: (id, position) => {
+    const existing = get().fleets.find((f) => f.id === id && f.isCustom);
+    if (!existing) return;
+
     set((state) => ({
       fleets: state.fleets.map((f) => (f.id === id ? { ...f, position: position.clone() } : f)),
     }));
   },
 
   updateCustomFleetPosition: (id, position) => {
-    const existing = get().fleets.find((f) => f.id === id);
+    const existing = get().fleets.find((f) => f.id === id && f.isCustom);
     if (!existing) return;
 
     set((state) => ({
       fleets: state.fleets.map((f) => (f.id === id ? { ...f, position: position.clone() } : f)),
     }));
-    if (existing.isCustom) {
-      persistFleets(get().fleets);
-    }
+    persistFleets(get().fleets);
   },
 
   updateFleetMarkerSize: (id, markerSize) => {
+    const existing = get().fleets.find((f) => f.id === id && f.isCustom);
+    if (!existing) return;
+
     const size = clampMarkerSize(markerSize);
     set((state) => ({
       fleets: state.fleets.map((f) => (f.id === id ? { ...f, markerSize: size } : f)),
     }));
+    persistFleets(get().fleets);
   },
 }));
