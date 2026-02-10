@@ -17,7 +17,7 @@ const ANOMALY_COLORS = {
   hyperspace_lane: '#00BFFF',
 };
 
-export function AnomalyMarker({ anomaly }: AnomalyMarkerProps) {
+function AnomalyMarker({ anomaly }: AnomalyMarkerProps) {
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
   

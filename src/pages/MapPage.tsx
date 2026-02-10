@@ -5,19 +5,15 @@ import { InfoPanel } from '@/components/panels/InfoPanel';
 import { ControlsPanel } from '@/components/panels/ControlsPanel';
 import { LoadingScreen } from '@/components/panels/LoadingScreen';
 import { useGalaxyStore } from '@/store/galaxyStore';
-import { useRealtimeSync } from '@/hooks/useRealtimeSync';
 
 export function MapPage() {
   const { viewMode, initializeData } = useGalaxyStore();
   const viewLabel = viewMode === 'topdown' ? 'Galaxy Map' : viewMode === 'system' ? 'Planet View' : 'Fleet View';
 
-  // Load custom data from Supabase on mount
+  // Load custom data from localStorage on mount
   useEffect(() => {
     initializeData();
   }, [initializeData]);
-
-  // Subscribe to realtime updates from other users
-  useRealtimeSync();
 
   return (
     <div className="w-full h-full relative overflow-hidden">

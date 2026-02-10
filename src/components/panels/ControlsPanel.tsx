@@ -1,8 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
 import { useGalaxyStore } from '@/store/galaxyStore';
-import { useAuthStore } from '@/store/authStore';
-import { subscribeToActionHistory } from '@/data/actionHistory';
 import type { Faction } from '@/types';
 
 const FACTION_STAT_CONFIG: { key: Faction; label: string; color: string }[] = [
@@ -15,12 +12,9 @@ const FACTION_STAT_CONFIG: { key: Faction; label: string; color: string }[] = [
 
 type SectionKey =
   | 'navigation'
-  | 'operator'
-  | 'adminPermissions'
   | 'currentView'
   | 'timeline'
   | 'galaxyOverview'
-  | 'mapAccess'
   | 'customPlanets'
   | 'customFleets'
   | 'filters'
@@ -53,17 +47,7 @@ export function ControlsPanel() {
     fleets,
     fleetPlacementMode,
     setFleetPlacementMode,
-    canUndo,
-    canRedo,
-    historyBusy,
-    refreshHistoryAvailability,
-    undoGlobalAction,
-    redoGlobalAction,
   } = useGalaxyStore();
-  const { user, displayName, isAdmin, signOut, hasAdminPermission } = useAuthStore();
-  const canViewActivityLog = hasAdminPermission('view_activity_log');
-  const canRunGlobalHistory = hasAdminPermission('run_global_history');
-  const canManageAdminPermissions = hasAdminPermission('manage_admin_permissions');
 
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -76,12 +60,9 @@ export function ControlsPanel() {
   const [yearDraft, setYearDraft] = useState(String(currentYear));
   const [collapsedSections, setCollapsedSections] = useState<Record<SectionKey, boolean>>({
     navigation: false,
-    operator: false,
-    adminPermissions: false,
     currentView: false,
     timeline: false,
     galaxyOverview: false,
-    mapAccess: false,
     customPlanets: false,
     customFleets: false,
     filters: false,
@@ -90,21 +71,11 @@ export function ControlsPanel() {
   const searchRef = useRef<HTMLInputElement>(null);
   const searchResults = getSearchResults();
   const factionStats = getFactionStats();
-  const operatorDisplayIdentity = displayName?.trim() || user?.email || 'Authenticated User';
 
   // Sync year draft when store value changes externally
   useEffect(() => {
     setYearDraft(String(currentYear));
   }, [currentYear]);
-
-  useEffect(() => {
-    if (!canRunGlobalHistory) return;
-    void refreshHistoryAvailability();
-    const unsubscribe = subscribeToActionHistory(() => {
-      void refreshHistoryAvailability();
-    });
-    return unsubscribe;
-  }, [canRunGlobalHistory, refreshHistoryAvailability]);
 
   useEffect(() => {
     if (collapsedSections.navigation) {
@@ -229,109 +200,6 @@ export function ControlsPanel() {
           </div>
         )}
       </div>
-
-      {/* View Status */}
-      <div className="holo-panel" style={{ marginTop: '16px' }}>
-        <label
-          className="holo-label flex items-center justify-between gap-2"
-          style={{ cursor: 'pointer', userSelect: 'none' }}
-          onClick={() => toggleSection('operator')}
-        >
-          <span>Operator Display Name</span>
-          <span aria-hidden="true" style={{ color: 'var(--holo-amber)', opacity: 0.7 }}>{sectionArrow('operator')}</span>
-        </label>
-        {!collapsedSections.operator && (
-          <>
-            <div className="mt-2 flex items-center justify-between gap-2">
-              <div className="min-w-0">
-                <p
-                  className="truncate text-[13px]"
-                  style={{ color: 'var(--holo-text-primary)', fontFamily: 'Rajdhani, sans-serif' }}
-                >
-                  {operatorDisplayIdentity}
-                </p>
-                <p className="text-[10px]" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Orbitron, monospace' }}>
-                  {isAdmin ? 'Administrator' : 'Standard User'}
-                </p>
-              </div>
-              {isAdmin && (
-                <span className="holo-badge bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                  Admin
-                </span>
-              )}
-            </div>
-
-            <button
-              onClick={() => {
-                void signOut();
-              }}
-              className="holo-button mt-3 w-full"
-              style={{ padding: '6px 16px' }}
-            >
-              <span>Sign Out</span>
-            </button>
-          </>
-        )}
-      </div>
-
-      {(canRunGlobalHistory || canViewActivityLog || canManageAdminPermissions) && (
-        <div className="holo-panel" style={{ marginTop: '16px' }}>
-          <label
-            className="holo-label flex items-center justify-between gap-2"
-            style={{ cursor: 'pointer', userSelect: 'none' }}
-            onClick={() => toggleSection('adminPermissions')}
-          >
-            <span>Admin Permissions</span>
-            <span aria-hidden="true" style={{ color: 'var(--holo-amber)', opacity: 0.7 }}>{sectionArrow('adminPermissions')}</span>
-          </label>
-
-          {!collapsedSections.adminPermissions && (
-            <>
-              {canRunGlobalHistory && (
-                <div className="mt-3">
-                  <p className="text-[10px] mb-2 uppercase tracking-wider" style={{ color: 'var(--holo-text-muted)' }}>
-                    Global History
-                  </p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => {
-                        void undoGlobalAction();
-                      }}
-                      disabled={!canUndo || historyBusy}
-                      className="holo-button disabled:opacity-35 disabled:cursor-not-allowed"
-                      style={{ padding: '6px 12px' }}
-                    >
-                      Undo
-                    </button>
-                    <button
-                      onClick={() => {
-                        void redoGlobalAction();
-                      }}
-                      disabled={!canRedo || historyBusy}
-                      className="holo-button disabled:opacity-35 disabled:cursor-not-allowed"
-                      style={{ padding: '6px 12px' }}
-                    >
-                      Redo
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {canViewActivityLog && (
-                <Link to="/admin/activity" className="holo-button mt-3 w-full text-center" style={{ padding: '6px 12px' }}>
-                  Open Activity Log
-                </Link>
-              )}
-
-              {canManageAdminPermissions && (
-                <Link to="/admin/permissions" className="holo-button mt-3 w-full text-center" style={{ padding: '6px 12px' }}>
-                  Manage Admin Permissions
-                </Link>
-              )}
-            </>
-          )}
-        </div>
-      )}
 
       {/* View Status */}
       <div className="holo-panel" style={{ marginTop: '16px' }}>
@@ -477,26 +345,8 @@ export function ControlsPanel() {
         )}
       </div>
 
-      {viewMode === 'topdown' && !isAdmin && (
-        <div className="holo-panel" style={{ marginTop: '16px' }}>
-          <label
-            className="holo-label flex items-center justify-between gap-2"
-            style={{ cursor: 'pointer', userSelect: 'none' }}
-            onClick={() => toggleSection('mapAccess')}
-          >
-            <span>Map Access</span>
-            <span aria-hidden="true" style={{ color: 'var(--holo-amber)', opacity: 0.7 }}>{sectionArrow('mapAccess')}</span>
-          </label>
-          {!collapsedSections.mapAccess && (
-            <p className="text-[12px] mt-2" style={{ color: 'var(--holo-text-muted)' }}>
-              View and inspect mode only. Editing is restricted to administrators.
-            </p>
-          )}
-        </div>
-      )}
-
       {/* Custom Planets */}
-      {viewMode === 'topdown' && isAdmin && (
+      {viewMode === 'topdown' && (
         <div className="holo-panel" style={{ marginTop: '16px' }}>
           <label
             className="holo-label flex items-center justify-between gap-2"
@@ -602,7 +452,7 @@ export function ControlsPanel() {
       )}
 
       {/* Custom Fleets */}
-      {viewMode === 'topdown' && isAdmin && (
+      {viewMode === 'topdown' && (
         <div className="holo-panel" style={{ marginTop: '16px' }}>
           <label
             className="holo-label flex items-center justify-between gap-2"
