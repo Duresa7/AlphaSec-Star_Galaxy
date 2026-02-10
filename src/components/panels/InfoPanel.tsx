@@ -175,7 +175,7 @@ function SystemInfo({ system }: { system: StarSystem }) {
         <InfoRow label="Importance" value={capitalizeFirst(system.importance)} />
       </div>
 
-      {/* Marker Size â€” custom systems only */}
+      {/* Marker Size - custom systems only */}
       {system.isCustom && viewMode === 'topdown' && (
         <div>
           <label className="holo-label" style={{ marginBottom: '8px' }}>Marker Size</label>
@@ -501,7 +501,7 @@ function PlanetInfo({ planet }: { planet: Planet }) {
       </div>
 
       {/* Per-selected system marker size (top-down view marker) */}
-      {viewMode === 'topdown' && (
+      {viewMode === 'topdown' && system?.isCustom && (
         <div>
           <label className="holo-label" style={{ marginBottom: '8px' }}>Top-Down Marker Size</label>
           <div className="flex items-center gap-2">
@@ -704,7 +704,7 @@ function FleetInfo({ fleet }: { fleet: Fleet }) {
         {fleet.commander && <InfoRow label="Commander" value={fleet.commander} />}
       </div>
 
-      {viewMode === 'topdown' && (
+      {viewMode === 'topdown' && fleet.isCustom && (
         <div>
           <label className="holo-label" style={{ marginBottom: '8px' }}>Top-Down Marker Size</label>
           <div className="flex items-center gap-2">
@@ -724,7 +724,7 @@ function FleetInfo({ fleet }: { fleet: Fleet }) {
         </div>
       )}
 
-      {/* Fleet strength â€” KOTOR segmented meter */}
+      {/* Fleet strength - KOTOR segmented meter */}
       <div>
         <label className="holo-label" style={{ marginBottom: '8px' }}>Fleet Strength</label>
         <div className="flex gap-1 mt-2">

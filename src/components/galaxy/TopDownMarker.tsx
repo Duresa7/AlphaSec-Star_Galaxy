@@ -123,6 +123,8 @@ function TopDownMarker({ system }: TopDownMarkerProps) {
   const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
     if (placementMode) return;
     e.stopPropagation();
+    if (!system.isCustom) return;
+
     dragStartRef.current = { x: e.clientX, y: e.clientY };
     dragOriginRef.current = system.position.clone();
     dragPositionRef.current = system.position.clone();
@@ -177,7 +179,7 @@ function TopDownMarker({ system }: TopDownMarkerProps) {
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     setHovered(true);
-    document.body.style.cursor = 'grab';
+    document.body.style.cursor = system.isCustom ? 'grab' : 'pointer';
   };
 
   const handlePointerOut = () => {
