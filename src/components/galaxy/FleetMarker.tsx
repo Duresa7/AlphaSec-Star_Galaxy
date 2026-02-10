@@ -1,4 +1,4 @@
-import { useRef, useState, useMemo, Suspense } from 'react';
+import { useEffect, useMemo, useRef, useState, Suspense } from 'react';
 import { useFrame, ThreeEvent, useThree } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
@@ -6,6 +6,11 @@ import type { Fleet, Faction } from '@/types';
 import { useGalaxyStore } from '@/store/galaxyStore';
 import { ShipModel } from '@/components/three/ModelLoader';
 import { useAuthStore } from '@/store/authStore';
+import {
+  DRAG_THRESHOLD_PX,
+  SINGLE_CLICK_DELAY_MS,
+  DEFAULT_TOPDOWN_FLEET_MARKER_SIZE,
+} from '@/config/topDownMarkerConfig';
 
 interface FleetMarkerProps {
   fleet: Fleet;
@@ -18,8 +23,6 @@ const FACTION_COLORS: Record<Faction, string> = {
   contested: '#FF8C00',
   hutt_cartel: '#8B9A46',
 };
-
-const DRAG_THRESHOLD = 2;
 
 // Diamond shape geometry for custom fleet markers in top-down view
 function useDiamondShape(size: number) {
@@ -43,12 +46,14 @@ export function FleetMarker({ fleet }: FleetMarkerProps) {
   const didDragRef = useRef(false);
   const dragOriginRef = useRef<THREE.Vector3 | null>(null);
   const dragPositionRef = useRef<THREE.Vector3 | null>(null);
+  const clickTimeoutRef = useRef<number | null>(null);
   const { gl, camera } = useThree();
   const cameraRef = useRef(camera);
   cameraRef.current = camera;
 
   const {
     setInfoPanelData,
+    setTopDownFleetSelection,
     setSelectedFleet,
     showLabels,
     previewCustomFleetPosition,
@@ -59,8 +64,25 @@ export function FleetMarker({ fleet }: FleetMarkerProps) {
 
   const color = FACTION_COLORS[fleet.faction];
   const shipType = fleet.faction === 'sith_empire' ? 'sith' : 'republic';
-  const markerSize = 2.2;
+  const markerSize = fleet.markerSize ?? DEFAULT_TOPDOWN_FLEET_MARKER_SIZE;
+  const markerScale = markerSize / DEFAULT_TOPDOWN_FLEET_MARKER_SIZE;
   const diamondGeo = useDiamondShape(markerSize);
+
+  useEffect(() => {
+    return () => {
+      if (clickTimeoutRef.current !== null) {
+        window.clearTimeout(clickTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const openTopDownFleetEditor = () => {
+    setTopDownFleetSelection(fleet.id);
+    setInfoPanelData({
+      type: 'fleet',
+      data: fleet,
+    });
+  };
 
   // Subtle bobbing animation for non-custom fleets
   useFrame((state) => {
@@ -76,6 +98,24 @@ export function FleetMarker({ fleet }: FleetMarkerProps) {
     }
     if (fleetPlacementMode) return;
     e.stopPropagation();
+    if (clickTimeoutRef.current !== null) return;
+    clickTimeoutRef.current = window.setTimeout(() => {
+      clickTimeoutRef.current = null;
+      openTopDownFleetEditor();
+    }, SINGLE_CLICK_DELAY_MS);
+  };
+
+  const handleDoubleClick = (e: ThreeEvent<MouseEvent>) => {
+    if (didDragRef.current) {
+      didDragRef.current = false;
+      return;
+    }
+    if (fleetPlacementMode) return;
+    e.stopPropagation();
+    if (clickTimeoutRef.current !== null) {
+      window.clearTimeout(clickTimeoutRef.current);
+      clickTimeoutRef.current = null;
+    }
     setSelectedFleet(fleet.id);
     setInfoPanelData({
       type: 'fleet',
@@ -84,7 +124,7 @@ export function FleetMarker({ fleet }: FleetMarkerProps) {
   };
 
   const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
-    if (!isAdmin || !fleet.isCustom || fleetPlacementMode) return;
+    if (!isAdmin || fleetPlacementMode) return;
     e.stopPropagation();
     dragStartRef.current = { x: e.clientX, y: e.clientY };
     dragOriginRef.current = fleet.position.clone();
@@ -95,7 +135,7 @@ export function FleetMarker({ fleet }: FleetMarkerProps) {
       if (!dragStartRef.current) return;
       const dx = moveEvent.clientX - dragStartRef.current.x;
       const dy = moveEvent.clientY - dragStartRef.current.y;
-      if (!isDraggingRef.current && Math.sqrt(dx * dx + dy * dy) > DRAG_THRESHOLD) {
+      if (!isDraggingRef.current && Math.sqrt(dx * dx + dy * dy) > DRAG_THRESHOLD_PX) {
         isDraggingRef.current = true;
         setDraggingCustomFleet(true);
         didDragRef.current = true;
@@ -139,7 +179,7 @@ export function FleetMarker({ fleet }: FleetMarkerProps) {
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     setHovered(true);
-    document.body.style.cursor = fleet.isCustom && isAdmin ? 'grab' : 'pointer';
+    document.body.style.cursor = isAdmin ? 'grab' : 'pointer';
   };
 
   const handlePointerOut = () => {
@@ -156,6 +196,7 @@ export function FleetMarker({ fleet }: FleetMarkerProps) {
         {/* Diamond marker */}
         <mesh
           onClick={handleClick}
+          onDoubleClick={handleDoubleClick}
           onPointerDown={handlePointerDown}
           onPointerOver={handlePointerOver}
           onPointerOut={handlePointerOut}
@@ -218,12 +259,14 @@ export function FleetMarker({ fleet }: FleetMarkerProps) {
       ref={groupRef}
       position={fleet.position}
       onClick={handleClick}
+      onDoubleClick={handleDoubleClick}
+      onPointerDown={handlePointerDown}
       onPointerOver={handlePointerOver}
       onPointerOut={handlePointerOut}
     >
       {/* Try to load ship model, fallback to simple geometry */}
       <Suspense fallback={
-        <mesh>
+        <mesh scale={markerScale}>
           <coneGeometry args={[2, 5, 4]} />
           <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.5} />
         </mesh>
@@ -231,7 +274,7 @@ export function FleetMarker({ fleet }: FleetMarkerProps) {
         <ShipModel
           type={shipType}
           position={new THREE.Vector3(0, 0, 0)}
-          scale={3}
+          scale={3 * markerScale}
           rotation={[0, Math.PI / 4, 0]}
         />
       </Suspense>
@@ -239,7 +282,7 @@ export function FleetMarker({ fleet }: FleetMarkerProps) {
       {/* Label / Tooltip - Shows stats on hover */}
       {hovered && (
         <Html
-          position={[0, 4, 0]}
+          position={[0, markerSize * 1.8, 0]}
           center
           style={{ pointerEvents: 'none', userSelect: 'none' }}
         >

@@ -68,6 +68,7 @@ export interface SerializableFleet {
   faction: Faction;
   position: VectorSnapshot;
   shipCount: number;
+  markerSize?: number;
   flagship?: string;
   commander?: string;
   systemId?: string;
@@ -292,6 +293,7 @@ export function serializeFleet(fleet: Fleet): SerializableFleet {
     faction: fleet.faction,
     position: serializeVector(fleet.position),
     shipCount: fleet.shipCount,
+    markerSize: fleet.markerSize,
     flagship: fleet.flagship,
     commander: fleet.commander,
     systemId: fleet.systemId,
@@ -306,6 +308,7 @@ export function deserializeFleet(fleet: SerializableFleet): Fleet {
     faction: fleet.faction,
     position: deserializeVector(fleet.position),
     shipCount: fleet.shipCount,
+    markerSize: fleet.markerSize,
     flagship: fleet.flagship,
     commander: fleet.commander,
     systemId: fleet.systemId,
