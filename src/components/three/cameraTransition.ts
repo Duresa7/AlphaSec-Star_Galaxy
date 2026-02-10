@@ -1,4 +1,4 @@
-export type ViewMode = 'topdown' | 'system' | 'fleet';
+type ViewMode = 'topdown' | 'system' | 'fleet';
 
 export function shouldRecenterTopdown(
   viewMode: ViewMode,

@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useRef, useState, Suspense } from 'react';
+﻿import { useEffect, useMemo, useRef, useState, Suspense } from 'react';
 import { useFrame, ThreeEvent, useThree } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import type { Fleet, Faction } from '@/types';
 import { useGalaxyStore } from '@/store/galaxyStore';
 import { ShipModel } from '@/components/three/ModelLoader';
-import { useAuthStore } from '@/store/authStore';
 import {
   DRAG_THRESHOLD_PX,
   SINGLE_CLICK_DELAY_MS,
@@ -37,8 +36,7 @@ function useDiamondShape(size: number) {
   }, [size]);
 }
 
-export function FleetMarker({ fleet }: FleetMarkerProps) {
-  const { isAdmin } = useAuthStore();
+function FleetMarker({ fleet }: FleetMarkerProps) {
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
   const isDraggingRef = useRef(false);
@@ -124,7 +122,7 @@ export function FleetMarker({ fleet }: FleetMarkerProps) {
   };
 
   const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
-    if (!isAdmin || fleetPlacementMode) return;
+    if (fleetPlacementMode) return;
     e.stopPropagation();
     dragStartRef.current = { x: e.clientX, y: e.clientY };
     dragOriginRef.current = fleet.position.clone();
@@ -179,7 +177,7 @@ export function FleetMarker({ fleet }: FleetMarkerProps) {
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     setHovered(true);
-    document.body.style.cursor = isAdmin ? 'grab' : 'pointer';
+    document.body.style.cursor = 'grab';
   };
 
   const handlePointerOut = () => {

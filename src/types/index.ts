@@ -177,17 +177,8 @@ export interface GalaxyStore {
   getSearchResults: () => SearchResult[];
   getFactionStats: () => Record<Faction, { planets: number; fleetShips: number }>;
 
-  // Data initialization (Supabase)
+  // Data initialization
   initializeData: () => Promise<void>;
-
-  // Remote event handlers (Supabase Realtime)
-  handleRemoteSystemInsert: (system: StarSystem) => void;
-  handleRemoteSystemDelete: (id: string) => void;
-  handleRemoteSystemUpdate: (id: string, updates: Partial<StarSystem>) => void;
-  handleRemoteFleetInsert: (fleet: Fleet) => void;
-  handleRemoteFleetDelete: (id: string) => void;
-  handleRemoteFleetUpdate: (id: string, updates: Partial<Fleet>) => void;
-  handleRemotePlanetStatsUpdate: (planetId: string, stats: Partial<Planet>) => void;
 
   // Planet stats editing
   updatePlanetStats: (systemId: string, planetId: string, stats: PlanetStatsUpdate) => void;
@@ -216,11 +207,4 @@ export interface GalaxyStore {
   draggingCustomFleet: boolean;
   setDraggingCustomFleet: (dragging: boolean) => void;
 
-  // Global history (admin)
-  historyBusy: boolean;
-  canUndo: boolean;
-  canRedo: boolean;
-  refreshHistoryAvailability: () => Promise<void>;
-  undoGlobalAction: () => Promise<void>;
-  redoGlobalAction: () => Promise<void>;
 }

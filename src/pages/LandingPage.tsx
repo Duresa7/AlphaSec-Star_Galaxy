@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ComponentType, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuthStore } from '@/store/authStore';
-import { AuthScreen } from '@/components/auth/AuthScreen';
 
 type Point = {
   x: number;
@@ -89,17 +87,6 @@ function ResumeIcon() {
   );
 }
 
-function BlogIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path
-        fill="currentColor"
-        d="M4 3.5A1.5 1.5 0 0 0 2.5 5v14A1.5 1.5 0 0 0 4 20.5h16A1.5 1.5 0 0 0 21.5 19V5A1.5 1.5 0 0 0 20 3.5H4Zm0 1h16a.5.5 0 0 1 .5.5v2.9h-17V5a.5.5 0 0 1 .5-.5Zm-.5 4.4h17V19a.5.5 0 0 1-.5.5H4a.5.5 0 0 1-.5-.5V8.9Zm2.5 1.6a.5.5 0 0 0 0 1h5.7a.5.5 0 0 0 0-1H6Zm0 3a.5.5 0 0 0 0 1h8.8a.5.5 0 0 0 0-1H6Zm0 3a.5.5 0 0 0 0 1h6.3a.5.5 0 0 0 0-1H6Zm9-6.1a1.4 1.4 0 1 0 0 2.8 1.4 1.4 0 0 0 0-2.8Zm0 3.7a2.2 2.2 0 0 0-2.2 2.2.4.4 0 0 0 .4.4h3.6a.4.4 0 0 0 .4-.4 2.2 2.2 0 0 0-2.2-2.2Z"
-      />
-    </svg>
-  );
-}
-
 const SOCIAL_LINKS: SocialLink[] = [
   {
     href: 'https://github.com/Duresa7',
@@ -114,7 +101,6 @@ const SOCIAL_LINKS: SocialLink[] = [
 ];
 
 export function LandingPage() {
-  const { user, signOut, isLoading } = useAuthStore();
   const heroImageUrl = `${import.meta.env.BASE_URL}homepage-bg.jpg`;
   const heroRef = useRef<HTMLElement | null>(null);
   const boundsRef = useRef<Bounds>({ left: 0, top: 0, width: 1, height: 1 });
@@ -340,24 +326,6 @@ export function LandingPage() {
           {interactive ? (
             <Link
               className="portfolio-hero__nav-link portfolio-hero__nav-link--icon"
-              to="/blog"
-              aria-label="Alpha Blog"
-              data-hover-label="Alpha Blog"
-            >
-              <BlogIcon />
-            </Link>
-          ) : (
-            <span
-              className="portfolio-hero__nav-link portfolio-hero__nav-link--icon"
-              aria-label="Alpha Blog"
-              data-hover-label="Alpha Blog"
-            >
-              <BlogIcon />
-            </span>
-          )}
-          {interactive ? (
-            <Link
-              className="portfolio-hero__nav-link portfolio-hero__nav-link--icon"
               to="/resume"
               aria-label="Duresa Kadi Resume"
               data-hover-label="Duresa Kadi Resume"
@@ -373,28 +341,18 @@ export function LandingPage() {
               <ResumeIcon />
             </span>
           )}
-          {user ? (
-            interactive ? (
-              <Link
-                className="portfolio-hero__nav-link portfolio-hero__nav-link--icon"
-                to="/map-loading"
-                aria-label="Interactive Galaxy Map"
-                data-hover-label="Interactive Galaxy Map"
-              >
-                <GalaxyMapIcon />
-              </Link>
-            ) : (
-              <span
-                className="portfolio-hero__nav-link portfolio-hero__nav-link--icon"
-                aria-label="Interactive Galaxy Map"
-                data-hover-label="Interactive Galaxy Map"
-              >
-                <GalaxyMapIcon />
-              </span>
-            )
+          {interactive ? (
+            <Link
+              className="portfolio-hero__nav-link portfolio-hero__nav-link--icon"
+              to="/map-loading"
+              aria-label="Interactive Galaxy Map"
+              data-hover-label="Interactive Galaxy Map"
+            >
+              <GalaxyMapIcon />
+            </Link>
           ) : (
             <span
-              className="portfolio-hero__nav-link portfolio-hero__nav-link--icon is-disabled"
+              className="portfolio-hero__nav-link portfolio-hero__nav-link--icon"
               aria-label="Interactive Galaxy Map"
               data-hover-label="Interactive Galaxy Map"
             >
@@ -403,25 +361,6 @@ export function LandingPage() {
           )}
         </div>
       </div>
-
-      {user && (
-        <div className="portfolio-hero__signout-block portfolio-hero__parallax">
-          {interactive ? (
-            <button
-              type="button"
-              className="portfolio-hero__nav-button"
-              onClick={() => {
-                void signOut();
-              }}
-              disabled={isLoading}
-            >
-              {isLoading ? 'Signing Out...' : 'Sign Out'}
-            </button>
-          ) : (
-            <span className="portfolio-hero__nav-button">Sign Out</span>
-          )}
-        </div>
-      )}
 
       <div className="portfolio-hero__social-block portfolio-hero__parallax">{renderSocialLinks(interactive)}</div>
     </>
@@ -451,12 +390,6 @@ export function LandingPage() {
       >
         {renderOverlayContent(false)}
       </div>
-
-      {!user && (
-        <div className="portfolio-hero__auth-wrap">
-          <AuthScreen embedded />
-        </div>
-      )}
 
       <div className="portfolio-hero__cursor-layer" aria-hidden="true">
         {echoes.map((echo) => (

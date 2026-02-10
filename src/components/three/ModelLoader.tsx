@@ -34,7 +34,7 @@ const MODEL_PATHS = {
 };
 
 // Planet ID to model path mapping
-export const PLANET_MODEL_PATHS: Record<string, string> = {
+const PLANET_MODEL_PATHS: Record<string, string> = {
   'alderaan-prime': MODEL_PATHS.planetAlderaan,
   'balmorra-prime': MODEL_PATHS.planetBalmorra,
   'belsavis-prime': MODEL_PATHS.planetBelsavis,
