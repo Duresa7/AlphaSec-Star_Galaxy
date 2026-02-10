@@ -38,8 +38,8 @@ const PROJECTS: ResumeEntry[] = [
     dateRange: 'Current',
     bullets: [
       'Created a cinematic landing experience with dynamic spotlight and parallax motion.',
-      'Implemented authenticated map access with route-level protection and loading transitions.',
-      'Built admin tooling for permissions and activity tracking.',
+      'Built an interactive 3D galaxy map with custom planet and fleet placement.',
+      'Implemented persistent local storage for user-created map entities.',
     ],
   },
 ];
@@ -52,7 +52,7 @@ const SKILLS = [
   'UI Animation',
   'Responsive Design',
   'Accessibility',
-  'Supabase',
+  'Three.js',
 ];
 
 function ResumeSection({ title, entries }: { title: string; entries: ResumeEntry[] }) {
