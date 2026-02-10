@@ -41,6 +41,7 @@ import {
 } from '@/data/actionHistory';
 import { logActivity } from '@/data/activityLog';
 import { useAuthStore } from '@/store/authStore';
+import { TOPDOWN_MARKER_MAX_SIZE, TOPDOWN_MARKER_MIN_SIZE } from '@/config/topDownMarkerConfig';
 
 const shouldClearPanelForSystem = (panel: InfoPanelData | null, systemId: string): boolean => {
   if (!panel) return false;
@@ -56,6 +57,7 @@ const shouldClearPanelForFleet = (panel: InfoPanelData | null, fleetId: string):
 const hasOwn = (obj: object, key: string): boolean => Object.prototype.hasOwnProperty.call(obj, key);
 
 const vectorChanged = (a: THREE.Vector3, b: THREE.Vector3): boolean => a.distanceToSquared(b) > 1e-9;
+const clampMarkerSize = (value: number): number => Math.max(TOPDOWN_MARKER_MIN_SIZE, Math.min(TOPDOWN_MARKER_MAX_SIZE, value));
 
 const applyPlanetStatsPatch = (planet: Planet, updates: PlanetStatsUpdate): Planet => {
   const next: Planet = { ...planet };
@@ -123,6 +125,20 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
       selectedPlanetId: null,
       selectedFleetId: null,
       viewMode: id ? 'system' : 'topdown',
+    }),
+  setTopDownSelection: (systemId: string | null, planetId: string | null = null) =>
+    set({
+      selectedSystemId: systemId,
+      selectedPlanetId: systemId ? planetId : null,
+      selectedFleetId: null,
+      viewMode: 'topdown',
+    }),
+  setTopDownFleetSelection: (fleetId: string | null) =>
+    set({
+      selectedFleetId: fleetId,
+      selectedSystemId: null,
+      selectedPlanetId: null,
+      viewMode: 'topdown',
     }),
   setSelectedPlanet: (id: string | null) =>
     set({
@@ -514,7 +530,7 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
 
   updateCustomSystemPosition: (id, position, previousPosition) => {
     if (!canEditMap()) return;
-    const existing = get().systems.find((s) => s.id === id && s.isCustom);
+    const existing = get().systems.find((s) => s.id === id);
     const previous = previousPosition?.clone() ?? existing?.position.clone();
     if (!existing || !previous) return;
 
@@ -525,8 +541,10 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
       ),
     }));
 
-    // Persist to Supabase
-    updateSystemPosition(id, position.x, position.z).catch(console.error);
+    // Persist to Supabase for custom systems only
+    if (existing.isCustom) {
+      updateSystemPosition(id, position.x, position.z).catch(console.error);
+    }
 
     if (!isReplayingHistory() && vectorChanged(previous, position)) {
       void recordMapAction(
@@ -538,7 +556,7 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
         eventType: 'custom_system_moved',
         entityType: 'system',
         entityId: id,
-        message: `Moved custom system: ${existing.name}`,
+        message: existing.isCustom ? `Moved custom system: ${existing.name}` : `Moved system: ${existing.name}`,
         metadata: {
           from: serializeVector(previous),
           to: serializeVector(position),
@@ -548,13 +566,16 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
   },
 
   updateCustomSystemMarkerSize: (id, markerSize) => {
-    if (!canEditMap()) return;
+    const size = clampMarkerSize(markerSize);
     // Optimistic local update
     set((state) => ({
-      systems: state.systems.map((s) => (s.id === id ? { ...s, markerSize } : s)),
+      systems: state.systems.map((s) => (s.id === id ? { ...s, markerSize: size } : s)),
     }));
-    // Persist to Supabase
-    updateSystemMarkerSize(id, markerSize).catch(console.error);
+    const system = get().systems.find((s) => s.id === id);
+    // Persist only for editable custom systems
+    if (system?.isCustom && canEditMap()) {
+      updateSystemMarkerSize(id, size).catch(console.error);
+    }
   },
 
   // ─── Custom Fleet Creation ─────────────────────────
@@ -641,7 +662,7 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
 
   updateCustomFleetPosition: (id, position, previousPosition) => {
     if (!canEditMap()) return;
-    const existing = get().fleets.find((f) => f.id === id && f.isCustom);
+    const existing = get().fleets.find((f) => f.id === id);
     const previous = previousPosition?.clone() ?? existing?.position.clone();
     if (!existing || !previous) return;
 
@@ -649,8 +670,10 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
     set((state) => ({
       fleets: state.fleets.map((f) => (f.id === id ? { ...f, position: position.clone() } : f)),
     }));
-    // Persist to Supabase
-    updateFleetPosition(id, position.x, position.z).catch(console.error);
+    // Persist to Supabase for custom fleets only
+    if (existing.isCustom) {
+      updateFleetPosition(id, position.x, position.z).catch(console.error);
+    }
 
     if (!isReplayingHistory() && vectorChanged(previous, position)) {
       void recordMapAction(
@@ -662,13 +685,20 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
         eventType: 'custom_fleet_moved',
         entityType: 'fleet',
         entityId: id,
-        message: `Moved custom fleet: ${existing.name}`,
+        message: existing.isCustom ? `Moved custom fleet: ${existing.name}` : `Moved fleet: ${existing.name}`,
         metadata: {
           from: serializeVector(previous),
           to: serializeVector(position),
         },
       });
     }
+  },
+
+  updateFleetMarkerSize: (id, markerSize) => {
+    const size = clampMarkerSize(markerSize);
+    set((state) => ({
+      fleets: state.fleets.map((f) => (f.id === id ? { ...f, markerSize: size } : f)),
+    }));
   },
 
   // ─── Global History (Admin) ────────────────────────

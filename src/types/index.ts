@@ -95,6 +95,7 @@ export interface Fleet {
   faction: Faction;
   position: THREE.Vector3;
   shipCount: number;
+  markerSize?: number;
   flagship?: string;
   commander?: string;
   systemId?: string;
@@ -135,6 +136,8 @@ export interface GalaxyStore {
   selectedPlanetId: string | null;
   selectedFleetId: string | null;
   setSelectedSystem: (id: string | null) => void;
+  setTopDownSelection: (systemId: string | null, planetId?: string | null) => void;
+  setTopDownFleetSelection: (fleetId: string | null) => void;
   setSelectedPlanet: (id: string | null) => void;
   setSelectedFleet: (id: string | null) => void;
   
@@ -209,6 +212,7 @@ export interface GalaxyStore {
   removeCustomFleet: (id: string) => void;
   previewCustomFleetPosition: (id: string, position: THREE.Vector3) => void;
   updateCustomFleetPosition: (id: string, position: THREE.Vector3, previousPosition?: THREE.Vector3) => void;
+  updateFleetMarkerSize: (id: string, markerSize: number) => void;
   draggingCustomFleet: boolean;
   setDraggingCustomFleet: (dragging: boolean) => void;
 
