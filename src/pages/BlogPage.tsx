@@ -1,14 +1,19 @@
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
-import { fetchLatestPublishedPosts } from '@/data/blogPosts';
+import { fetchLatestPublishedPosts, formatCategoryLabel, normalizeCategorySlug } from '@/data/blogPosts';
+import { formatPublishedDate } from '@/lib/blogContent';
 import type { BlogPost } from '@/types/blog';
 import { useAuthStore } from '@/store/authStore';
 
-function formatPublishedDate(value: string | null): string {
-  if (!value) return 'Unscheduled';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+const POSTS_PER_PAGE = 6;
+
+function getCategoryCount(posts: BlogPost[]): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const post of posts) {
+    const key = normalizeCategorySlug(post.category) || 'general';
+    counts.set(key, (counts.get(key) || 0) + 1);
+  }
+  return counts;
 }
 
 export function BlogPage() {
@@ -16,13 +21,15 @@ export function BlogPage() {
   const { isAdmin } = useAuthStore();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [query, setQuery] = useState('');
-  const [activeTag, setActiveTag] = useState<string>('all');
+  const [activeCategory, setActiveCategory] = useState('all');
+  const [activeTag, setActiveTag] = useState('all');
+  const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     let mounted = true;
     const load = async () => {
-      const nextPosts = await fetchLatestPublishedPosts();
+      const nextPosts = await fetchLatestPublishedPosts(150);
       if (!mounted) return;
       setPosts(nextPosts);
       setIsLoading(false);
@@ -34,6 +41,16 @@ export function BlogPage() {
     };
   }, []);
 
+  const featuredPost = posts[0] || null;
+  const feedSource = useMemo(() => (featuredPost ? posts.slice(1) : posts), [featuredPost, posts]);
+
+  const categoryCount = useMemo(() => getCategoryCount(posts), [posts]);
+
+  const categoryOptions = useMemo(() => {
+    const values = Array.from(categoryCount.keys()).sort();
+    return ['all', ...values];
+  }, [categoryCount]);
+
   const tagOptions = useMemo(() => {
     const tags = new Set<string>();
     for (const post of posts) {
@@ -42,117 +59,280 @@ export function BlogPage() {
     return ['all', ...Array.from(tags).sort()];
   }, [posts]);
 
+  useEffect(() => {
+    setPage(1);
+  }, [query, activeCategory, activeTag]);
+
   const filteredPosts = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
-    return posts.filter((post) => {
+    return feedSource.filter((post) => {
+      const normalizedCategory = normalizeCategorySlug(post.category) || 'general';
+      if (activeCategory !== 'all' && normalizedCategory !== activeCategory) return false;
       if (activeTag !== 'all' && !post.tags.includes(activeTag)) return false;
       if (!normalizedQuery) return true;
+
       return (
         post.title.toLowerCase().includes(normalizedQuery)
         || post.excerpt.toLowerCase().includes(normalizedQuery)
+        || post.content.toLowerCase().includes(normalizedQuery)
         || post.tags.some((tag) => tag.includes(normalizedQuery))
+        || normalizedCategory.includes(normalizedQuery)
       );
     });
-  }, [posts, query, activeTag]);
+  }, [activeCategory, activeTag, feedSource, query]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredPosts.length / POSTS_PER_PAGE));
+  const currentPage = Math.min(page, totalPages);
+  const pagedPosts = useMemo(() => {
+    const start = (currentPage - 1) * POSTS_PER_PAGE;
+    return filteredPosts.slice(start, start + POSTS_PER_PAGE);
+  }, [currentPage, filteredPosts]);
+
+  const recentPosts = posts.slice(0, 5);
 
   return (
     <main
-      className="alpha-blog"
-      aria-label="Alpha Blog latest posts"
+      className="wp-clone-blog"
+      aria-label="Alpha Blog"
       style={{ '--portfolio-hero-bg-image': `url("${heroImageUrl}")` } as CSSProperties}
     >
-      <div className="alpha-blog__layer alpha-blog__layer--base" aria-hidden="true" />
-      <div className="alpha-blog__layer alpha-blog__layer--grid" aria-hidden="true" />
-      <div className="alpha-blog__layer alpha-blog__layer--veil" aria-hidden="true" />
+      <div className="wp-clone-blog__texture" aria-hidden="true" />
 
-      <div className="alpha-blog__shell">
-        <header className="alpha-blog__masthead">
-          <div>
-            <p className="alpha-blog__eyebrow">Public Dispatch</p>
-            <h1 className="alpha-blog__title">Alpha Blog</h1>
-            <p className="alpha-blog__subtitle">
-              Latest posts, builds, and mission reports from Alpha Sec.
-            </p>
+      <div className="wp-clone-blog__shell">
+        <header className="wp-clone-blog__masthead">
+          <div className="wp-clone-blog__brand-wrap">
+            <p className="wp-clone-blog__eyebrow">WordPress-style publication</p>
+            <h1 className="wp-clone-blog__title">Alpha Dispatch</h1>
           </div>
-          <div className="alpha-blog__masthead-actions">
-            {isAdmin && (
-              <Link to="/blog/manage" className="alpha-blog__action alpha-blog__action--primary">
-                Manage Posts
-              </Link>
-            )}
-            <Link to="/" className="alpha-blog__action">
-              Back to Frontpage
-            </Link>
-          </div>
+
+          <nav className="wp-clone-blog__nav" aria-label="Blog navigation">
+            <Link to="/blog" className="wp-clone-blog__nav-link is-active">Blog</Link>
+            <Link to="/resume" className="wp-clone-blog__nav-link">Resume</Link>
+            <Link to="/" className="wp-clone-blog__nav-link">Frontpage</Link>
+            {isAdmin && <Link to="/blog/manage" className="wp-clone-blog__nav-link is-cta">Dashboard</Link>}
+          </nav>
         </header>
 
-        <section className="alpha-blog__controls">
-          <label className="alpha-blog__search-wrap" htmlFor="alpha-blog-search">
-            <span className="alpha-blog__search-label">Search</span>
-            <input
-              id="alpha-blog-search"
-              className="alpha-blog__search"
-              value={query}
-              onChange={(event) => {
-                setQuery(event.target.value);
-              }}
-              placeholder="Search by title, excerpt, or tag"
-            />
-          </label>
-          <div className="alpha-blog__tag-filter" role="tablist" aria-label="Filter by tag">
-            {tagOptions.map((tag) => (
-              <button
-                key={tag}
-                type="button"
-                className={`alpha-blog__tag-chip${activeTag === tag ? ' is-active' : ''}`}
-                onClick={() => {
-                  setActiveTag(tag);
-                }}
-              >
-                {tag === 'all' ? 'All Tags' : tag}
-              </button>
-            ))}
+        {featuredPost && (
+          <section className="wp-clone-blog__hero" aria-label="Featured post">
+            <div className="wp-clone-blog__hero-copy">
+              <p className="wp-clone-blog__hero-tag">Featured Article</p>
+              <h2>{featuredPost.title}</h2>
+              <p className="wp-clone-blog__hero-meta">
+                <span>{formatPublishedDate(featuredPost.publishedAt, true)}</span>
+                <span>{featuredPost.readingTimeMinutes} min read</span>
+                <span>{formatCategoryLabel(featuredPost.category)}</span>
+              </p>
+              <p>{featuredPost.excerpt}</p>
+              <Link to={`/blog/${featuredPost.slug}`} className="wp-clone-blog__button">
+                Continue Reading
+              </Link>
+            </div>
+            {featuredPost.coverImageUrl ? (
+              <img src={featuredPost.coverImageUrl} alt="" className="wp-clone-blog__hero-image" loading="lazy" />
+            ) : (
+              <div className="wp-clone-blog__hero-image wp-clone-blog__hero-image--empty" aria-hidden="true" />
+            )}
+          </section>
+        )}
+
+        <section className="wp-clone-blog__content">
+          <div className="wp-clone-blog__feed">
+            <div className="wp-clone-blog__toolbar">
+              <label htmlFor="wp-clone-query">
+                <span>Search posts</span>
+                <input
+                  id="wp-clone-query"
+                  value={query}
+                  onChange={(event) => {
+                    setQuery(event.target.value);
+                  }}
+                  placeholder="Search by title, excerpt, content, or taxonomy"
+                />
+              </label>
+
+              <label htmlFor="wp-clone-category">
+                <span>Category</span>
+                <select
+                  id="wp-clone-category"
+                  value={activeCategory}
+                  onChange={(event) => {
+                    setActiveCategory(event.target.value);
+                  }}
+                >
+                  {categoryOptions.map((category) => (
+                    <option key={category} value={category}>
+                      {category === 'all' ? 'All categories' : formatCategoryLabel(category)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label htmlFor="wp-clone-tag">
+                <span>Tag</span>
+                <select
+                  id="wp-clone-tag"
+                  value={activeTag}
+                  onChange={(event) => {
+                    setActiveTag(event.target.value);
+                  }}
+                >
+                  {tagOptions.map((tag) => (
+                    <option key={tag} value={tag}>
+                      {tag === 'all' ? 'All tags' : tag}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            {isLoading ? (
+              <p className="wp-clone-blog__empty">Loading latest posts...</p>
+            ) : pagedPosts.length === 0 ? (
+              <p className="wp-clone-blog__empty">No posts matched your filters.</p>
+            ) : (
+              <div className="wp-clone-blog__posts" aria-live="polite">
+                {pagedPosts.map((post) => (
+                  <article key={post.id} className="wp-clone-post-card">
+                    <p className="wp-clone-post-card__meta">
+                      <span>{formatPublishedDate(post.publishedAt)}</span>
+                      <span>{post.readingTimeMinutes} min</span>
+                      <span>{formatCategoryLabel(post.category)}</span>
+                    </p>
+                    <h3>
+                      <Link to={`/blog/${post.slug}`}>{post.title}</Link>
+                    </h3>
+                    <p>{post.excerpt}</p>
+                    {post.tags.length > 0 && (
+                      <div className="wp-clone-post-card__tags">
+                        {post.tags.slice(0, 5).map((tag) => (
+                          <button
+                            key={`${post.id}-${tag}`}
+                            type="button"
+                            onClick={() => {
+                              setActiveTag(tag);
+                            }}
+                          >
+                            #{tag}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    <Link to={`/blog/${post.slug}`} className="wp-clone-post-card__more">Read More</Link>
+                  </article>
+                ))}
+              </div>
+            )}
+
+            {totalPages > 1 && (
+              <nav className="wp-clone-blog__pagination" aria-label="Posts pages">
+                <button
+                  type="button"
+                  disabled={currentPage === 1}
+                  onClick={() => {
+                    setPage((current) => Math.max(1, current - 1));
+                  }}
+                >
+                  Previous
+                </button>
+                {Array.from({ length: totalPages }, (_, index) => index + 1).map((pageNumber) => (
+                  <button
+                    key={pageNumber}
+                    type="button"
+                    className={pageNumber === currentPage ? 'is-active' : ''}
+                    onClick={() => {
+                      setPage(pageNumber);
+                    }}
+                  >
+                    {pageNumber}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  disabled={currentPage === totalPages}
+                  onClick={() => {
+                    setPage((current) => Math.min(totalPages, current + 1));
+                  }}
+                >
+                  Next
+                </button>
+              </nav>
+            )}
           </div>
-        </section>
 
-        <section className="alpha-blog__list" aria-live="polite">
-          {isLoading ? (
-            <p className="alpha-blog__empty">Loading latest posts...</p>
-          ) : filteredPosts.length === 0 ? (
-            <p className="alpha-blog__empty">No blog posts matched your search yet.</p>
-          ) : (
-            filteredPosts.map((post) => (
-              <article key={post.id} className="alpha-blog__card">
-                <div className="alpha-blog__cover-wrap">
-                  {post.coverImageUrl ? (
-                    <img className="alpha-blog__cover" src={post.coverImageUrl} alt="" loading="lazy" />
-                  ) : (
-                    <div className="alpha-blog__cover alpha-blog__cover--placeholder" aria-hidden="true" />
-                  )}
-                </div>
+          <aside className="wp-clone-blog__sidebar" aria-label="Blog sidebar">
+            <section className="wp-clone-widget">
+              <h2>About This Blog</h2>
+              <p>
+                A WordPress-inspired editorial layout for Alpha Sec mission reports, build logs, and release notes.
+              </p>
+            </section>
 
-                <div className="alpha-blog__card-body">
-                  <p className="alpha-blog__meta">
-                    <span>{formatPublishedDate(post.publishedAt)}</span>
-                    <span>{post.readingTimeMinutes} min read</span>
-                  </p>
-                  <h2 className="alpha-blog__card-title">
-                    <Link to={`/blog/${post.slug}`} className="alpha-blog__card-link">
-                      {post.title}
-                    </Link>
-                  </h2>
-                  <p className="alpha-blog__excerpt">{post.excerpt}</p>
-                  <div className="alpha-blog__tags">
-                    {post.tags.map((tag) => (
-                      <span key={`${post.id}-${tag}`} className="alpha-blog__tag">
+            <section className="wp-clone-widget">
+              <h2>Categories</h2>
+              <ul>
+                <li>
+                  <button
+                    type="button"
+                    className={activeCategory === 'all' ? 'is-active' : ''}
+                    onClick={() => {
+                      setActiveCategory('all');
+                    }}
+                  >
+                    All Categories ({posts.length})
+                  </button>
+                </li>
+                {categoryOptions
+                  .filter((category) => category !== 'all')
+                  .map((category) => (
+                    <li key={category}>
+                      <button
+                        type="button"
+                        className={activeCategory === category ? 'is-active' : ''}
+                        onClick={() => {
+                          setActiveCategory(category);
+                        }}
+                      >
+                        {formatCategoryLabel(category)} ({categoryCount.get(category) || 0})
+                      </button>
+                    </li>
+                  ))}
+              </ul>
+            </section>
+
+            <section className="wp-clone-widget">
+              <h2>Recent Posts</h2>
+              <ul>
+                {recentPosts.map((post) => (
+                  <li key={post.id}>
+                    <Link to={`/blog/${post.slug}`}>{post.title}</Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            {tagOptions.length > 1 && (
+              <section className="wp-clone-widget">
+                <h2>Tag Cloud</h2>
+                <div className="wp-clone-widget__tags">
+                  {tagOptions
+                    .filter((tag) => tag !== 'all')
+                    .map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        className={activeTag === tag ? 'is-active' : ''}
+                        onClick={() => {
+                          setActiveTag(tag);
+                        }}
+                      >
                         {tag}
-                      </span>
+                      </button>
                     ))}
-                  </div>
                 </div>
-              </article>
-            ))
-          )}
+              </section>
+            )}
+          </aside>
         </section>
       </div>
     </main>

@@ -7,7 +7,28 @@ type BlogPostRow = Database['public']['Tables']['blog_posts']['Row'];
 
 const WORDS_PER_MINUTE = 220;
 
+export function normalizeCategorySlug(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+export function formatCategoryLabel(value: string): string {
+  const normalized = normalizeCategorySlug(value);
+  if (!normalized) return 'General';
+  return normalized
+    .split('-')
+    .filter(Boolean)
+    .map((word) => word.slice(0, 1).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
 const toBlogPost = (row: BlogPostRow): BlogPost => ({
+  category: normalizeCategorySlug(row.category || row.tags?.[0] || 'general') || 'general',
   id: row.id,
   slug: row.slug,
   title: row.title,
@@ -60,12 +81,14 @@ function normalizeTags(tags: string[]): string[] {
 }
 
 function normalizeMutationInput(input: BlogPostMutationInput): BlogPostMutationInput {
+  const normalizedCategory = normalizeCategorySlug(input.category || input.tags[0] || 'general') || 'general';
   return {
     ...input,
     slug: normalizeBlogSlug(input.slug),
     title: input.title.trim(),
     excerpt: input.excerpt.trim(),
     content: input.content.trim(),
+    category: normalizedCategory,
     coverImageUrl: input.coverImageUrl?.trim() || null,
     tags: normalizeTags(input.tags),
   };
@@ -133,6 +156,7 @@ export async function createBlogPost(input: BlogPostMutationInput): Promise<Blog
       title: next.title,
       excerpt: next.excerpt,
       content: next.content,
+      category: next.category,
       cover_image_url: next.coverImageUrl,
       tags: next.tags,
       status: next.status,
@@ -179,6 +203,7 @@ export async function updateBlogPost(id: string, input: BlogPostMutationInput): 
       title: next.title,
       excerpt: next.excerpt,
       content: next.content,
+      category: next.category,
       cover_image_url: next.coverImageUrl,
       tags: next.tags,
       status: next.status,
