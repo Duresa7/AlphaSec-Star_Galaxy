@@ -1,7 +1,7 @@
 {
-  "name": "star-wars-live",
+  "name": "galaxy-map-live",
   "version": "1.0.0",
-  "description": "Interactive 3D Star Wars Galaxy Map - Old Republic Era",
+  "description": "Interactive 3D Galaxy Map - Old Republic Era",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,7 +11,7 @@
     "test": "vitest run"
   },
   "keywords": [
-    "star-wars",
+    "galaxy-map",
     "galaxy-map",
     "threejs",
     "react"

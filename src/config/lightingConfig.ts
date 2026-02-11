@@ -1,5 +1,5 @@
 /**
- * Centralized lighting configuration for the Star Wars Galaxy Map
+ * Centralized lighting configuration for the Galaxy Map
  * This file contains all lighting-related settings for easy tuning
  */
 

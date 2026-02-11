@@ -1,0 +1,18 @@
+import { Link } from 'react-router-dom';
+
+export function Footer() {
+  return (
+    <footer className="site-footer">
+      <div className="site-footer__inner">
+        <div className="site-footer__links">
+          <Link to="/privacy" className="site-footer__link">Privacy Policy</Link>
+          <span className="site-footer__sep" aria-hidden="true">/</span>
+          <Link to="/terms" className="site-footer__link">Terms of Service</Link>
+        </div>
+        <p className="site-footer__copy">
+          &copy; {new Date().getFullYear()} Alpha Sec. All rights reserved.
+        </p>
+      </div>
+    </footer>
+  );
+}
