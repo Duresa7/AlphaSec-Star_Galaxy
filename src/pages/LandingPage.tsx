@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ComponentType, type CSSProperties } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
+import { AuthModal } from '@/components/auth/AuthModal';
 
 type Point = {
   x: number;
@@ -102,6 +104,10 @@ const SOCIAL_LINKS: SocialLink[] = [
 
 export function LandingPage() {
   const heroImageUrl = `${import.meta.env.BASE_URL}homepage-bg.jpg`;
+  const { session, profile, signOut } = useAuth();
+  const location = useLocation();
+  const locationState = location.state as { showAuthModal?: boolean } | null;
+  const [showAuthModal, setShowAuthModal] = useState(locationState?.showAuthModal ?? false);
   const heroRef = useRef<HTMLElement | null>(null);
   const boundsRef = useRef<Bounds>({ left: 0, top: 0, width: 1, height: 1 });
   const targetCursorRef = useRef<Point>({ x: 0, y: 0 });
@@ -407,6 +413,51 @@ export function LandingPage() {
         ))}
         <span className="portfolio-hero__cursor-ring" />
       </div>
+
+      {/* Auth pill — top right */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 'clamp(20px, 3.4vw, 48px)',
+          right: 'clamp(20px, 3.4vw, 48px)',
+          zIndex: 10,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+        }}
+      >
+        {session && profile ? (
+          <>
+            <span
+              style={{
+                fontFamily: '"Manrope", "Spline Sans", sans-serif',
+                fontSize: '11px',
+                fontWeight: 700,
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                color: '#111',
+              }}
+            >
+              {profile.display_name}
+            </span>
+            <button
+              onClick={() => signOut()}
+              className="portfolio-hero__auth-pill"
+            >
+              Sign Out
+            </button>
+          </>
+        ) : (
+          <button
+            onClick={() => setShowAuthModal(true)}
+            className="portfolio-hero__auth-pill"
+          >
+            Sign In
+          </button>
+        )}
+      </div>
+
+      <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
     </section>
   );
 }
