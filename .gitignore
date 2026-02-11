@@ -130,3 +130,4 @@ dist
 *.sw?
 /.ai/
 .aiassistant/
+CLAUDE.md

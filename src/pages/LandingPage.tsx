@@ -391,7 +391,6 @@ export function LandingPage() {
       style={{ '--portfolio-hero-bg-image': `url("${heroImageUrl}")` } as CSSProperties}
     >
       <div className="portfolio-hero__layer portfolio-hero__base-image" aria-hidden="true" />
-      <div className="portfolio-hero__layer portfolio-hero__grid" aria-hidden="true" />
       <div
         className="portfolio-hero__layer portfolio-hero__alt-image portfolio-hero__spotlight-mask"
         aria-hidden="true"
