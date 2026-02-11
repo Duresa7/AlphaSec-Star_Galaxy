@@ -140,7 +140,8 @@ export type AuditAction =
   | 'fleet_deleted'
   | 'fleet_resized'
   | 'planet_stats_updated'
-  | 'role_changed';
+  | 'role_changed'
+  | 'timeline_changed';
 
 export interface AuditLogEntry {
   id: number;
@@ -249,6 +250,7 @@ export interface GalaxyStore {
   // Dirty tracking & manual save
   dirtySystemIds: Set<string>;
   dirtyFleetIds: Set<string>;
+  dirtyTimeline: boolean;
   hasPendingChanges: boolean;
   saveAllChanges: () => Promise<void>;
   discardAllChanges: () => Promise<void>;

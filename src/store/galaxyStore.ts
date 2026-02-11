@@ -18,6 +18,8 @@ import {
   upsertFleet,
   deleteCustomFleet as deleteFleetFromSupabase,
   logAction,
+  loadSetting,
+  updateSetting,
 } from '@/data/supabaseStorage';
 import { TOPDOWN_MARKER_MAX_SIZE, TOPDOWN_MARKER_MIN_SIZE } from '@/config/topDownMarkerConfig';
 import { supabase, supabaseConfigured } from '@/lib/supabase';
@@ -38,6 +40,7 @@ const cloneFleets = (fleetArr: Fleet[]): Fleet[] =>
 /** Module-level snapshot of the "clean" state (after init / after save). */
 let _systemsSnapshot: StarSystem[] = [];
 let _fleetsSnapshot: Fleet[] = [];
+let _yearSnapshot: number = 3956;
 
 const shouldClearPanelForSystem = (panel: InfoPanelData | null, systemId: string): boolean => {
   if (!panel) return false;
@@ -178,7 +181,7 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
 
   // Timeline - Old Republic era ~3956 BBY (KOTOR 1)
   currentYear: 3956,
-  setCurrentYear: (year: number) => set({ currentYear: year }),
+  setCurrentYear: (year: number) => set({ currentYear: year, dirtyTimeline: true, hasPendingChanges: true }),
 
   // Loading
   isLoading: true,
@@ -287,14 +290,18 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
   // ─── Data Initialization (Supabase) ────────────
   initializeData: async () => {
     try {
-      const [customSystems, customFleets] = await Promise.all([
+      const [customSystems, customFleets, yearSetting] = await Promise.all([
         loadFromSupabase(),
         loadFleetsFromSupabase(),
+        loadSetting('current_year'),
       ]);
+
+      const loadedYear = typeof yearSetting === 'number' ? yearSetting : 3956;
 
       set((state) => ({
         systems: mergeById(state.systems, customSystems),
         fleets: mergeById(state.fleets, customFleets),
+        currentYear: loadedYear,
         isLoading: false,
       }));
 
@@ -302,6 +309,7 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
       const s = get();
       _systemsSnapshot = cloneSystems(s.systems);
       _fleetsSnapshot = cloneFleets(s.fleets);
+      _yearSnapshot = loadedYear;
     } catch (err) {
       console.error('Failed to initialize custom data from Supabase:', err);
       set({ isLoading: false });
@@ -492,6 +500,7 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
   // ─── Dirty Tracking & Manual Save ──────────────
   dirtySystemIds: new Set<string>(),
   dirtyFleetIds: new Set<string>(),
+  dirtyTimeline: false,
 
   hasPendingChanges: false,
 
@@ -516,13 +525,20 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
         .catch(() => {});
     });
 
-    await Promise.all([...systemPromises, ...fleetPromises]);
-    set({ dirtySystemIds: new Set<string>(), dirtyFleetIds: new Set<string>(), hasPendingChanges: false });
+    const timelinePromise = state.dirtyTimeline
+      ? updateSetting('current_year', state.currentYear)
+          .then(() => auditLog('timeline_changed', 'system', 'current_year', 'Timeline', { year: state.currentYear }))
+          .catch(() => {})
+      : Promise.resolve();
+
+    await Promise.all([...systemPromises, ...fleetPromises, timelinePromise]);
+    set({ dirtySystemIds: new Set<string>(), dirtyFleetIds: new Set<string>(), dirtyTimeline: false, hasPendingChanges: false });
 
     // Update snapshot to reflect the newly saved state
     const saved = get();
     _systemsSnapshot = cloneSystems(saved.systems);
     _fleetsSnapshot = cloneFleets(saved.fleets);
+    _yearSnapshot = saved.currentYear;
   },
 
   discardAllChanges: async () => {
@@ -530,8 +546,10 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
     set({
       systems: cloneSystems(_systemsSnapshot),
       fleets: cloneFleets(_fleetsSnapshot),
+      currentYear: _yearSnapshot,
       dirtySystemIds: new Set<string>(),
       dirtyFleetIds: new Set<string>(),
+      dirtyTimeline: false,
       hasPendingChanges: false,
     });
   },
