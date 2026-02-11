@@ -2,6 +2,45 @@ import * as THREE from 'three';
 import { supabase, supabaseConfigured } from '@/lib/supabase';
 import type { StarSystem, Fleet, Faction, Planet, AuditAction, AuditLogEntry, UserProfile } from '@/types';
 
+const AUTH_LOOKUP_TIMEOUT_MS = 8_000;
+
+const withTimeout = <T,>(promise: Promise<T>, timeoutMs: number, timeoutMessage: string): Promise<T> =>
+  new Promise<T>((resolve, reject) => {
+    const timeoutId = window.setTimeout(() => {
+      reject(new Error(timeoutMessage));
+    }, timeoutMs);
+
+    promise.then(
+      (value) => {
+        window.clearTimeout(timeoutId);
+        resolve(value);
+      },
+      (error) => {
+        window.clearTimeout(timeoutId);
+        reject(error);
+      },
+    );
+  });
+
+const getAuthenticatedUserId = async (): Promise<string | null> => {
+  if (!supabaseConfigured) return null;
+  try {
+    const { data, error } = await withTimeout(
+      supabase.auth.getUser(),
+      AUTH_LOOKUP_TIMEOUT_MS,
+      'Auth user lookup timed out.',
+    );
+    if (error) {
+      console.error('Failed to resolve auth user:', error);
+      return null;
+    }
+    return data.user?.id ?? null;
+  } catch (error) {
+    console.error('Failed to resolve auth user:', error);
+    return null;
+  }
+};
+
 // ─── Serialize / Deserialize helpers ────────────
 
 interface DbSystem {
@@ -244,10 +283,10 @@ export async function loadSetting(key: string): Promise<unknown> {
 
 export async function updateSetting(key: string, value: unknown): Promise<void> {
   if (!supabaseConfigured) return;
-  const { data: { session } } = await supabase.auth.getSession();
+  const userId = await getAuthenticatedUserId();
   const { error } = await supabase
     .from('app_settings')
-    .update({ value: value as never, updated_by: session?.user?.id ?? null })
+    .update({ value: value as never, updated_by: userId })
     .eq('key', key);
   if (error) console.error(`Failed to update setting "${key}":`, error);
 }
@@ -262,10 +301,10 @@ export async function logAction(
   details?: Record<string, unknown>,
 ): Promise<void> {
   if (!supabaseConfigured) return;
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.user?.id) return;
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return;
   const { error } = await supabase.from('audit_logs').insert({
-    user_id: session.user.id,
+    user_id: userId,
     action,
     entity_type: entityType,
     entity_id: entityId,
