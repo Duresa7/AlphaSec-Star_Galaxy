@@ -46,32 +46,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!supabaseConfigured) return;
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
-      setSession(initialSession);
-      if (initialSession?.user?.id) {
-        fetchProfile(initialSession.user.id).finally(() => setLoading(false));
-      } else {
-        setLoading(false);
-      }
-    }).catch((err) => {
-      console.error('Failed to get session:', err);
-      setLoading(false);
-    });
-
-    // Listen for auth changes
+    // Use onAuthStateChange as the primary session source (Supabase-recommended).
+    // The INITIAL_SESSION event fires synchronously on subscribe with the
+    // current session, so we no longer rely on getSession() which can hang
+    // due to navigator.locks contention with PKCE on page refresh.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, newSession) => {
+      async (event, newSession) => {
         setSession(newSession);
         if (newSession?.user?.id) {
           await fetchProfile(newSession.user.id);
         } else {
           setProfile(null);
         }
+        // Mark loading done once the initial session is resolved
+        if (event === 'INITIAL_SESSION') {
+          setLoading(false);
+        }
       }
     );
 
-    return () => subscription.unsubscribe();
+    // Safety timeout: if INITIAL_SESSION never fires, unblock the UI
+    const timeout = setTimeout(() => {
+      setLoading(false);
+    }, 5000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeout);
+    };
   }, [fetchProfile]);
 
   // Periodically refresh profile so role changes propagate without a page reload
