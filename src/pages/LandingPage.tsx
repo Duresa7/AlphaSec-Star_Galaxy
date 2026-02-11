@@ -139,6 +139,11 @@ export function LandingPage() {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState<boolean>(() =>
     getMediaMatch('(prefers-reduced-motion: reduce)', false)
   );
+  const displayName =
+    profile?.display_name
+    ?? (typeof session?.user?.user_metadata?.display_name === 'string' ? session.user.user_metadata.display_name : null)
+    ?? session?.user?.email?.split('@')[0]
+    ?? 'Signed In';
 
   const spawnEcho = useCallback((x: number, y: number, speed: number, createdAt: number) => {
     const size = clamp(118 + speed * 20, 118, 220);
@@ -453,7 +458,7 @@ export function LandingPage() {
           gap: '10px',
         }}
       >
-        {session && profile ? (
+        {session ? (
           <>
             <span
               style={{
@@ -465,7 +470,7 @@ export function LandingPage() {
                 color: '#111',
               }}
             >
-              {profile.display_name}
+              {displayName}
             </span>
             <button
               onClick={() => signOut()}

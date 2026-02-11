@@ -10,7 +10,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/" replace />;
   }
 
-  if (loading) {
+  if (loading && !session) {
     return (
       <div className="route-auth-loading">
         <div className="route-auth-loading__layer route-auth-loading__layer--base" />

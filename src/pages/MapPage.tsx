@@ -10,10 +10,15 @@ import { useRole } from '@/hooks/useRole';
 
 export function MapPage() {
   const { viewMode, initializeData, hasPendingChanges, saveAllChanges, discardAllChanges } = useGalaxyStore();
-  const { profile, signOut } = useAuth();
+  const { session, profile, signOut } = useAuth();
   const { isAdmin } = useRole();
   const [saving, setSaving] = useState(false);
   const viewLabel = viewMode === 'topdown' ? 'Galaxy Map' : viewMode === 'system' ? 'Planet View' : 'Fleet View';
+  const displayName =
+    profile?.display_name
+    ?? (typeof session?.user?.user_metadata?.display_name === 'string' ? session.user.user_metadata.display_name : null)
+    ?? session?.user?.email?.split('@')[0]
+    ?? 'Signed In';
 
   // Load custom data from Supabase on mount
   useEffect(() => {
@@ -77,13 +82,13 @@ export function MapPage() {
 
       {/* User info + sign out — top right */}
       <div className="absolute top-6 right-6 z-40 flex items-center gap-3">
-        {profile && (
+        {session && (
           <>
             <span
               className="text-[11px] font-semibold tracking-wider uppercase"
               style={{ fontFamily: 'Orbitron, monospace', color: 'var(--holo-amber)', textShadow: '0 0 6px rgba(200, 170, 110, 0.4)' }}
             >
-              {profile.display_name}
+              {displayName}
             </span>
             <button
               onClick={() => signOut()}
