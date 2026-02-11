@@ -117,6 +117,45 @@ export interface SearchResult {
   parentName?: string;
 }
 
+// ─── Auth & RBAC ────────────────────────────────
+
+export type UserRole = 'user' | 'admin' | 'bossman';
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  display_name: string;
+  role: UserRole;
+  created_at: string;
+  updated_at: string;
+}
+
+export type AuditAction =
+  | 'system_created'
+  | 'system_moved'
+  | 'system_deleted'
+  | 'system_resized'
+  | 'fleet_created'
+  | 'fleet_moved'
+  | 'fleet_deleted'
+  | 'fleet_resized'
+  | 'planet_stats_updated'
+  | 'role_changed';
+
+export interface AuditLogEntry {
+  id: number;
+  user_id: string;
+  action: AuditAction;
+  entity_type: 'system' | 'fleet' | 'user';
+  entity_id: string;
+  entity_name: string;
+  details: Record<string, unknown> | null;
+  created_at: string;
+  display_name?: string;
+}
+
+// ─── Existing Types ─────────────────────────────
+
 export interface PlanetStatsUpdate {
   population?: string | null;
   factionControl?: Partial<Record<Faction, number>> | null;
@@ -207,4 +246,10 @@ export interface GalaxyStore {
   draggingCustomFleet: boolean;
   setDraggingCustomFleet: (dragging: boolean) => void;
 
+  // Dirty tracking & manual save
+  dirtySystemIds: Set<string>;
+  dirtyFleetIds: Set<string>;
+  hasPendingChanges: boolean;
+  saveAllChanges: () => Promise<void>;
+  discardAllChanges: () => Promise<void>;
 }

@@ -12,6 +12,7 @@ import { AnomalyMarkers } from '@/components/galaxy/AnomalyMarker';
 import { SystemDetailView } from '@/components/galaxy/SystemDetailView';
 import { FleetDetailView } from '@/components/galaxy/FleetDetailView';
 import { useGalaxyStore } from '@/store/galaxyStore';
+import { useRole } from '@/hooks/useRole';
 import {
   AMBIENT_LIGHT,
   DIRECTIONAL_LIGHT,
@@ -114,9 +115,11 @@ function GalaxyContent() {
 
 // Top-down view components (2D map with markers)
 function TopDownView() {
+  const { isAdmin } = useRole();
   const { placementMode, pendingCustomPlanet, addCustomSystem, fleetPlacementMode, pendingCustomFleet, addCustomFleet } = useGalaxyStore();
 
   const handlePlacementClick = (e: ThreeEvent<MouseEvent>) => {
+    if (!isAdmin) return;
     if (!placementMode && !fleetPlacementMode) return;
     e.stopPropagation();
     const point = e.point;

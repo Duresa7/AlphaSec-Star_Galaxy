@@ -8,9 +8,36 @@ import type {
   PlanetStatsUpdate,
 } from '@/types';
 import { starSystems, anomalies, fleets } from '@/data/galaxyData';
-import { loadCustomSystems, saveCustomSystems } from '@/data/customPlanetStorage';
-import { loadCustomFleets, saveCustomFleets } from '@/data/customFleetStorage';
+import {
+  loadCustomSystems as loadFromSupabase,
+  loadCustomFleets as loadFleetsFromSupabase,
+  insertCustomSystem,
+  upsertSystem,
+  deleteCustomSystem as deleteSystemFromSupabase,
+  insertCustomFleet,
+  upsertFleet,
+  deleteCustomFleet as deleteFleetFromSupabase,
+  logAction,
+} from '@/data/supabaseStorage';
 import { TOPDOWN_MARKER_MAX_SIZE, TOPDOWN_MARKER_MIN_SIZE } from '@/config/topDownMarkerConfig';
+import { supabase, supabaseConfigured } from '@/lib/supabase';
+import type { StarSystem, Fleet } from '@/types';
+
+/** Deep-clone systems array (positions are THREE.Vector3 and must be cloned). */
+const cloneSystems = (systems: StarSystem[]): StarSystem[] =>
+  systems.map((s) => ({
+    ...s,
+    position: s.position.clone(),
+    planets: s.planets.map((p) => ({ ...p, position: p.position.clone() })),
+  }));
+
+/** Deep-clone fleets array. */
+const cloneFleets = (fleetArr: Fleet[]): Fleet[] =>
+  fleetArr.map((f) => ({ ...f, position: f.position.clone() }));
+
+/** Module-level snapshot of the "clean" state (after init / after save). */
+let _systemsSnapshot: StarSystem[] = [];
+let _fleetsSnapshot: Fleet[] = [];
 
 const shouldClearPanelForSystem = (panel: InfoPanelData | null, systemId: string): boolean => {
   if (!panel) return false;
@@ -52,23 +79,38 @@ const applyPlanetStatsPatch = (planet: Planet, updates: PlanetStatsUpdate): Plan
   return next;
 };
 
-/** Persist all custom systems currently in state to localStorage. */
-const persistSystems = (systems: import('@/types').StarSystem[]) => {
-  saveCustomSystems(systems.filter((s) => s.isCustom));
+/** Get the current auth user id (or null). */
+const getCurrentUserId = async (): Promise<string | null> => {
+  if (!supabaseConfigured) return null;
+  const { data: { session } } = await supabase.auth.getSession();
+  return session?.user?.id ?? null;
 };
 
-/** Persist all custom fleets currently in state to localStorage. */
-const persistFleets = (fleets: import('@/types').Fleet[]) => {
-  saveCustomFleets(fleets.filter((f) => f.isCustom));
+
+/** Fire-and-forget audit log. */
+const auditLog = (
+  action: import('@/types').AuditAction,
+  entityType: 'system' | 'fleet' | 'user',
+  entityId: string,
+  entityName: string,
+  details?: Record<string, unknown>,
+) => {
+  getCurrentUserId().then((uid) => {
+    if (uid) logAction(uid, action, entityType, entityId, entityName, details).catch(() => {});
+  });
 };
 
-/** Add incoming entities only when their ids are not already present. */
-const appendMissingById = <T extends { id: string }>(current: T[], incoming: T[]): T[] => {
+/** Merge incoming entities: override matching ids, append new ones. */
+const mergeById = <T extends { id: string }>(current: T[], incoming: T[]): T[] => {
   if (incoming.length === 0) return current;
 
-  const existingIds = new Set(current.map((item) => item.id));
-  const merged = [...current];
+  const overrideMap = new Map(incoming.map((item) => [item.id, item]));
+  const merged = current.map((item) => overrideMap.get(item.id) ?? item);
 
+  // Mark merged ids
+  const existingIds = new Set(current.map((item) => item.id));
+
+  // Append truly new entries (custom systems not in built-in data)
   for (const item of incoming) {
     if (existingIds.has(item.id)) continue;
     merged.push(item);
@@ -244,19 +286,26 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
     return stats;
   },
 
-  // ─── Data Initialization (localStorage) ───────────
+  // ─── Data Initialization (Supabase) ────────────
   initializeData: async () => {
     try {
-      const customSystems = loadCustomSystems();
-      const customFleets = loadCustomFleets();
+      const [customSystems, customFleets] = await Promise.all([
+        loadFromSupabase(),
+        loadFleetsFromSupabase(),
+      ]);
 
       set((state) => ({
-        systems: appendMissingById(state.systems, customSystems),
-        fleets: appendMissingById(state.fleets, customFleets),
+        systems: mergeById(state.systems, customSystems),
+        fleets: mergeById(state.fleets, customFleets),
         isLoading: false,
       }));
+
+      // Snapshot clean state so Discard can restore it
+      const s = get();
+      _systemsSnapshot = cloneSystems(s.systems);
+      _fleetsSnapshot = cloneFleets(s.fleets);
     } catch (err) {
-      console.error('Failed to initialize custom data from localStorage:', err);
+      console.error('Failed to initialize custom data from Supabase:', err);
       set({ isLoading: false });
     }
   },
@@ -280,12 +329,9 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
           planets: s.planets.map((p) => (p.id === planetId ? applyPlanetStatsPatch(p, updates) : p)),
         };
       }),
+      dirtySystemIds: new Set(currentState.dirtySystemIds).add(resolvedSystem.id),
+      hasPendingChanges: true,
     }));
-
-    // Persist custom systems to localStorage
-    if (resolvedSystem.isCustom) {
-      persistSystems(get().systems);
-    }
   },
 
   // ─── Custom Planet Creation ────────────────────────
@@ -308,10 +354,17 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
       placementMode: false,
       pendingCustomPlanet: null,
     }));
-    persistSystems(get().systems);
+    // Persist to Supabase
+    getCurrentUserId().then((uid) => {
+      if (uid) {
+        insertCustomSystem(system, uid).catch(() => {});
+        auditLog('system_created', 'system', system.id, system.name);
+      }
+    });
   },
 
   removeCustomSystem: (id) => {
+    const systemToRemove = get().systems.find((s) => s.id === id);
     set((state) => {
       const isSelected = state.selectedSystemId === id;
       const shouldClear = shouldClearPanelForSystem(state.infoPanelData, id);
@@ -321,11 +374,14 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
         ...(isSelected ? { selectedSystemId: null, selectedPlanetId: null, viewMode: 'topdown' as const } : {}),
       };
     });
-    persistSystems(get().systems);
+    deleteSystemFromSupabase(id).catch(() => {});
+    if (systemToRemove) {
+      auditLog('system_deleted', 'system', id, systemToRemove.name);
+    }
   },
 
   previewCustomSystemPosition: (id, position) => {
-    const existing = get().systems.find((s) => s.id === id && s.isCustom);
+    const existing = get().systems.find((s) => s.id === id);
     if (!existing) return;
 
     set((state) => ({
@@ -334,26 +390,28 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
   },
 
   updateCustomSystemPosition: (id, position) => {
-    const existing = get().systems.find((s) => s.id === id && s.isCustom);
+    const existing = get().systems.find((s) => s.id === id);
     if (!existing) return;
 
     set((state) => ({
       systems: state.systems.map((s) =>
         s.id === id ? { ...s, position: position.clone(), planets: s.planets.map((p) => ({ ...p })) } : s,
       ),
+      dirtySystemIds: new Set(state.dirtySystemIds).add(id),
+      hasPendingChanges: true,
     }));
-    persistSystems(get().systems);
   },
 
   updateCustomSystemMarkerSize: (id, markerSize) => {
-    const existing = get().systems.find((s) => s.id === id && s.isCustom);
+    const existing = get().systems.find((s) => s.id === id);
     if (!existing) return;
 
     const size = clampMarkerSize(markerSize);
     set((state) => ({
       systems: state.systems.map((s) => (s.id === id ? { ...s, markerSize: size } : s)),
+      dirtySystemIds: new Set(state.dirtySystemIds).add(id),
+      hasPendingChanges: true,
     }));
-    persistSystems(get().systems);
   },
 
   // ─── Custom Fleet Creation ─────────────────────────
@@ -376,10 +434,16 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
       fleetPlacementMode: false,
       pendingCustomFleet: null,
     }));
-    persistFleets(get().fleets);
+    getCurrentUserId().then((uid) => {
+      if (uid) {
+        insertCustomFleet(fleet, uid).catch(() => {});
+        auditLog('fleet_created', 'fleet', fleet.id, fleet.name);
+      }
+    });
   },
 
   removeCustomFleet: (id) => {
+    const fleetToRemove = get().fleets.find((f) => f.id === id);
     set((state) => {
       const isSelected = state.selectedFleetId === id;
       const shouldClear = shouldClearPanelForFleet(state.infoPanelData, id);
@@ -389,11 +453,14 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
         ...(isSelected ? { selectedFleetId: null, viewMode: 'topdown' as const } : {}),
       };
     });
-    persistFleets(get().fleets);
+    deleteFleetFromSupabase(id).catch(() => {});
+    if (fleetToRemove) {
+      auditLog('fleet_deleted', 'fleet', id, fleetToRemove.name);
+    }
   },
 
   previewCustomFleetPosition: (id, position) => {
-    const existing = get().fleets.find((f) => f.id === id && f.isCustom);
+    const existing = get().fleets.find((f) => f.id === id);
     if (!existing) return;
 
     set((state) => ({
@@ -402,23 +469,72 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
   },
 
   updateCustomFleetPosition: (id, position) => {
-    const existing = get().fleets.find((f) => f.id === id && f.isCustom);
+    const existing = get().fleets.find((f) => f.id === id);
     if (!existing) return;
 
     set((state) => ({
       fleets: state.fleets.map((f) => (f.id === id ? { ...f, position: position.clone() } : f)),
+      dirtyFleetIds: new Set(state.dirtyFleetIds).add(id),
+      hasPendingChanges: true,
     }));
-    persistFleets(get().fleets);
   },
 
   updateFleetMarkerSize: (id, markerSize) => {
-    const existing = get().fleets.find((f) => f.id === id && f.isCustom);
+    const existing = get().fleets.find((f) => f.id === id);
     if (!existing) return;
 
     const size = clampMarkerSize(markerSize);
     set((state) => ({
       fleets: state.fleets.map((f) => (f.id === id ? { ...f, markerSize: size } : f)),
+      dirtyFleetIds: new Set(state.dirtyFleetIds).add(id),
+      hasPendingChanges: true,
     }));
-    persistFleets(get().fleets);
+  },
+
+  // ─── Dirty Tracking & Manual Save ──────────────
+  dirtySystemIds: new Set<string>(),
+  dirtyFleetIds: new Set<string>(),
+
+  hasPendingChanges: false,
+
+  saveAllChanges: async () => {
+    const state = get();
+    const uid = await getCurrentUserId();
+    if (!uid) return;
+
+    const systemPromises = [...state.dirtySystemIds].map((id) => {
+      const system = state.systems.find((s) => s.id === id);
+      if (!system) return Promise.resolve();
+      return upsertSystem(system, uid)
+        .then(() => auditLog('system_moved', 'system', id, system.name))
+        .catch(() => {});
+    });
+
+    const fleetPromises = [...state.dirtyFleetIds].map((id) => {
+      const fleet = state.fleets.find((f) => f.id === id);
+      if (!fleet) return Promise.resolve();
+      return upsertFleet(fleet, uid)
+        .then(() => auditLog('fleet_moved', 'fleet', id, fleet.name))
+        .catch(() => {});
+    });
+
+    await Promise.all([...systemPromises, ...fleetPromises]);
+    set({ dirtySystemIds: new Set<string>(), dirtyFleetIds: new Set<string>(), hasPendingChanges: false });
+
+    // Update snapshot to reflect the newly saved state
+    const saved = get();
+    _systemsSnapshot = cloneSystems(saved.systems);
+    _fleetsSnapshot = cloneFleets(saved.fleets);
+  },
+
+  discardAllChanges: async () => {
+    // Restore from the clean snapshot (taken after init / after save)
+    set({
+      systems: cloneSystems(_systemsSnapshot),
+      fleets: cloneFleets(_fleetsSnapshot),
+      dirtySystemIds: new Set<string>(),
+      dirtyFleetIds: new Set<string>(),
+      hasPendingChanges: false,
+    });
   },
 }));
