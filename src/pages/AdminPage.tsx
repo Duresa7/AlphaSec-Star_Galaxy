@@ -77,7 +77,7 @@ export function AdminPage() {
     const { error } = await updateUserRole(userId, newRole);
     if (!error) {
       setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u)));
-      await logAction(currentProfile.id, 'role_changed', 'user', userId, userName, { newRole });
+      await logAction('role_changed', 'user', userId, userName, { newRole });
       // Refresh logs to show the change
       loadLogs(logPage);
     }

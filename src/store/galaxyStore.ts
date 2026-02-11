@@ -95,9 +95,7 @@ const auditLog = (
   entityName: string,
   details?: Record<string, unknown>,
 ) => {
-  getCurrentUserId().then((uid) => {
-    if (uid) logAction(uid, action, entityType, entityId, entityName, details).catch(() => {});
-  });
+  logAction(action, entityType, entityId, entityName, details).catch(() => {});
 };
 
 /** Merge incoming entities: override matching ids, append new ones. */
