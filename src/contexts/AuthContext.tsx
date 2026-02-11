@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useEffect, useState, useRef, useCallback, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase, supabaseConfigured } from '@/lib/supabase';
 import type { UserProfile } from '@/types';
@@ -16,25 +16,52 @@ export interface AuthContextValue {
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
 
+const AUTH_OPERATION_TIMEOUT_MS = 15_000;
+
+const withTimeout = <T,>(promise: Promise<T>, timeoutMs: number, timeoutMessage: string): Promise<T> =>
+  new Promise<T>((resolve, reject) => {
+    const timeoutId = window.setTimeout(() => {
+      reject(new Error(timeoutMessage));
+    }, timeoutMs);
+
+    promise.then(
+      (value) => {
+        window.clearTimeout(timeoutId);
+        resolve(value);
+      },
+      (error) => {
+        window.clearTimeout(timeoutId);
+        reject(error);
+      },
+    );
+  });
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(supabaseConfigured);
+  const initialAuthResolvedRef = useRef(!supabaseConfigured);
 
   const fetchProfile = useCallback(async (userId: string) => {
     if (!supabaseConfigured) return;
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
 
-    if (error) {
+      if (error) {
+        console.error('Failed to fetch profile:', error);
+        setProfile(null);
+        return;
+      }
+
+      setProfile((data as UserProfile | null) ?? null);
+    } catch (error) {
       console.error('Failed to fetch profile:', error);
       setProfile(null);
-      return;
     }
-    setProfile(data as UserProfile);
   }, []);
 
   const refreshProfile = useCallback(async () => {
@@ -46,33 +73,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!supabaseConfigured) return;
 
+    initialAuthResolvedRef.current = false;
+
     // Use onAuthStateChange as the primary session source (Supabase-recommended).
-    // The INITIAL_SESSION event fires synchronously on subscribe with the
-    // current session, so we no longer rely on getSession() which can hang
-    // due to navigator.locks contention with PKCE on page refresh.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, newSession) => {
+      (_event, newSession) => {
         setSession(newSession);
         if (newSession?.user?.id) {
-          await fetchProfile(newSession.user.id);
+          void fetchProfile(newSession.user.id);
         } else {
           setProfile(null);
         }
-        // Mark loading done once the initial session is resolved
-        if (event === 'INITIAL_SESSION') {
+
+        if (!initialAuthResolvedRef.current) {
+          initialAuthResolvedRef.current = true;
           setLoading(false);
         }
       }
     );
 
-    // Safety timeout: if INITIAL_SESSION never fires, unblock the UI
-    const timeout = setTimeout(() => {
-      setLoading(false);
+    // Safety timeout: if auth callback never resolves, unblock route guards.
+    const timeout = window.setTimeout(() => {
+      if (!initialAuthResolvedRef.current) {
+        initialAuthResolvedRef.current = true;
+        setLoading(false);
+      }
     }, 5000);
 
     return () => {
       subscription.unsubscribe();
-      clearTimeout(timeout);
+      window.clearTimeout(timeout);
     };
   }, [fetchProfile]);
 
@@ -87,21 +117,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = useCallback(async (email: string, password: string, displayName: string) => {
     if (!supabaseConfigured) return { error: 'Supabase is not configured' };
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { data: { display_name: displayName } },
-    });
-    if (error) return { error: error.message };
-    return { error: null };
+    try {
+      const { error } = await withTimeout(
+        supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { display_name: displayName } },
+        }),
+        AUTH_OPERATION_TIMEOUT_MS,
+        'Sign-up timed out. Please try again.',
+      );
+      if (error) return { error: error.message };
+      return { error: null };
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : 'Unable to sign up. Please try again.' };
+    }
   }, []);
 
   const signIn = useCallback(async (email: string, password: string) => {
     if (!supabaseConfigured) return { error: 'Supabase is not configured' };
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) return { error: error.message };
-    return { error: null };
-  }, []);
+    try {
+      const { data, error } = await withTimeout(
+        supabase.auth.signInWithPassword({ email, password }),
+        AUTH_OPERATION_TIMEOUT_MS,
+        'Sign-in timed out. Please try again.',
+      );
+      if (error) return { error: error.message };
+
+      if (data.session) {
+        setSession(data.session);
+        if (data.session.user?.id) {
+          void fetchProfile(data.session.user.id);
+        }
+      }
+      setLoading(false);
+      return { error: null };
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : 'Unable to sign in. Please try again.' };
+    }
+  }, [fetchProfile]);
 
   const signOut = useCallback(async () => {
     if (supabaseConfigured) await supabase.auth.signOut();
