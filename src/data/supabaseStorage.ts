@@ -168,32 +168,6 @@ export async function upsertSystem(system: StarSystem, userId: string): Promise<
   if (error) console.error('Failed to upsert system:', error);
 }
 
-export async function updateCustomSystem(system: StarSystem): Promise<void> {
-  if (!supabaseConfigured) return;
-  const { error } = await supabase.from('custom_systems').update({
-    name: system.name,
-    position_x: system.position.x,
-    position_y: system.position.y,
-    position_z: system.position.z,
-    custom_color: system.customColor || null,
-    marker_size: system.markerSize ?? null,
-    planets: system.planets.map(p => ({
-      id: p.id,
-      name: p.name,
-      type: p.type,
-      radius: p.radius,
-      faction: p.faction,
-      description: p.description,
-      population: p.population,
-      climate: p.climate,
-      terrain: p.terrain,
-      notable: p.notable,
-      factionControl: p.factionControl,
-    })),
-  }).eq('id', system.id);
-  if (error) console.error('Failed to update custom system:', error);
-}
-
 export async function deleteCustomSystem(id: string): Promise<void> {
   if (!supabaseConfigured) return;
   const { error } = await supabase.from('custom_systems').delete().eq('id', id);
@@ -246,20 +220,6 @@ export async function upsertFleet(fleet: Fleet, userId: string): Promise<void> {
   if (error) console.error('Failed to upsert fleet:', error);
 }
 
-export async function updateCustomFleet(fleet: Fleet): Promise<void> {
-  if (!supabaseConfigured) return;
-  const { error } = await supabase.from('custom_fleets').update({
-    name: fleet.name,
-    position_x: fleet.position.x,
-    position_y: fleet.position.y,
-    position_z: fleet.position.z,
-    faction: fleet.faction,
-    ship_count: fleet.shipCount,
-    marker_size: fleet.markerSize ?? null,
-  }).eq('id', fleet.id);
-  if (error) console.error('Failed to update custom fleet:', error);
-}
-
 export async function deleteCustomFleet(id: string): Promise<void> {
   if (!supabaseConfigured) return;
   const { error } = await supabase.from('custom_fleets').delete().eq('id', id);
@@ -269,7 +229,6 @@ export async function deleteCustomFleet(id: string): Promise<void> {
 // ─── Audit Logging ──────────────────────────────
 
 export async function logAction(
-  userId: string,
   action: AuditAction,
   entityType: 'system' | 'fleet' | 'user',
   entityId: string,
@@ -277,8 +236,10 @@ export async function logAction(
   details?: Record<string, unknown>,
 ): Promise<void> {
   if (!supabaseConfigured) return;
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user?.id) return;
   const { error } = await supabase.from('audit_logs').insert({
-    user_id: userId,
+    user_id: session.user.id,
     action,
     entity_type: entityType,
     entity_id: entityId,

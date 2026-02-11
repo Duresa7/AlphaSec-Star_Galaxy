@@ -17,17 +17,27 @@ create table if not exists public.profiles (
 
 alter table public.profiles enable row level security;
 
--- Everyone authenticated can read profiles
-create policy "profiles_select" on public.profiles
-  for select to authenticated using (true);
+-- Users can read their own full profile
+create policy "profiles_select_own" on public.profiles
+  for select to authenticated using (auth.uid() = id);
 
--- Users can update their own profile (display_name only; role guarded by app)
+-- Admins/bossman can read all profiles (for admin panel user list)
+create policy "profiles_select_admin" on public.profiles
+  for select to authenticated
+  using (
+    exists (
+      select 1 from public.profiles
+      where id = auth.uid() and role in ('admin', 'bossman')
+    )
+  );
+
+-- Users can update their own display_name only (role column is immutable to self)
 create policy "profiles_update_own" on public.profiles
   for update to authenticated
   using (auth.uid() = id)
-  with check (auth.uid() = id);
+  with check (auth.uid() = id and role = (select role from public.profiles where id = auth.uid()));
 
--- Bossman can update any profile (role changes)
+-- Bossman can update any profile (including role changes)
 create policy "profiles_update_bossman" on public.profiles
   for update to authenticated
   using (
@@ -157,10 +167,12 @@ create policy "audit_logs_select" on public.audit_logs
     )
   );
 
+-- user_id must match the caller to prevent audit log forgery
 create policy "audit_logs_insert" on public.audit_logs
   for insert to authenticated
   with check (
-    exists (
+    user_id = auth.uid()
+    and exists (
       select 1 from public.profiles
       where id = auth.uid() and role in ('admin', 'bossman')
     )

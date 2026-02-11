@@ -6,8 +6,10 @@ export function AdminRoute({ children }: { children: React.ReactNode }) {
   const { session, loading, supabaseConfigured } = useAuth();
   const { isAdmin } = useRole();
 
-  // Allow access when Supabase is not configured (dev mode)
-  if (!supabaseConfigured) return <>{children}</>;
+  // Block access when Supabase is not configured — auth is required
+  if (!supabaseConfigured) {
+    return <Navigate to="/" replace />;
+  }
 
   if (loading) {
     return (

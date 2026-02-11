@@ -71,6 +71,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, [fetchProfile]);
 
+  // Periodically refresh profile so role changes propagate without a page reload
+  useEffect(() => {
+    if (!supabaseConfigured || !session?.user?.id) return;
+    const interval = setInterval(() => {
+      fetchProfile(session.user.id);
+    }, 60_000);
+    return () => clearInterval(interval);
+  }, [session, fetchProfile]);
+
   const signUp = useCallback(async (email: string, password: string, displayName: string) => {
     if (!supabaseConfigured) return { error: 'Supabase is not configured' };
     const { error } = await supabase.auth.signUp({
