@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { GalaxyScene } from '@/components/galaxy/GalaxyScene';
 import { InfoPanel } from '@/components/panels/InfoPanel';
@@ -7,12 +7,14 @@ import { LoadingScreen } from '@/components/panels/LoadingScreen';
 import { useGalaxyStore } from '@/store/galaxyStore';
 import { useAuth } from '@/hooks/useAuth';
 import { useRole } from '@/hooks/useRole';
+import { supabase, supabaseConfigured } from '@/lib/supabase';
 
 export function MapPage() {
   const { viewMode, initializeData, hasPendingChanges, saveAllChanges, discardAllChanges } = useGalaxyStore();
   const { session, profile, signOut } = useAuth();
   const { isAdmin } = useRole();
   const [saving, setSaving] = useState(false);
+  const realtimeRefreshTimeoutRef = useRef<number | null>(null);
   const viewLabel = viewMode === 'topdown' ? 'Galaxy Map' : viewMode === 'system' ? 'Planet View' : 'Fleet View';
   const displayName =
     profile?.display_name
@@ -22,7 +24,49 @@ export function MapPage() {
 
   // Load custom data from Supabase on mount
   useEffect(() => {
-    initializeData();
+    void initializeData();
+
+    if (!supabaseConfigured) return;
+
+    const scheduleRealtimeRefresh = () => {
+      if (realtimeRefreshTimeoutRef.current !== null) {
+        window.clearTimeout(realtimeRefreshTimeoutRef.current);
+      }
+
+      realtimeRefreshTimeoutRef.current = window.setTimeout(() => {
+        realtimeRefreshTimeoutRef.current = null;
+        const state = useGalaxyStore.getState();
+        if (state.hasPendingChanges) return;
+        void state.initializeData();
+      }, 300);
+    };
+
+    const channel = supabase
+      .channel('shared-map-sync')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'custom_systems' },
+        scheduleRealtimeRefresh,
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'custom_fleets' },
+        scheduleRealtimeRefresh,
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'app_settings' },
+        scheduleRealtimeRefresh,
+      )
+      .subscribe();
+
+    return () => {
+      if (realtimeRefreshTimeoutRef.current !== null) {
+        window.clearTimeout(realtimeRefreshTimeoutRef.current);
+        realtimeRefreshTimeoutRef.current = null;
+      }
+      void supabase.removeChannel(channel);
+    };
   }, [initializeData]);
 
   return (

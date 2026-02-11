@@ -41,6 +41,7 @@ const cloneFleets = (fleetArr: Fleet[]): Fleet[] =>
 let _systemsSnapshot: StarSystem[] = [];
 let _fleetsSnapshot: Fleet[] = [];
 let _yearSnapshot: number = 3956;
+const AUTH_LOOKUP_TIMEOUT_MS = 8_000;
 
 const shouldClearPanelForSystem = (panel: InfoPanelData | null, systemId: string): boolean => {
   if (!panel) return false;
@@ -82,11 +83,42 @@ const applyPlanetStatsPatch = (planet: Planet, updates: PlanetStatsUpdate): Plan
   return next;
 };
 
+const withTimeout = <T,>(promise: Promise<T>, timeoutMs: number, timeoutMessage: string): Promise<T> =>
+  new Promise<T>((resolve, reject) => {
+    const timeoutId = window.setTimeout(() => {
+      reject(new Error(timeoutMessage));
+    }, timeoutMs);
+
+    promise.then(
+      (value) => {
+        window.clearTimeout(timeoutId);
+        resolve(value);
+      },
+      (error) => {
+        window.clearTimeout(timeoutId);
+        reject(error);
+      },
+    );
+  });
+
 /** Get the current auth user id (or null). */
 const getCurrentUserId = async (): Promise<string | null> => {
   if (!supabaseConfigured) return null;
-  const { data: { session } } = await supabase.auth.getSession();
-  return session?.user?.id ?? null;
+  try {
+    const { data, error } = await withTimeout(
+      supabase.auth.getUser(),
+      AUTH_LOOKUP_TIMEOUT_MS,
+      'Auth user lookup timed out.',
+    );
+    if (error) {
+      console.error('Failed to resolve auth user:', error);
+      return null;
+    }
+    return data.user?.id ?? null;
+  } catch (error) {
+    console.error('Failed to resolve auth user:', error);
+    return null;
+  }
 };
 
 
@@ -298,9 +330,10 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
 
       const loadedYear = typeof yearSetting === 'number' ? yearSetting : 3956;
 
-      set((state) => ({
-        systems: mergeById(state.systems, customSystems),
-        fleets: mergeById(state.fleets, customFleets),
+      // Rebuild from static baselines each sync so deletes propagate correctly.
+      set(() => ({
+        systems: mergeById([...starSystems], customSystems),
+        fleets: mergeById([...fleets], customFleets),
         currentYear: loadedYear,
         isLoading: false,
       }));

@@ -1,16 +1,33 @@
+import { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+
+const AUTH_GUARD_TIMEOUT_MS = 8_000;
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { session, loading, supabaseConfigured } = useAuth();
   const location = useLocation();
+  const [authWaitExpired, setAuthWaitExpired] = useState(false);
+
+  useEffect(() => {
+    if (!loading || session) {
+      setAuthWaitExpired(false);
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      setAuthWaitExpired(true);
+    }, AUTH_GUARD_TIMEOUT_MS);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [loading, session]);
 
   // Block access when Supabase is not configured — auth is required
   if (!supabaseConfigured) {
     return <Navigate to="/" replace />;
   }
 
-  if (loading && !session) {
+  if (loading && !session && !authWaitExpired) {
     return (
       <div className="route-auth-loading">
         <div className="route-auth-loading__layer route-auth-loading__layer--base" />

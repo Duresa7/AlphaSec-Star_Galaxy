@@ -17,6 +17,8 @@ export interface AuthContextValue {
 export const AuthContext = createContext<AuthContextValue | null>(null);
 
 const AUTH_OPERATION_TIMEOUT_MS = 15_000;
+const INITIAL_AUTH_TIMEOUT_MS = 7_000;
+const SESSION_BOOTSTRAP_TIMEOUT_MS = 4_000;
 
 const withTimeout = <T,>(promise: Promise<T>, timeoutMs: number, timeoutMessage: string): Promise<T> =>
   new Promise<T>((resolve, reject) => {
@@ -75,22 +77,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     initialAuthResolvedRef.current = false;
 
+    const resolveAuthState = (newSession: Session | null) => {
+      setSession(newSession);
+      if (newSession?.user?.id) {
+        void fetchProfile(newSession.user.id);
+      } else {
+        setProfile(null);
+      }
+
+      if (!initialAuthResolvedRef.current) {
+        initialAuthResolvedRef.current = true;
+        setLoading(false);
+      }
+    };
+
     // Use onAuthStateChange as the primary session source (Supabase-recommended).
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, newSession) => {
-        setSession(newSession);
-        if (newSession?.user?.id) {
-          void fetchProfile(newSession.user.id);
-        } else {
-          setProfile(null);
-        }
-
-        if (!initialAuthResolvedRef.current) {
-          initialAuthResolvedRef.current = true;
-          setLoading(false);
-        }
+        resolveAuthState(newSession);
       }
     );
+
+    // Secondary bootstrap path: if a valid persisted session exists, hydrate it
+    // even when auth-state events are delayed by browser/platform behavior.
+    void withTimeout(
+      supabase.auth.getSession(),
+      SESSION_BOOTSTRAP_TIMEOUT_MS,
+      'Session bootstrap timed out.',
+    )
+      .then(({ data }) => {
+        if (data.session) {
+          resolveAuthState(data.session);
+        }
+      })
+      .catch(() => {});
 
     // Safety timeout: if auth callback never resolves, unblock route guards.
     const timeout = window.setTimeout(() => {
@@ -98,7 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         initialAuthResolvedRef.current = true;
         setLoading(false);
       }
-    }, 5000);
+    }, INITIAL_AUTH_TIMEOUT_MS);
 
     return () => {
       subscription.unsubscribe();
@@ -158,9 +178,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [fetchProfile]);
 
   const signOut = useCallback(async () => {
-    if (supabaseConfigured) await supabase.auth.signOut();
     setSession(null);
     setProfile(null);
+    setLoading(false);
+    if (!supabaseConfigured) return;
+
+    try {
+      const { error } = await withTimeout(
+        supabase.auth.signOut({ scope: 'local' }),
+        AUTH_OPERATION_TIMEOUT_MS,
+        'Sign-out timed out. Local session has been cleared.',
+      );
+      if (error) {
+        console.error('Failed to sign out from Supabase:', error);
+      }
+    } catch (error) {
+      console.error('Failed to sign out from Supabase:', error);
+    }
   }, []);
 
   return (
