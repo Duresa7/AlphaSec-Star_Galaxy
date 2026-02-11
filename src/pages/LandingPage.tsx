@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type ComponentType, type CSSP
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { AuthModal } from '@/components/auth/AuthModal';
+import { Footer } from '@/components/Footer';
 
 type Point = {
   x: number;
@@ -67,6 +68,17 @@ function XIcon() {
   );
 }
 
+function InstagramIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path
+        fill="currentColor"
+        d="M7.5 2.5h9A5 5 0 0 1 21.5 7.5v9a5 5 0 0 1-5 5h-9a5 5 0 0 1-5-5v-9a5 5 0 0 1 5-5Zm9 1.5h-9A3.5 3.5 0 0 0 4 7.5v9A3.5 3.5 0 0 0 7.5 20h9a3.5 3.5 0 0 0 3.5-3.5v-9A3.5 3.5 0 0 0 16.5 4Zm-4.5 3.2a5.3 5.3 0 1 1 0 10.6 5.3 5.3 0 0 1 0-10.6Zm0 1.5a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6Zm5.35-2.35a1.15 1.15 0 1 1 0 2.3 1.15 1.15 0 0 1 0-2.3Z"
+      />
+    </svg>
+  );
+}
+
 function GalaxyMapIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -99,6 +111,11 @@ const SOCIAL_LINKS: SocialLink[] = [
     href: 'https://x.com/AlphaFLy_TV',
     ariaLabel: 'X profile',
     Icon: XIcon,
+  },
+  {
+    href: 'https://www.instagram.com/_bigdogd_/',
+    ariaLabel: 'Instagram profile',
+    Icon: InstagramIcon,
   },
 ];
 
@@ -468,6 +485,8 @@ export function LandingPage() {
       </div>
 
       <AuthModal open={showAuthModal} onClose={() => setShowAuthModal(false)} />
+
+      <Footer />
     </section>
   );
 }

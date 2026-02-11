@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════
---  Star Wars Interactive Map – Supabase Migration
+--  Interactive Galaxy Map – Supabase Migration
 --  Tables, RLS policies, triggers, indexes
 -- ═══════════════════════════════════════════════════
 

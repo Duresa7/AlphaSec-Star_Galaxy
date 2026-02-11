@@ -69,7 +69,7 @@ export function LoadingScreen() {
             textShadow: '0 0 15px rgba(200, 170, 110, 0.5), 0 0 30px rgba(200, 170, 110, 0.2)',
           }}
         >
-          STAR WARS
+          GALAXY MAP
         </h1>
 
         {/* Boot line animation */}
