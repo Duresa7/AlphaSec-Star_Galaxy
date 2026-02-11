@@ -15,5 +15,13 @@ if (!supabaseConfigured) {
 // Create client only when configured; otherwise export a dummy that will never be called
 // (all consumers guard on `supabaseConfigured` first)
 export const supabase: SupabaseClient = supabaseConfigured
-  ? createClient(supabaseUrl!, supabaseAnonKey!)
+  ? createClient(supabaseUrl!, supabaseAnonKey!, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        // Use cookie-based storage to avoid navigator.locks AbortError on Vercel
+        flowType: 'pkce',
+      },
+    })
   : (null as unknown as SupabaseClient);
