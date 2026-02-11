@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
+import { Footer } from '@/components/Footer';
 
 type ResumeEntry = {
   title: string;
@@ -33,7 +34,7 @@ const EXPERIENCE: ResumeEntry[] = [
 
 const PROJECTS: ResumeEntry[] = [
   {
-    title: 'Star Wars Live Command Interface',
+    title: 'Live Command Interface',
     subtitle: 'React, TypeScript, Zustand, Three.js',
     dateRange: 'Current',
     bullets: [
@@ -144,6 +145,8 @@ export function ResumePage() {
           </section>
         </div>
       </div>
+
+      <Footer />
     </main>
   );
 }
