@@ -348,14 +348,25 @@ export function LandingPage() {
             </span>
           )}
           {interactive ? (
-            <Link
-              className="portfolio-hero__nav-link portfolio-hero__nav-link--icon"
-              to="/map-loading"
-              aria-label="Interactive Galaxy Map"
-              data-hover-label="Interactive Galaxy Map"
-            >
-              <GalaxyMapIcon />
-            </Link>
+            session ? (
+              <Link
+                className="portfolio-hero__nav-link portfolio-hero__nav-link--icon"
+                to="/map-loading"
+                aria-label="Interactive Galaxy Map"
+                data-hover-label="Interactive Galaxy Map"
+              >
+                <GalaxyMapIcon />
+              </Link>
+            ) : (
+              <button
+                className="portfolio-hero__nav-link portfolio-hero__nav-link--icon"
+                onClick={() => setShowAuthModal(true)}
+                aria-label="Interactive Galaxy Map"
+                data-hover-label="Interactive Galaxy Map"
+              >
+                <GalaxyMapIcon />
+              </button>
+            )
           ) : (
             <span
               className="portfolio-hero__nav-link portfolio-hero__nav-link--icon"
