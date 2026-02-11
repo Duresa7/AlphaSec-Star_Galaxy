@@ -1,5 +1,6 @@
 ﻿import { useState } from 'react';
 import { useGalaxyStore } from '@/store/galaxyStore';
+import { useRole } from '@/hooks/useRole';
 
 import type { StarSystem, Fleet, Anomaly, Planet, Faction, InfoPanelData, ViewMode } from '@/types';
 import {
@@ -66,6 +67,7 @@ function resolvePanelData({
 }
 
 export function InfoPanel() {
+  const { isAdmin } = useRole();
   const {
     infoPanelData,
     setInfoPanelData,
@@ -109,11 +111,11 @@ export function InfoPanel() {
   const renderPanelContent = (data: InfoPanelData) => {
     switch (data.type) {
       case 'system':
-        return <SystemInfo system={data.data} />;
+        return <SystemInfo system={data.data} editable={isAdmin} />;
       case 'planet':
-        return <PlanetInfo planet={data.data} />;
+        return <PlanetInfo planet={data.data} editable={isAdmin} />;
       case 'fleet':
-        return <FleetInfo fleet={data.data} />;
+        return <FleetInfo fleet={data.data} editable={isAdmin} />;
       case 'anomaly':
         return <AnomalyInfo anomaly={data.data} />;
       default:
@@ -140,7 +142,7 @@ export function InfoPanel() {
   );
 }
 
-function SystemInfo({ system }: { system: StarSystem }) {
+function SystemInfo({ system, editable }: { system: StarSystem; editable: boolean }) {
   const { removeCustomSystem, setInfoPanelData, setSelectedSystem, setSelectedPlanet, updateCustomSystemMarkerSize, viewMode } = useGalaxyStore();
   
 
@@ -175,8 +177,8 @@ function SystemInfo({ system }: { system: StarSystem }) {
         <InfoRow label="Importance" value={capitalizeFirst(system.importance)} />
       </div>
 
-      {/* Marker Size - custom systems only */}
-      {system.isCustom && viewMode === 'topdown' && (
+      {/* Marker Size - admin only */}
+      {editable && viewMode === 'topdown' && (
         <div>
           <label className="holo-label" style={{ marginBottom: '8px' }}>Marker Size</label>
           <div className="flex items-center gap-2">
@@ -245,8 +247,8 @@ function SystemInfo({ system }: { system: StarSystem }) {
         </div>
       )}
 
-      {/* Delete button for custom planets */}
-      {system.isCustom && (
+      {/* Delete button for custom planets — admin only */}
+      {editable && system.isCustom && (
         <button
           onClick={() => {
             removeCustomSystem(system.id);
@@ -278,7 +280,7 @@ const FACTION_BAR_COLORS: Record<Faction, string> = {
   contested: '#FF8C00',
 };
 
-function PlanetInfo({ planet }: { planet: Planet }) {
+function PlanetInfo({ planet, editable }: { planet: Planet; editable: boolean }) {
   const { updatePlanetStats, systems, updateCustomSystemMarkerSize, viewMode } = useGalaxyStore();
   
   const [editingPopulation, setEditingPopulation] = useState(false);
@@ -353,7 +355,7 @@ function PlanetInfo({ planet }: { planet: Planet }) {
           label="Climate"
           value={planet.climate || ''}
           placeholder="Unknown"
-          editable={true}
+          editable={editable}
           editing={editingClimate}
           draft={climateDraft}
           onStartEdit={() => { setClimateDraft(planet.climate || ''); setEditingClimate(true); }}
@@ -366,7 +368,7 @@ function PlanetInfo({ planet }: { planet: Planet }) {
           label="Terrain"
           value={planet.terrain || ''}
           placeholder="Unknown"
-          editable={true}
+          editable={editable}
           editing={editingTerrain}
           draft={terrainDraft}
           onStartEdit={() => { setTerrainDraft(planet.terrain || ''); setEditingTerrain(true); }}
@@ -379,7 +381,7 @@ function PlanetInfo({ planet }: { planet: Planet }) {
           label="Population"
           value={planet.population || ''}
           placeholder="Unknown"
-          editable={true}
+          editable={editable}
           editing={editingPopulation}
           draft={populationDraft}
           onStartEdit={() => { setPopulationDraft(planet.population || ''); setEditingPopulation(true); }}
@@ -427,7 +429,7 @@ function PlanetInfo({ planet }: { planet: Planet }) {
                   max={100}
                   value={pct}
                   onChange={(e) => handleControlChange(faction, parseInt(e.target.value))}
-                  disabled={false}
+                  disabled={!editable}
                   className="holo-slider flex-shrink-0"
                   style={{ width: '80px', accentColor: FACTION_BAR_COLORS[faction] }}
                 />
@@ -437,8 +439,8 @@ function PlanetInfo({ planet }: { planet: Planet }) {
               </div>
             );
           })}
-          {/* Button to add another faction's control */}
-          {Object.keys(FACTION_LABELS).filter(f => !factionControl[f as Faction]).length > 0 && (
+          {/* Button to add another faction's control — admin only */}
+          {editable && Object.keys(FACTION_LABELS).filter(f => !factionControl[f as Faction]).length > 0 && (
             <AddFactionControl
               existingFactions={Object.keys(factionControl) as Faction[]}
               onAdd={(faction) => handleControlChange(faction, 10)}
@@ -447,10 +449,10 @@ function PlanetInfo({ planet }: { planet: Planet }) {
         </div>
       </div>
 
-      {/* Editable Description */}
+      {/* Description (editable for admin) */}
       <div>
         <label className="holo-label" style={{ marginBottom: '6px' }}>Description</label>
-        {editingDescription ? (
+        {editable && editingDescription ? (
           <div className="mt-1">
             <textarea
               value={descriptionDraft}
@@ -487,21 +489,21 @@ function PlanetInfo({ planet }: { planet: Planet }) {
           </div>
         ) : (
           <p
-            onClick={() => {
+            onClick={editable ? () => {
               setDescriptionDraft(planet.description || '');
               setEditingDescription(true);
-            }}
-            className="text-sm leading-relaxed cursor-pointer hover:underline"
+            } : undefined}
+            className={`text-sm leading-relaxed${editable ? ' cursor-pointer hover:underline' : ''}`}
             style={{ color: 'var(--holo-text-muted)', fontFamily: 'Rajdhani, sans-serif', textDecorationColor: 'var(--holo-cyan)' }}
-            title="Click to edit"
+            title={editable ? 'Click to edit' : undefined}
           >
             {planet.description || 'No description'}
           </p>
         )}
       </div>
 
-      {/* Per-selected system marker size (top-down view marker) */}
-      {viewMode === 'topdown' && system?.isCustom && (
+      {/* Per-selected system marker size (top-down view marker) — admin only */}
+      {editable && viewMode === 'topdown' && (
         <div>
           <label className="holo-label" style={{ marginBottom: '8px' }}>Top-Down Marker Size</label>
           <div className="flex items-center gap-2">
@@ -521,10 +523,10 @@ function PlanetInfo({ planet }: { planet: Planet }) {
         </div>
       )}
 
-      {/* Editable Notable Locations */}
+      {/* Notable Locations (editable for admin) */}
       <div>
         <label className="holo-label" style={{ marginBottom: '8px' }}>Points of Interest</label>
-        {editingNotable ? (
+        {editable && editingNotable ? (
           <div className="mt-1">
             <input
               type="text"
@@ -566,12 +568,12 @@ function PlanetInfo({ planet }: { planet: Planet }) {
           </div>
         ) : (
           <div
-            onClick={() => {
+            onClick={editable ? () => {
               setNotableDraft((planet.notable || []).join(', '));
               setEditingNotable(true);
-            }}
-            className="cursor-pointer"
-            title="Click to edit"
+            } : undefined}
+            className={editable ? 'cursor-pointer' : ''}
+            title={editable ? 'Click to edit' : undefined}
           >
             {planet.notable && planet.notable.length > 0 ? (
               <div className="flex flex-wrap gap-2 mt-2">
@@ -586,7 +588,7 @@ function PlanetInfo({ planet }: { planet: Planet }) {
               </div>
             ) : (
               <span className="text-[11px]" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Rajdhani, sans-serif' }}>
-                {'Click to add locations'}
+                {editable ? 'Click to add locations' : 'No known locations'}
               </span>
             )}
           </div>
@@ -653,7 +655,7 @@ function AddFactionControl({ existingFactions, onAdd }: { existingFactions: Fact
   );
 }
 
-function FleetInfo({ fleet }: { fleet: Fleet }) {
+function FleetInfo({ fleet, editable }: { fleet: Fleet; editable: boolean }) {
   const { removeCustomFleet, setInfoPanelData, setSelectedFleet, updateFleetMarkerSize, viewMode } = useGalaxyStore();
   
   const markerSize = fleet.markerSize ?? DEFAULT_TOPDOWN_FLEET_MARKER_SIZE;
@@ -704,7 +706,7 @@ function FleetInfo({ fleet }: { fleet: Fleet }) {
         {fleet.commander && <InfoRow label="Commander" value={fleet.commander} />}
       </div>
 
-      {viewMode === 'topdown' && fleet.isCustom && (
+      {editable && viewMode === 'topdown' && (
         <div>
           <label className="holo-label" style={{ marginBottom: '8px' }}>Top-Down Marker Size</label>
           <div className="flex items-center gap-2">
@@ -747,8 +749,8 @@ function FleetInfo({ fleet }: { fleet: Fleet }) {
         </div>
       </div>
 
-      {/* Delete button for custom fleets */}
-      {fleet.isCustom && (
+      {/* Delete button for custom fleets — admin only */}
+      {editable && fleet.isCustom && (
         <button
           onClick={() => {
             removeCustomFleet(fleet.id);

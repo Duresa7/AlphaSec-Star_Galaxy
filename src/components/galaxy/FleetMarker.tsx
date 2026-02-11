@@ -4,6 +4,7 @@ import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import type { Fleet, Faction } from '@/types';
 import { useGalaxyStore } from '@/store/galaxyStore';
+import { useRole } from '@/hooks/useRole';
 import { ShipModel } from '@/components/three/ModelLoader';
 import {
   DRAG_THRESHOLD_PX,
@@ -37,6 +38,7 @@ function useDiamondShape(size: number) {
 }
 
 function FleetMarker({ fleet }: FleetMarkerProps) {
+  const { isAdmin } = useRole();
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
   const isDraggingRef = useRef(false);
@@ -124,7 +126,7 @@ function FleetMarker({ fleet }: FleetMarkerProps) {
   const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
     if (fleetPlacementMode) return;
     e.stopPropagation();
-    if (!fleet.isCustom) return;
+    if (!isAdmin) return;
 
     dragStartRef.current = { x: e.clientX, y: e.clientY };
     dragOriginRef.current = fleet.position.clone();
@@ -179,7 +181,7 @@ function FleetMarker({ fleet }: FleetMarkerProps) {
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     setHovered(true);
-    document.body.style.cursor = fleet.isCustom ? 'grab' : 'pointer';
+    document.body.style.cursor = isAdmin ? 'grab' : 'pointer';
   };
 
   const handlePointerOut = () => {

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useGalaxyStore } from '@/store/galaxyStore';
+import { useRole } from '@/hooks/useRole';
 import type { Faction } from '@/types';
 
 const FACTION_STAT_CONFIG: { key: Faction; label: string; color: string }[] = [
@@ -21,6 +22,7 @@ type SectionKey =
   | 'layers';
 
 export function ControlsPanel() {
+  const { isAdmin } = useRole();
   const {
     showFleets,
     showAnomalies,
@@ -345,8 +347,8 @@ export function ControlsPanel() {
         )}
       </div>
 
-      {/* Custom Planets */}
-      {viewMode === 'topdown' && (
+      {/* Custom Planets — admin/bossman only */}
+      {isAdmin && viewMode === 'topdown' && (
         <div className="holo-panel" style={{ marginTop: '16px' }}>
           <label
             className="holo-label flex items-center justify-between gap-2"
@@ -451,8 +453,8 @@ export function ControlsPanel() {
         </div>
       )}
 
-      {/* Custom Fleets */}
-      {viewMode === 'topdown' && (
+      {/* Custom Fleets — admin/bossman only */}
+      {isAdmin && viewMode === 'topdown' && (
         <div className="holo-panel" style={{ marginTop: '16px' }}>
           <label
             className="holo-label flex items-center justify-between gap-2"

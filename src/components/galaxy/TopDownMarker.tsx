@@ -4,6 +4,7 @@ import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import type { StarSystem, Faction } from '@/types';
 import { useGalaxyStore } from '@/store/galaxyStore';
+import { useRole } from '@/hooks/useRole';
 import {
   DRAG_THRESHOLD_PX,
   SINGLE_CLICK_DELAY_MS,
@@ -24,6 +25,7 @@ const FACTION_COLORS: Record<Faction, string> = {
 };
 
 function TopDownMarker({ system }: TopDownMarkerProps) {
+  const { isAdmin } = useRole();
   const [hovered, setHovered] = useState(false);
   const isDraggingRef = useRef(false);
   const dragStartRef = useRef<{ x: number; y: number } | null>(null);
@@ -123,7 +125,7 @@ function TopDownMarker({ system }: TopDownMarkerProps) {
   const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
     if (placementMode) return;
     e.stopPropagation();
-    if (!system.isCustom) return;
+    if (!isAdmin) return;
 
     dragStartRef.current = { x: e.clientX, y: e.clientY };
     dragOriginRef.current = system.position.clone();
@@ -179,7 +181,7 @@ function TopDownMarker({ system }: TopDownMarkerProps) {
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     setHovered(true);
-    document.body.style.cursor = system.isCustom ? 'grab' : 'pointer';
+    document.body.style.cursor = isAdmin ? 'grab' : 'pointer';
   };
 
   const handlePointerOut = () => {
