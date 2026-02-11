@@ -226,6 +226,32 @@ export async function deleteCustomFleet(id: string): Promise<void> {
   if (error) console.error('Failed to delete custom fleet:', error);
 }
 
+// ─── App Settings (global key/value) ────────────
+
+export async function loadSetting(key: string): Promise<unknown> {
+  if (!supabaseConfigured) return null;
+  const { data, error } = await supabase
+    .from('app_settings')
+    .select('value')
+    .eq('key', key)
+    .single();
+  if (error) {
+    console.error(`Failed to load setting "${key}":`, error);
+    return null;
+  }
+  return data?.value ?? null;
+}
+
+export async function updateSetting(key: string, value: unknown): Promise<void> {
+  if (!supabaseConfigured) return;
+  const { data: { session } } = await supabase.auth.getSession();
+  const { error } = await supabase
+    .from('app_settings')
+    .update({ value: value as never, updated_by: session?.user?.id ?? null })
+    .eq('key', key);
+  if (error) console.error(`Failed to update setting "${key}":`, error);
+}
+
 // ─── Audit Logging ──────────────────────────────
 
 export async function logAction(

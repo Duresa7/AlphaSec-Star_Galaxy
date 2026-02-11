@@ -256,21 +256,31 @@ export function ControlsPanel() {
         {!collapsedSections.timeline && (
           <>
             <div className="mt-3 flex items-center gap-2">
-              <input
-                type="number"
-                value={yearDraft}
-                onChange={(e) => setYearDraft(e.target.value)}
-                onBlur={commitYear}
-                onKeyDown={(e) => { if (e.key === 'Enter') commitYear(); }}
-                className="holo-input holo-number-input text-center"
-                style={{
+              {isAdmin ? (
+                <input
+                  type="number"
+                  value={yearDraft}
+                  onChange={(e) => setYearDraft(e.target.value)}
+                  onBlur={commitYear}
+                  onKeyDown={(e) => { if (e.key === 'Enter') commitYear(); }}
+                  className="holo-input holo-number-input text-center"
+                  style={{
+                    fontFamily: 'Orbitron, monospace',
+                    fontSize: '14px',
+                    width: '80px',
+                    padding: '4px 8px',
+                    color: 'var(--holo-amber)',
+                  }}
+                />
+              ) : (
+                <span style={{
                   fontFamily: 'Orbitron, monospace',
                   fontSize: '14px',
-                  width: '80px',
-                  padding: '4px 8px',
                   color: 'var(--holo-amber)',
-                }}
-              />
+                }}>
+                  {currentYear}
+                </span>
+              )}
               <span style={{ fontFamily: 'Orbitron, monospace', fontSize: '10px', color: 'var(--holo-text-muted)' }}>BBY</span>
             </div>
             <div className="mt-1">

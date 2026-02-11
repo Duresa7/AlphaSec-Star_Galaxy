@@ -173,7 +173,29 @@ create policy "audit_logs_insert" on public.audit_logs
     and public.current_user_role() in ('admin', 'bossman')
   );
 
--- ─── 5. Triggers ────────────────────────────────
+-- ─── 5. app_settings (global key/value config) ─
+
+create table if not exists public.app_settings (
+  key         text primary key,
+  value       jsonb not null,
+  updated_by  uuid references public.profiles(id),
+  updated_at  timestamptz not null default now()
+);
+
+alter table public.app_settings enable row level security;
+
+create policy "app_settings_select" on public.app_settings
+  for select to authenticated using (true);
+
+create policy "app_settings_update" on public.app_settings
+  for update to authenticated
+  using (public.current_user_role() in ('admin', 'bossman'));
+
+insert into public.app_settings (key, value)
+values ('current_year', '3956')
+on conflict (key) do nothing;
+
+-- ─── 6. Triggers ────────────────────────────────
 
 -- Auto-create profile on signup, bossman for duresakadi@gmail.com
 create or replace function public.handle_new_user()
@@ -229,7 +251,12 @@ create trigger custom_fleets_updated_at
   before update on public.custom_fleets
   for each row execute function public.update_updated_at();
 
--- ─── 6. Indexes ─────────────────────────────────
+drop trigger if exists app_settings_updated_at on public.app_settings;
+create trigger app_settings_updated_at
+  before update on public.app_settings
+  for each row execute function public.update_updated_at();
+
+-- ─── 7. Indexes ─────────────────────────────────
 
 create index if not exists idx_audit_logs_created_at on public.audit_logs (created_at desc);
 create index if not exists idx_audit_logs_user_id on public.audit_logs (user_id);
