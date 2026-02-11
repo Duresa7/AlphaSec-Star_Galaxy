@@ -1902,3 +1902,186 @@ body {
     font-size: 9px;
   }
 }
+
+/*
+  SITE FOOTER
+  Minimal footer for public pages.
+*/
+
+.site-footer {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  padding: clamp(20px, 3vw, 32px) 0;
+}
+
+.site-footer__inner {
+  width: min(1040px, calc(100vw - 36px));
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 0;
+  border-top: 1px solid rgba(12, 12, 12, 0.12);
+}
+
+.site-footer__links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.site-footer__link {
+  font-family: "Manrope", "Spline Sans", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  color: rgba(17, 17, 17, 0.55);
+  transition: color 0.2s ease;
+}
+
+.site-footer__link:hover {
+  color: rgba(17, 17, 17, 0.85);
+}
+
+.site-footer__sep {
+  color: rgba(17, 17, 17, 0.2);
+  font-size: 11px;
+}
+
+.site-footer__copy {
+  margin: 0;
+  font-family: "Manrope", "Spline Sans", sans-serif;
+  font-size: 11px;
+  color: rgba(17, 17, 17, 0.4);
+}
+
+/* Landing page: pin footer to bottom of viewport */
+.portfolio-hero .site-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 7;
+  padding: 0 0 clamp(12px, 2vw, 20px);
+}
+
+.portfolio-hero .site-footer__inner {
+  border-top-color: rgba(0, 0, 0, 0.2);
+}
+
+.portfolio-hero .site-footer__link {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.portfolio-hero .site-footer__link:hover {
+  color: rgba(0, 0, 0, 0.9);
+}
+
+.portfolio-hero .site-footer__sep {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.portfolio-hero .site-footer__copy {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+@media (max-width: 640px) {
+  .site-footer__inner {
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
+  }
+}
+
+/*
+  LEGAL PAGES
+  Typography for Privacy Policy and Terms of Service.
+*/
+
+.legal-page {
+  border-radius: 24px;
+  border: 1px solid rgba(12, 12, 12, 0.2);
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.68));
+  box-shadow:
+    0 22px 42px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.58);
+  backdrop-filter: blur(8px);
+  padding: clamp(22px, 4vw, 40px);
+}
+
+.legal-page__title {
+  margin: 0 0 4px;
+  font-family: "Playfair Display", "Times New Roman", serif;
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #111;
+}
+
+.legal-page__updated {
+  margin: 0 0 28px;
+  font-family: "Oxanium", "Spline Sans", sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(17, 17, 17, 0.5);
+}
+
+.legal-page__section {
+  margin-bottom: 28px;
+}
+
+.legal-page__section:last-child {
+  margin-bottom: 0;
+}
+
+.legal-page__section h2 {
+  margin: 0 0 10px;
+  font-family: "Manrope", "Spline Sans", sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #111;
+}
+
+.legal-page__section h3 {
+  margin: 14px 0 6px;
+  font-family: "Manrope", "Spline Sans", sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: rgba(17, 17, 17, 0.85);
+}
+
+.legal-page__section p {
+  margin: 0 0 10px;
+  font-family: "Manrope", "Spline Sans", sans-serif;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: rgba(17, 17, 17, 0.75);
+}
+
+.legal-page__section ul {
+  margin: 6px 0 12px;
+  padding-left: 20px;
+}
+
+.legal-page__section li {
+  font-family: "Manrope", "Spline Sans", sans-serif;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  color: rgba(17, 17, 17, 0.72);
+  margin-bottom: 4px;
+}
+
+.legal-page__section a {
+  color: #3b6fc0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.2s ease;
+}
+
+.legal-page__section a:hover {
+  color: #1a4a9e;
+}

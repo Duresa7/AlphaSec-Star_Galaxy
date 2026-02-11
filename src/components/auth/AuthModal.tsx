@@ -71,7 +71,7 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
       } else {
         const { error: err } = await signUp(email, password, displayName.trim());
         if (err) { setError(err); return; }
-        setSuccessMessage('Account created! Check your email to confirm, then sign in.');
+        setSuccessMessage('Account created! Check your email to confirm, then sign in. If you don\'t see it, check your spam folder.');
         switchMode('login');
       }
     } finally {
@@ -96,7 +96,7 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
         </button>
 
         {/* Header */}
-        <p className="auth-modal__eyebrow">Star Wars Galaxy Map</p>
+        <p className="auth-modal__eyebrow">Galaxy Map</p>
         <h2 className="auth-modal__title">{mode === 'login' ? 'Sign In' : 'Create Account'}</h2>
 
         {successMessage && (
