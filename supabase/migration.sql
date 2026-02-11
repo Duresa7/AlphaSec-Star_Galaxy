@@ -17,6 +17,19 @@ create table if not exists public.profiles (
 
 alter table public.profiles enable row level security;
 
+-- Helper: returns the current user's role without triggering RLS on profiles.
+-- SECURITY DEFINER runs as the function owner (bypasses RLS), avoiding
+-- infinite recursion when profile policies need to check the caller's role.
+create or replace function public.current_user_role()
+returns text
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select role from public.profiles where id = auth.uid()
+$$;
+
 -- Users can read their own full profile
 create policy "profiles_select_own" on public.profiles
   for select to authenticated using (auth.uid() = id);
@@ -24,28 +37,18 @@ create policy "profiles_select_own" on public.profiles
 -- Admins/bossman can read all profiles (for admin panel user list)
 create policy "profiles_select_admin" on public.profiles
   for select to authenticated
-  using (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and role in ('admin', 'bossman')
-    )
-  );
+  using (public.current_user_role() in ('admin', 'bossman'));
 
 -- Users can update their own display_name only (role column is immutable to self)
 create policy "profiles_update_own" on public.profiles
   for update to authenticated
   using (auth.uid() = id)
-  with check (auth.uid() = id and role = (select role from public.profiles where id = auth.uid()));
+  with check (auth.uid() = id and role = public.current_user_role());
 
 -- Bossman can update any profile (including role changes)
 create policy "profiles_update_bossman" on public.profiles
   for update to authenticated
-  using (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and role = 'bossman'
-    )
-  );
+  using (public.current_user_role() = 'bossman');
 
 -- ─── 2. custom_systems ──────────────────────────
 
@@ -160,22 +163,14 @@ alter table public.audit_logs enable row level security;
 
 create policy "audit_logs_select" on public.audit_logs
   for select to authenticated
-  using (
-    exists (
-      select 1 from public.profiles
-      where id = auth.uid() and role in ('admin', 'bossman')
-    )
-  );
+  using (public.current_user_role() in ('admin', 'bossman'));
 
 -- user_id must match the caller to prevent audit log forgery
 create policy "audit_logs_insert" on public.audit_logs
   for insert to authenticated
   with check (
     user_id = auth.uid()
-    and exists (
-      select 1 from public.profiles
-      where id = auth.uid() and role in ('admin', 'bossman')
-    )
+    and public.current_user_role() in ('admin', 'bossman')
   );
 
 -- ─── 5. Triggers ────────────────────────────────
