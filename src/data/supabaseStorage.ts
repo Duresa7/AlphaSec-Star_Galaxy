@@ -315,23 +315,20 @@ export async function logAction(
 
 export async function fetchAuditLogs(limit = 50, offset = 0): Promise<{ logs: AuditLogEntry[]; total: number }> {
   if (!supabaseConfigured) return { logs: [], total: 0 };
-  const { count } = await supabase
-    .from('audit_logs')
-    .select('*', { count: 'exact', head: true });
-
   const { data, error } = await supabase
-    .from('audit_logs')
-    .select('*, profiles!audit_logs_user_id_fkey(display_name)')
-    .order('created_at', { ascending: false })
-    .range(offset, offset + limit - 1);
+    .rpc('fetch_audit_logs_with_display_names', {
+      p_limit: limit,
+      p_offset: offset,
+    });
 
   if (error) {
     console.error('Failed to fetch audit logs:', error);
     return { logs: [], total: 0 };
   }
 
-  const logs: AuditLogEntry[] = (data || []).map((row: Record<string, unknown>) => ({
-    id: row.id as number,
+  const rows = (data || []) as Record<string, unknown>[];
+  const logs: AuditLogEntry[] = rows.map((row) => ({
+    id: Number(row.id),
     user_id: row.user_id as string,
     action: row.action as AuditAction,
     entity_type: row.entity_type as 'system' | 'fleet' | 'user',
@@ -339,10 +336,13 @@ export async function fetchAuditLogs(limit = 50, offset = 0): Promise<{ logs: Au
     entity_name: row.entity_name as string,
     details: row.details as Record<string, unknown> | null,
     created_at: row.created_at as string,
-    display_name: (row.profiles as Record<string, unknown> | null)?.display_name as string | undefined,
+    display_name: (row.display_name as string | null) ?? undefined,
   }));
 
-  return { logs, total: count ?? 0 };
+  const firstRowTotal = rows.length > 0 ? Number(rows[0].total_count ?? 0) : 0;
+  const total = Number.isFinite(firstRowTotal) ? firstRowTotal : 0;
+
+  return { logs, total };
 }
 
 export async function fetchAllProfiles(): Promise<UserProfile[]> {

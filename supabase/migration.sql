@@ -21,9 +21,9 @@ as $$
 $$;
 create policy "profiles_select_own" on public.profiles
   for select to authenticated using (auth.uid() = id);
-create policy "profiles_select_admin" on public.profiles
+create policy "profiles_select_bossman" on public.profiles
   for select to authenticated
-  using (public.current_user_role() in ('admin', 'bossman'));
+  using (public.current_user_role() = 'bossman');
 create policy "profiles_update_own" on public.profiles
   for update to authenticated
   using (auth.uid() = id)
@@ -147,6 +147,49 @@ create policy "audit_logs_insert" on public.audit_logs
     and public.current_user_role() in ('admin', 'bossman')
   );
 
+create or replace function public.fetch_audit_logs_with_display_names(
+  p_limit integer default 50,
+  p_offset integer default 0
+)
+returns table (
+  id bigint,
+  user_id uuid,
+  action text,
+  entity_type text,
+  entity_id text,
+  entity_name text,
+  details jsonb,
+  created_at timestamptz,
+  display_name text,
+  total_count bigint
+)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select
+    logs.id,
+    logs.user_id,
+    logs.action,
+    logs.entity_type,
+    logs.entity_id,
+    logs.entity_name,
+    logs.details,
+    logs.created_at,
+    profiles.display_name,
+    count(*) over() as total_count
+  from public.audit_logs logs
+  left join public.profiles profiles on profiles.id = logs.user_id
+  where public.current_user_role() in ('admin', 'bossman')
+  order by logs.created_at desc
+  limit greatest(coalesce(p_limit, 50), 0)
+  offset greatest(coalesce(p_offset, 0), 0)
+$$;
+
+revoke all on function public.fetch_audit_logs_with_display_names(integer, integer) from public;
+grant execute on function public.fetch_audit_logs_with_display_names(integer, integer) to authenticated;
+
 create table if not exists public.app_settings (
   key         text primary key,
   value       jsonb not null,
@@ -157,7 +200,8 @@ create table if not exists public.app_settings (
 alter table public.app_settings enable row level security;
 
 create policy "app_settings_select" on public.app_settings
-  for select to authenticated using (true);
+  for select to authenticated
+  using (public.current_user_role() in ('admin', 'bossman'));
 
 create policy "app_settings_update" on public.app_settings
   for update to authenticated
