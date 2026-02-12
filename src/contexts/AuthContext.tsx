@@ -90,16 +90,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false);
       }
     };
-
-    // Use onAuthStateChange as the primary session source (Supabase-recommended).
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, newSession) => {
         resolveAuthState(newSession);
       }
     );
-
-    // Secondary bootstrap path: if a valid persisted session exists, hydrate it
-    // even when auth-state events are delayed by browser/platform behavior.
     void withTimeout(
       supabase.auth.getSession(),
       SESSION_BOOTSTRAP_TIMEOUT_MS,
@@ -111,8 +106,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       })
       .catch(() => {});
-
-    // Safety timeout: if auth callback never resolves, unblock route guards.
     const timeout = window.setTimeout(() => {
       if (!initialAuthResolvedRef.current) {
         initialAuthResolvedRef.current = true;
@@ -125,8 +118,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       window.clearTimeout(timeout);
     };
   }, [fetchProfile]);
-
-  // Periodically refresh profile so role changes propagate without a page reload
   useEffect(() => {
     if (!supabaseConfigured || !session?.user?.id) return;
     const interval = setInterval(() => {

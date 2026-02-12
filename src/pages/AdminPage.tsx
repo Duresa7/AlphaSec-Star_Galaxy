@@ -36,14 +36,10 @@ export function AdminPage() {
   const heroImageUrl = `${import.meta.env.BASE_URL}homepage-bg.jpg`;
   const { profile: currentProfile } = useAuth();
   const { isBossman } = useRole();
-
-  // Audit log state
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);
   const [logTotal, setLogTotal] = useState(0);
   const [logPage, setLogPage] = useState(0);
   const [logsLoading, setLogsLoading] = useState(true);
-
-  // User management state
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [usersLoading, setUsersLoading] = useState(true);
   const [roleUpdating, setRoleUpdating] = useState<string | null>(null);
@@ -78,7 +74,6 @@ export function AdminPage() {
     if (!error) {
       setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u)));
       await logAction('role_changed', 'user', userId, userName, { newRole });
-      // Refresh logs to show the change
       loadLogs(logPage);
     }
     setRoleUpdating(null);
@@ -91,13 +86,13 @@ export function AdminPage() {
       className="admin-page"
       style={{ '--portfolio-hero-bg-image': `url("${heroImageUrl}")` } as CSSProperties}
     >
-      {/* Background layers */}
+
       <div className="admin-page__layer admin-page__layer--base" />
       <div className="admin-page__layer admin-page__layer--grid" />
       <div className="admin-page__layer admin-page__layer--veil" />
 
       <div className="admin-page__content">
-        {/* Topbar */}
+
         <div className="admin-page__topbar">
           <Link to="/map" className="admin-page__back-link">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 6 }}>
@@ -113,16 +108,16 @@ export function AdminPage() {
           )}
         </div>
 
-        {/* Hero */}
+
         <div className="admin-page__hero">
           <p className="admin-page__kicker">Administration</p>
           <h1 className="admin-page__name">Admin Dashboard</h1>
           <p className="admin-page__role-label">Galaxy Map Management Console</p>
         </div>
 
-        {/* Sections grid */}
+
         <div className="admin-page__grid">
-          {/* Audit Log */}
+
           <div className="admin-page__section admin-page__section--full">
             <h2 className="admin-page__section-title">Audit Log</h2>
 
@@ -163,7 +158,7 @@ export function AdminPage() {
                   </table>
                 </div>
 
-                {/* Pagination */}
+
                 <div className="admin-page__pagination">
                   <button
                     disabled={logPage === 0}
@@ -187,7 +182,7 @@ export function AdminPage() {
             )}
           </div>
 
-          {/* User Management — bossman only */}
+
           {isBossman && (
             <div className="admin-page__section admin-page__section--full">
               <h2 className="admin-page__section-title">User Management</h2>

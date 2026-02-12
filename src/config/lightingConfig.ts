@@ -1,25 +1,17 @@
-/**
- * Centralized lighting configuration for the Galaxy Map
- * This file contains all lighting-related settings for easy tuning
- */
-
-// Ambient light settings
 export const AMBIENT_LIGHT = {
   galaxy: {
     intensity: 0.3,
-    color: '#404060', // Slight blue tint for space atmosphere
+    color: '#404060',
   },
   system: {
     intensity: 0.4,
     color: '#606080',
   },
 };
-
-// Main directional light (simulates distant star illumination)
 export const DIRECTIONAL_LIGHT = {
   galaxy: {
     intensity: 0.6,
-    color: '#FFF5E6', // Warm white starlight
+    color: '#FFF5E6',
     position: [50, 100, 50] as [number, number, number],
     castShadow: true,
     shadow: {
@@ -36,20 +28,18 @@ export const DIRECTIONAL_LIGHT = {
   },
   system: {
     intensity: 1.2,
-    color: '#FFFAF0', // Slightly warmer for star proximity
+    color: '#FFFAF0',
     position: [20, 15, 20] as [number, number, number],
     castShadow: true,
   },
 };
-
-// Point lights for atmospheric effects
 export const POINT_LIGHTS = {
   galaxy: [
     {
       name: 'core',
       position: [0, 15, 0] as [number, number, number],
       intensity: 0.8,
-      color: '#FFD700', // Gold - galactic core
+      color: '#FFD700',
       distance: 120,
       decay: 2,
     },
@@ -57,7 +47,7 @@ export const POINT_LIGHTS = {
       name: 'sith',
       position: [50, 8, 30] as [number, number, number],
       intensity: 0.4,
-      color: '#DC143C', // Crimson - Sith Empire territory
+      color: '#DC143C',
       distance: 80,
       decay: 2,
     },
@@ -65,7 +55,7 @@ export const POINT_LIGHTS = {
       name: 'republic',
       position: [-30, 8, -20] as [number, number, number],
       intensity: 0.35,
-      color: '#4169E1', // Royal Blue - Republic territory
+      color: '#4169E1',
       distance: 70,
       decay: 2,
     },
@@ -75,7 +65,7 @@ export const POINT_LIGHTS = {
       name: 'star',
       position: [15, 10, 15] as [number, number, number],
       intensity: 1.5,
-      color: '#FFF8DC', // Cornsilk - nearby star
+      color: '#FFF8DC',
       distance: 60,
       decay: 2,
     },
@@ -83,18 +73,16 @@ export const POINT_LIGHTS = {
       name: 'fill',
       position: [-10, 5, -10] as [number, number, number],
       intensity: 0.3,
-      color: '#87CEEB', // Sky blue - fill light
+      color: '#87CEEB',
       distance: 40,
       decay: 2,
     },
   ],
 };
-
-// Hemisphere light for subtle sky/ground gradient
 export const HEMISPHERE_LIGHT = {
   galaxy: {
-    skyColor: '#1a1a3e', // Dark blue space
-    groundColor: '#0a0a15', // Near black
+    skyColor: '#1a1a3e',
+    groundColor: '#0a0a15',
     intensity: 0.25,
   },
   system: {
@@ -103,6 +91,4 @@ export const HEMISPHERE_LIGHT = {
     intensity: 0.3,
   },
 };
-
-// Background color
 export const BACKGROUND_COLOR = '#030308';

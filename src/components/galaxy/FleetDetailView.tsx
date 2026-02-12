@@ -15,35 +15,33 @@ export function FleetDetailView({ fleet }: FleetDetailViewProps) {
 
   const shipType = fleet.faction === 'sith_empire' ? 'sith' : 'republic';
   const factionColor = fleet.faction === 'sith_empire' ? '#DC143C' : '#FFD700';
-
-  // Larger scale for detail view
   const shipScale = 8;
 
   return (
     <group ref={groupRef}>
-      {/* Main Ship Model */}
+
       <Suspense fallback={
         <mesh scale={shipScale}>
           <boxGeometry args={[1, 0.5, 2]} />
           <meshStandardMaterial color={factionColor} wireframe />
         </mesh>
       }>
-        <ShipModel 
-          type={shipType} 
-          position={new THREE.Vector3(0, 0, 0)} 
+        <ShipModel
+          type={shipType}
+          position={new THREE.Vector3(0, 0, 0)}
           scale={shipScale}
           rotation={[0, Math.PI / 4, 0]}
         />
       </Suspense>
 
-      {/* Formation ships - add a few smaller ones for atmosphere */}
+
       {[...Array(2)].map((_, i) => (
         <Suspense key={i} fallback={null}>
-          <ShipModel 
+          <ShipModel
             type={shipType}
             position={new THREE.Vector3(
-              (i === 0 ? -12 : 12), 
-              (i === 0 ? 2 : -2), 
+              (i === 0 ? -12 : 12),
+              (i === 0 ? 2 : -2),
               -10
             )}
             scale={shipScale * 0.4}
@@ -52,7 +50,7 @@ export function FleetDetailView({ fleet }: FleetDetailViewProps) {
         </Suspense>
       ))}
 
-      {/* Fleet Info Label */}
+
       {showLabels && (
         <Html
           position={[0, 8, 0]}

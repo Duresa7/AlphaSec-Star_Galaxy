@@ -7,7 +7,7 @@ export function LoadingScreen() {
 
   return (
     <div className="absolute inset-0 z-50 flex items-center justify-center" style={{ background: 'var(--holo-void)' }}>
-      {/* Scan-line overlay */}
+
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
@@ -16,9 +16,9 @@ export function LoadingScreen() {
       />
 
       <div className="text-center relative z-10" style={{ animation: 'holoFlicker 4s infinite' }}>
-        {/* Diamond spinner */}
+
         <div className="relative w-24 h-24 mx-auto mb-8">
-          {/* Outer diamond */}
+
           <div
             className="absolute inset-0"
             style={{
@@ -27,7 +27,7 @@ export function LoadingScreen() {
               animation: 'diamondSpin 4s linear infinite',
             }}
           />
-          {/* Middle diamond */}
+
           <div
             className="absolute"
             style={{
@@ -37,7 +37,7 @@ export function LoadingScreen() {
               animation: 'diamondSpin 3s linear infinite reverse',
             }}
           />
-          {/* Inner diamond */}
+
           <div
             className="absolute"
             style={{
@@ -47,7 +47,7 @@ export function LoadingScreen() {
               animation: 'diamondSpin 2s linear infinite',
             }}
           />
-          {/* Center diamond dot */}
+
           <div className="absolute inset-0 flex items-center justify-center">
             <div
               className="w-3 h-3 animate-pulse"
@@ -60,7 +60,7 @@ export function LoadingScreen() {
           </div>
         </div>
 
-        {/* Boot text */}
+
         <h1
           className="text-2xl font-bold tracking-widest mb-3"
           style={{
@@ -72,7 +72,7 @@ export function LoadingScreen() {
           GALAXY MAP
         </h1>
 
-        {/* Boot line animation */}
+
         <div className="w-48 h-px mx-auto mb-4" style={{ background: 'rgba(200, 170, 110, 0.15)' }}>
           <div
             className="h-full"
