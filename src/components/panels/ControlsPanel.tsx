@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useGalaxyStore } from '@/store/galaxyStore';
 import { useRole } from '@/hooks/useRole';
-import type { Faction } from '@/types';
+import type { Faction, SearchResult } from '@/types';
 
 const FACTION_STAT_CONFIG: { key: Faction; label: string; color: string }[] = [
   { key: 'galactic_republic', label: 'Republic', color: '#C8AA6E' },
@@ -101,15 +101,17 @@ export function ControlsPanel() {
     setCurrentYear(parsed);
     setYearDraft(String(parsed));
   }, [yearDraft, currentYear, setCurrentYear]);
-  const handleSelectResult = (result: { type: 'system' | 'planet' | 'fleet'; id: string; name: string; parentName?: string }) => {
+  const handleSelectResult = (result: SearchResult) => {
     if (result.type === 'system') {
       const system = systems.find(s => s.id === result.id);
       if (system) {
         setSelectedSystem(system.id);
         setInfoPanelData({ type: 'system', data: system });
       }
-    } else if (result.type === 'planet' && result.parentName) {
-      const system = systems.find(s => s.name === result.parentName);
+    } else if (result.type === 'planet') {
+      const system =
+        (result.parentSystemId ? systems.find((s) => s.id === result.parentSystemId) : null)
+        ?? (result.parentName ? systems.find((s) => s.name === result.parentName) : null);
       if (system) {
         setSelectedSystem(system.id);
         const planet = system.planets.find(p => p.id === result.id);

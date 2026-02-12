@@ -6,7 +6,7 @@ import { useRole } from '@/hooks/useRole';
 const AUTH_GUARD_TIMEOUT_MS = 8_000;
 
 export function AdminRoute({ children }: { children: React.ReactNode }) {
-  const { session, loading, supabaseConfigured } = useAuth();
+  const { session, loading, profileLoading, supabaseConfigured } = useAuth();
   const { isAdmin } = useRole();
   const [authWaitExpired, setAuthWaitExpired] = useState(false);
 
@@ -26,7 +26,7 @@ export function AdminRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/" replace />;
   }
 
-  if (loading && !session && !authWaitExpired) {
+  if ((loading && !session && !authWaitExpired) || (session && profileLoading)) {
     return (
       <div className="route-auth-loading">
         <div className="route-auth-loading__layer route-auth-loading__layer--base" />

@@ -25,15 +25,22 @@ import { TOPDOWN_MARKER_MAX_SIZE, TOPDOWN_MARKER_MIN_SIZE } from '@/config/topDo
 import { supabase, supabaseConfigured } from '@/lib/supabase';
 import type { StarSystem, Fleet } from '@/types';
 
+const cloneSystem = (system: StarSystem): StarSystem => ({
+  ...system,
+  position: system.position.clone(),
+  planets: system.planets.map((planet) => ({ ...planet, position: planet.position.clone() })),
+});
+
+const cloneFleet = (fleet: Fleet): Fleet => ({
+  ...fleet,
+  position: fleet.position.clone(),
+});
+
 const cloneSystems = (systems: StarSystem[]): StarSystem[] =>
-  systems.map((s) => ({
-    ...s,
-    position: s.position.clone(),
-    planets: s.planets.map((p) => ({ ...p, position: p.position.clone() })),
-  }));
+  systems.map((s) => cloneSystem(s));
 
 const cloneFleets = (fleetArr: Fleet[]): Fleet[] =>
-  fleetArr.map((f) => ({ ...f, position: f.position.clone() }));
+  fleetArr.map((f) => cloneFleet(f));
 
 let _systemsSnapshot: StarSystem[] = [];
 let _fleetsSnapshot: Fleet[] = [];
@@ -82,17 +89,17 @@ const applyPlanetStatsPatch = (planet: Planet, updates: PlanetStatsUpdate): Plan
 
 const withTimeout = <T,>(promise: Promise<T>, timeoutMs: number, timeoutMessage: string): Promise<T> =>
   new Promise<T>((resolve, reject) => {
-    const timeoutId = window.setTimeout(() => {
+    const timeoutId = globalThis.setTimeout(() => {
       reject(new Error(timeoutMessage));
     }, timeoutMs);
 
     promise.then(
       (value) => {
-        window.clearTimeout(timeoutId);
+        globalThis.clearTimeout(timeoutId);
         resolve(value);
       },
       (error) => {
-        window.clearTimeout(timeoutId);
+        globalThis.clearTimeout(timeoutId);
         reject(error);
       },
     );
@@ -140,6 +147,37 @@ const mergeById = <T extends { id: string }>(current: T[], incoming: T[]): T[] =
   }
 
   return merged;
+};
+
+const mergeSavedSnapshotEntries = <T extends { id: string }>(
+  currentSnapshot: T[],
+  latestData: T[],
+  attemptedIds: Set<string>,
+  failedIds: Set<string>,
+  cloneItem: (item: T) => T,
+): T[] => {
+  if (attemptedIds.size === 0) return currentSnapshot;
+
+  const latestById = new Map(latestData.map((item) => [item.id, item]));
+  const nextSnapshot = currentSnapshot.map((item) => {
+    if (!attemptedIds.has(item.id) || failedIds.has(item.id)) {
+      return item;
+    }
+
+    const latestItem = latestById.get(item.id);
+    return latestItem ? cloneItem(latestItem) : item;
+  });
+
+  const existingIds = new Set(nextSnapshot.map((item) => item.id));
+  for (const id of attemptedIds) {
+    if (failedIds.has(id) || existingIds.has(id)) continue;
+    const latestItem = latestById.get(id);
+    if (!latestItem) continue;
+    nextSnapshot.push(cloneItem(latestItem));
+    existingIds.add(id);
+  }
+
+  return nextSnapshot;
 };
 
 export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
@@ -252,6 +290,7 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
             id: planet.id,
             name: planet.name,
             parentName: system.name,
+            parentSystemId: system.id,
           });
         }
       });
@@ -495,34 +534,80 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
     const uid = await getCurrentUserId();
     if (!uid) return;
 
-    const systemPromises = [...state.dirtySystemIds].map((id) => {
-      const system = state.systems.find((s) => s.id === id);
-      if (!system) return Promise.resolve();
-      return upsertSystem(system, uid)
-        .then(() => auditLog('system_moved', 'system', id, system.name))
-        .catch(() => {});
+    const failedSystemIds = new Set<string>();
+    const failedFleetIds = new Set<string>();
+
+    await Promise.all(
+      [...state.dirtySystemIds].map(async (id) => {
+        const system = state.systems.find((s) => s.id === id);
+        if (!system) return;
+
+        try {
+          await upsertSystem(system, uid);
+          auditLog('system_moved', 'system', id, system.name);
+        } catch (error) {
+          console.error(`Failed to save system "${id}":`, error);
+          failedSystemIds.add(id);
+        }
+      }),
+    );
+
+    await Promise.all(
+      [...state.dirtyFleetIds].map(async (id) => {
+        const fleet = state.fleets.find((f) => f.id === id);
+        if (!fleet) return;
+
+        try {
+          await upsertFleet(fleet, uid);
+          auditLog('fleet_moved', 'fleet', id, fleet.name);
+        } catch (error) {
+          console.error(`Failed to save fleet "${id}":`, error);
+          failedFleetIds.add(id);
+        }
+      }),
+    );
+
+    let timelineFailed = false;
+    if (state.dirtyTimeline) {
+      try {
+        await updateSetting('current_year', state.currentYear);
+        auditLog('timeline_changed', 'system', 'current_year', 'Timeline', { year: state.currentYear });
+      } catch (error) {
+        console.error('Failed to save timeline setting:', error);
+        timelineFailed = true;
+      }
+    }
+
+    const nextDirtySystemIds = failedSystemIds;
+    const nextDirtyFleetIds = failedFleetIds;
+    const nextDirtyTimeline = timelineFailed;
+    const hasPendingChanges = nextDirtySystemIds.size > 0 || nextDirtyFleetIds.size > 0 || nextDirtyTimeline;
+
+    set({
+      dirtySystemIds: nextDirtySystemIds,
+      dirtyFleetIds: nextDirtyFleetIds,
+      dirtyTimeline: nextDirtyTimeline,
+      hasPendingChanges,
     });
 
-    const fleetPromises = [...state.dirtyFleetIds].map((id) => {
-      const fleet = state.fleets.find((f) => f.id === id);
-      if (!fleet) return Promise.resolve();
-      return upsertFleet(fleet, uid)
-        .then(() => auditLog('fleet_moved', 'fleet', id, fleet.name))
-        .catch(() => {});
-    });
-
-    const timelinePromise = state.dirtyTimeline
-      ? updateSetting('current_year', state.currentYear)
-          .then(() => auditLog('timeline_changed', 'system', 'current_year', 'Timeline', { year: state.currentYear }))
-          .catch(() => {})
-      : Promise.resolve();
-
-    await Promise.all([...systemPromises, ...fleetPromises, timelinePromise]);
-    set({ dirtySystemIds: new Set<string>(), dirtyFleetIds: new Set<string>(), dirtyTimeline: false, hasPendingChanges: false });
     const saved = get();
-    _systemsSnapshot = cloneSystems(saved.systems);
-    _fleetsSnapshot = cloneFleets(saved.fleets);
-    _yearSnapshot = saved.currentYear;
+    _systemsSnapshot = mergeSavedSnapshotEntries(
+      _systemsSnapshot,
+      saved.systems,
+      state.dirtySystemIds,
+      failedSystemIds,
+      cloneSystem,
+    );
+    _fleetsSnapshot = mergeSavedSnapshotEntries(
+      _fleetsSnapshot,
+      saved.fleets,
+      state.dirtyFleetIds,
+      failedFleetIds,
+      cloneFleet,
+    );
+    if (state.dirtyTimeline && !timelineFailed) {
+      _yearSnapshot = saved.currentYear;
+    }
   },
 
   discardAllChanges: async () => {
