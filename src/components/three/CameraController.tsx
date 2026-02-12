@@ -5,21 +5,17 @@ import * as THREE from 'three';
 import { useGalaxyStore } from '@/store/galaxyStore';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { shouldRecenterTopdown } from '@/components/three/cameraTransition';
-
-// Camera distances for different view modes
 const CAMERA_CONFIG = {
   topdown: {
-    // Top-down view looking straight down at the galaxy map
     distance: 100,
-    height: 70, // Lower to fill entire viewport
+    height: 70,
     minDistance: 30,
     maxDistance: 150,
     panSpeed: 1.5,
-    rotateSpeed: 0, // Disable rotation in top-down
+    rotateSpeed: 0,
     enableRotate: false,
   },
   system: {
-    // 3D view of a planet
     distance: 20,
     height: 10,
     minDistance: 3,
@@ -29,7 +25,6 @@ const CAMERA_CONFIG = {
     enableRotate: true,
   },
   fleet: {
-    // 3D view of a fleet
     distance: 12,
     height: 4,
     minDistance: 3,
@@ -43,24 +38,16 @@ const CAMERA_CONFIG = {
 export function CameraController() {
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const { camera } = useThree();
-  
+
   const { viewMode, selectedSystemId, selectedPlanetId, selectedFleetId, systems, fleets, draggingCustomPlanet, draggingCustomFleet } = useGalaxyStore();
   const previousViewModeRef = useRef<'topdown' | 'system' | 'fleet' | null>(null);
-  
-  // Target position for camera animation
   const targetPosition = useRef(new THREE.Vector3(0, 60, 120));
   const targetLookAt = useRef(new THREE.Vector3(0, 0, 0));
   const isAnimating = useRef(false);
-  
-  // Update camera target when selection changes
   useEffect(() => {
-    // Default to system config if fleet config not found (shouldn't happen with proper TS)
     const config = CAMERA_CONFIG[viewMode] || CAMERA_CONFIG.system;
     const previousViewMode = previousViewModeRef.current;
     previousViewModeRef.current = viewMode;
-
-    // Keep current panned position in top-down while data updates (dragging custom objects).
-    // Recenter only when transitioning into top-down from another view mode.
     const shouldRecenter = shouldRecenterTopdown(viewMode, previousViewMode);
     if (!shouldRecenter && viewMode === 'topdown') {
       isAnimating.current = false;
@@ -69,15 +56,13 @@ export function CameraController() {
     }
 
     isAnimating.current = true;
-    
+
     if (viewMode === 'topdown') {
-      // Top-down view: camera directly above origin, looking down
       targetPosition.current.set(0, config.height, 0);
       targetLookAt.current.set(0, 0, 0);
     } else if (viewMode === 'system' && selectedSystemId) {
       const system = systems.find(s => s.id === selectedSystemId);
       if (system) {
-        // Position camera to orbit around the planet
         targetLookAt.current.copy(system.position);
         targetPosition.current.set(
           system.position.x + config.distance * 0.5,
@@ -88,7 +73,6 @@ export function CameraController() {
     } else if (viewMode === 'fleet' && selectedFleetId) {
       const fleet = fleets.find(f => f.id === selectedFleetId);
       if (fleet) {
-        // Position camera to orbit around the fleet ship
         targetLookAt.current.copy(fleet.position);
         targetPosition.current.set(
           fleet.position.x + config.distance * 0.5,
@@ -97,53 +81,41 @@ export function CameraController() {
         );
       }
     }
-    
-    // Update controls limits and rotation based on view mode
     if (controlsRef.current) {
       controlsRef.current.minDistance = config.minDistance;
       controlsRef.current.maxDistance = config.maxDistance;
       controlsRef.current.enableRotate = config.enableRotate;
       controlsRef.current.rotateSpeed = config.rotateSpeed;
-      
-      // Limit polar angle in top-down to keep looking down
       if (viewMode === 'topdown') {
         controlsRef.current.minPolarAngle = 0;
-        controlsRef.current.maxPolarAngle = Math.PI / 6; // Max 30 degrees from vertical
+        controlsRef.current.maxPolarAngle = Math.PI / 6;
       } else {
         controlsRef.current.minPolarAngle = 0;
-        controlsRef.current.maxPolarAngle = Math.PI; // Full range
+        controlsRef.current.maxPolarAngle = Math.PI;
       }
     }
-    
-    // Stop animation after transition
     const timer = setTimeout(() => {
       isAnimating.current = false;
     }, 1500);
-    
+
     return () => clearTimeout(timer);
   }, [viewMode, selectedSystemId, selectedPlanetId, selectedFleetId, systems, fleets]);
-  
-  // Smooth camera animation - only during transitions
   useFrame(() => {
     if (controlsRef.current) {
-      // Only lerp during transitions, not during normal use
       if (isAnimating.current) {
         const lerpFactor = 0.03;
         controlsRef.current.target.lerp(targetLookAt.current, lerpFactor);
         camera.position.lerp(targetPosition.current, lerpFactor);
       }
-      // In top-down mode, keep camera height consistent but allow free X/Z panning
       else if (viewMode === 'topdown') {
         camera.position.y = CAMERA_CONFIG.topdown.height;
       }
-      
+
       controlsRef.current.update();
     }
   });
-  
-  // Default to system config if fleet config not found
   const config = CAMERA_CONFIG[viewMode] || CAMERA_CONFIG.system;
-  
+
   return (
     <OrbitControls
       ref={controlsRef}

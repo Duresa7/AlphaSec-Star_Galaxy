@@ -21,8 +21,6 @@ export function MapPage() {
     ?? (typeof session?.user?.user_metadata?.display_name === 'string' ? session.user.user_metadata.display_name : null)
     ?? session?.user?.email?.split('@')[0]
     ?? 'Signed In';
-
-  // Load custom data from Supabase on mount
   useEffect(() => {
     void initializeData();
 
@@ -71,15 +69,15 @@ export function MapPage() {
 
   return (
     <div className="w-full h-full relative overflow-hidden">
-      {/* 3D Galaxy Scene */}
+
       <GalaxyScene />
 
-      {/* UI Overlays */}
+
       <ControlsPanel />
       <InfoPanel />
       <LoadingScreen />
 
-      {/* Save / Discard — admin only, when dirty */}
+
       {isAdmin && hasPendingChanges && (
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 animate-slide-in-right">
           <button
@@ -105,7 +103,7 @@ export function MapPage() {
         </div>
       )}
 
-      {/* Navigation */}
+
       <div className="absolute bottom-6 right-6 z-40 flex items-center gap-3">
         {isAdmin && (
           <Link to="/admin" className="holo-button" style={{ padding: '8px 14px' }}>
@@ -124,7 +122,7 @@ export function MapPage() {
         </Link>
       </div>
 
-      {/* User info + sign out — top right */}
+
       <div className="absolute top-6 right-6 z-40 flex items-center gap-3">
         {session && (
           <>
@@ -145,9 +143,9 @@ export function MapPage() {
         )}
       </div>
 
-      {/* Title — KOTOR Holoterm style */}
+
       <div className="absolute top-6 left-1/2 -translate-x-1/2 text-center pointer-events-none z-0 mix-blend-screen opacity-80">
-        {/* Top bracket line */}
+
         <div className="flex items-center justify-center gap-4 mb-2">
           <div className="h-px w-12" style={{ background: 'linear-gradient(90deg, transparent, var(--holo-amber))' }} />
           <div
@@ -187,7 +185,7 @@ export function MapPage() {
           <div className="h-px w-8" style={{ background: 'linear-gradient(90deg, var(--holo-cyan), transparent)' }} />
         </div>
 
-        {/* Bottom bracket line */}
+
         <div className="flex items-center justify-center gap-4 mt-2">
           <div className="h-px w-8" style={{ background: 'linear-gradient(90deg, transparent, rgba(200, 170, 110, 0.3))' }} />
           <div

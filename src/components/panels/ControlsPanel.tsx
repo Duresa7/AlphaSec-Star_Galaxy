@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useGalaxyStore } from '@/store/galaxyStore';
 import { useRole } from '@/hooks/useRole';
-import type { Faction } from '@/types';
+import type { Faction, SearchResult } from '@/types';
 
 const FACTION_STAT_CONFIG: { key: Faction; label: string; color: string }[] = [
   { key: 'galactic_republic', label: 'Republic', color: '#C8AA6E' },
@@ -73,8 +73,6 @@ export function ControlsPanel() {
   const searchRef = useRef<HTMLInputElement>(null);
   const searchResults = getSearchResults();
   const factionStats = getFactionStats();
-
-  // Sync year draft when store value changes externally
   useEffect(() => {
     setYearDraft(String(currentYear));
   }, [currentYear]);
@@ -103,17 +101,17 @@ export function ControlsPanel() {
     setCurrentYear(parsed);
     setYearDraft(String(parsed));
   }, [yearDraft, currentYear, setCurrentYear]);
-
-  // Handle search result selection
-  const handleSelectResult = (result: { type: 'system' | 'planet' | 'fleet'; id: string; name: string; parentName?: string }) => {
+  const handleSelectResult = (result: SearchResult) => {
     if (result.type === 'system') {
       const system = systems.find(s => s.id === result.id);
       if (system) {
         setSelectedSystem(system.id);
         setInfoPanelData({ type: 'system', data: system });
       }
-    } else if (result.type === 'planet' && result.parentName) {
-      const system = systems.find(s => s.name === result.parentName);
+    } else if (result.type === 'planet') {
+      const system =
+        (result.parentSystemId ? systems.find((s) => s.id === result.parentSystemId) : null)
+        ?? (result.parentName ? systems.find((s) => s.name === result.parentName) : null);
       if (system) {
         setSelectedSystem(system.id);
         const planet = system.planets.find(p => p.id === result.id);
@@ -132,8 +130,6 @@ export function ControlsPanel() {
     setSearchQuery('');
     setIsSearchFocused(false);
   };
-
-  // Close search on click outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
@@ -146,7 +142,7 @@ export function ControlsPanel() {
 
   return (
     <div className="holo-scroll-invisible absolute left-5 top-5 space-y-5 max-h-[calc(100vh-3rem)] overflow-y-auto w-[280px] animate-slide-in-left pb-4">
-      {/* Search Box */}
+
       <div ref={searchRef} className="relative z-50">
         <div className="holo-panel">
           <label
@@ -171,7 +167,7 @@ export function ControlsPanel() {
           )}
         </div>
 
-        {/* Search Results Dropdown */}
+
         {!collapsedSections.navigation && isSearchFocused && searchResults.length > 0 && (
           <div className="absolute top-full left-0 right-0 mt-2 z-50">
             <div className="holo-panel overflow-hidden">
@@ -203,7 +199,7 @@ export function ControlsPanel() {
         )}
       </div>
 
-      {/* View Status */}
+
       <div className="holo-panel" style={{ marginTop: '16px' }}>
         <label
           className="holo-label flex items-center justify-between gap-2"
@@ -238,7 +234,7 @@ export function ControlsPanel() {
         )}
       </div>
 
-      {/* Timeline with Year Input */}
+
       <div className="holo-panel" style={{ marginTop: '16px' }}>
         <div>
           <label
@@ -289,7 +285,7 @@ export function ControlsPanel() {
         )}
       </div>
 
-      {/* Galaxy Overview — Faction Stats */}
+
       <div className="holo-panel" style={{ marginTop: '16px' }}>
         <label
           className="holo-label flex items-center justify-between gap-2"
@@ -315,7 +311,7 @@ export function ControlsPanel() {
                     clipPath: 'polygon(4px 0%, calc(100% - 4px) 0%, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 0% calc(100% - 4px), 0% 4px)',
                   }}
                 >
-                  {/* Faction diamond indicator */}
+
                   <div
                     className="w-2.5 h-2.5 flex-shrink-0"
                     style={{
@@ -324,14 +320,14 @@ export function ControlsPanel() {
                       boxShadow: `0 0 6px ${color}60`,
                     }}
                   />
-                  {/* Faction name */}
+
                   <span
                     className="flex-1 text-[11px] font-medium"
                     style={{ fontFamily: 'Rajdhani, sans-serif', color }}
                   >
                     {label}
                   </span>
-                  {/* Stats */}
+
                   <div className="flex gap-3 text-right">
                     <div className="text-center">
                       <div style={{ fontFamily: 'Orbitron, monospace', fontSize: '11px', color: 'var(--holo-text-primary)' }}>
@@ -357,7 +353,7 @@ export function ControlsPanel() {
         )}
       </div>
 
-      {/* Custom Planets — admin/bossman only */}
+
       {isAdmin && viewMode === 'topdown' && (
         <div className="holo-panel" style={{ marginTop: '16px' }}>
           <label
@@ -371,7 +367,7 @@ export function ControlsPanel() {
 
           {!collapsedSections.customPlanets && (
             <>
-              {/* Placement mode indicator */}
+
               {placementMode && (
                 <div className="mt-3 p-3 border" style={{ borderColor: 'rgba(0, 240, 255, 0.3)', background: 'rgba(0, 240, 255, 0.05)', clipPath: 'polygon(6px 0%, calc(100% - 6px) 0%, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0% calc(100% - 6px), 0% 6px)' }}>
                   <p className="text-[12px] font-medium animate-pulse" style={{ color: 'var(--holo-cyan)', fontFamily: 'Orbitron, monospace', fontSize: '10px' }}>
@@ -387,7 +383,7 @@ export function ControlsPanel() {
                 </div>
               )}
 
-              {/* Create form */}
+
               {showCreateForm && !placementMode ? (
                 <div className="mt-3 space-y-3">
                   <input
@@ -452,7 +448,7 @@ export function ControlsPanel() {
                 </button>
               )}
 
-              {/* Count of custom planets */}
+
               {systems.filter(s => s.isCustom).length > 0 && (
                 <p className="text-[11px] mt-2" style={{ color: 'var(--holo-text-muted)' }}>
                   {systems.filter(s => s.isCustom).length} custom planet{systems.filter(s => s.isCustom).length !== 1 ? 's' : ''} placed
@@ -463,7 +459,7 @@ export function ControlsPanel() {
         </div>
       )}
 
-      {/* Custom Fleets — admin/bossman only */}
+
       {isAdmin && viewMode === 'topdown' && (
         <div className="holo-panel" style={{ marginTop: '16px' }}>
           <label
@@ -477,7 +473,7 @@ export function ControlsPanel() {
 
           {!collapsedSections.customFleets && (
             <>
-              {/* Placement mode indicator */}
+
               {fleetPlacementMode && (
                 <div className="mt-3 p-3 border" style={{ borderColor: 'rgba(0, 240, 255, 0.3)', background: 'rgba(0, 240, 255, 0.05)', clipPath: 'polygon(6px 0%, calc(100% - 6px) 0%, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0% calc(100% - 6px), 0% 6px)' }}>
                   <p className="text-[12px] font-medium animate-pulse" style={{ color: 'var(--holo-cyan)', fontFamily: 'Orbitron, monospace', fontSize: '10px' }}>
@@ -493,7 +489,7 @@ export function ControlsPanel() {
                 </div>
               )}
 
-              {/* Create form */}
+
               {showFleetCreateForm && !fleetPlacementMode ? (
                 <div className="mt-3 space-y-3">
                   <input
@@ -582,7 +578,7 @@ export function ControlsPanel() {
                 </button>
               )}
 
-              {/* Count of custom fleets */}
+
               {fleets.filter(f => f.isCustom).length > 0 && (
                 <p className="text-[11px] mt-2" style={{ color: 'var(--holo-text-muted)' }}>
                   {fleets.filter(f => f.isCustom).length} custom fleet{fleets.filter(f => f.isCustom).length !== 1 ? 's' : ''} placed
@@ -593,7 +589,7 @@ export function ControlsPanel() {
         </div>
       )}
 
-      {/* Filter Groups */}
+
       <div className="holo-panel space-y-4" style={{ marginTop: '16px' }}>
         <label
           className="holo-label flex items-center justify-between gap-2"
@@ -606,7 +602,7 @@ export function ControlsPanel() {
 
         {!collapsedSections.filters && (
           <>
-            {/* Faction Filters */}
+
             <div className="grid grid-cols-2 gap-2">
               <FilterBox
                 active={factionFilters.galactic_republic}
@@ -651,7 +647,7 @@ export function ControlsPanel() {
               <span aria-hidden="true" style={{ color: 'var(--holo-amber)', opacity: 0.7 }}>{sectionArrow('layers')}</span>
             </label>
 
-            {/* Layer toggles */}
+
             {!collapsedSections.layers && (
               <div className="grid grid-cols-2 gap-2">
                 <FilterBox
@@ -683,11 +679,6 @@ export function ControlsPanel() {
   );
 }
 
-// -----------------------------------------------------------------------------
-// Component: FilterBox
-// KOTOR-style angular filter toggle
-// -----------------------------------------------------------------------------
-
 interface FilterBoxProps {
   active: boolean;
   onClick: () => void;
@@ -709,7 +700,7 @@ function FilterBox({ active, onClick, label, color = 'blue' }: FilterBoxProps) {
         clipPath: 'polygon(6px 0%, calc(100% - 6px) 0%, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0% calc(100% - 6px), 0% 6px)',
       }}
     >
-      {/* Indicator — diamond shape */}
+
       <div
         className={`w-2 h-2 mb-2 transition-all duration-300 ${active ? 'scale-110' : 'scale-90 opacity-50'}`}
         style={{
@@ -719,7 +710,7 @@ function FilterBox({ active, onClick, label, color = 'blue' }: FilterBoxProps) {
         }}
       />
 
-      {/* Label */}
+
       <span
         className="text-[10px] font-medium tracking-wider uppercase"
         style={{
@@ -731,7 +722,7 @@ function FilterBox({ active, onClick, label, color = 'blue' }: FilterBoxProps) {
         {label}
       </span>
 
-      {/* Active Glow Background */}
+
       {active && (
         <div
           className="absolute inset-0 opacity-15 pointer-events-none"
@@ -741,8 +732,6 @@ function FilterBox({ active, onClick, label, color = 'blue' }: FilterBoxProps) {
     </button>
   );
 }
-
-// Color map for toggle colors
 const colorMap: Record<string, string> = {
   blue: '#64B5F6',
   yellow: '#C8AA6E',

@@ -446,7 +446,7 @@ export function LandingPage() {
         <span className="portfolio-hero__cursor-ring" />
       </div>
 
-      {/* Auth pill — top right */}
+
       <div
         style={{
           position: 'absolute',
