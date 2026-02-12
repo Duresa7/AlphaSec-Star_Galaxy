@@ -120,9 +120,13 @@ dist
 
 # IDEs and Editors
 .idea
+.DS_Store
 .ds_store
+Thumbs.db
 .vscode
 .claude/
+.codex/
+.vercel/
 *.suo
 *.ntvs*
 *.njsproj
@@ -130,4 +134,6 @@ dist
 *.sw?
 /.ai/
 .aiassistant/
+.mcp.json
+.mcp/
 CLAUDE.md
