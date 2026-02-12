@@ -83,6 +83,9 @@ const applyPlanetStatsPatch = (planet: Planet, updates: PlanetStatsUpdate): Plan
   if (hasOwn(updates, 'factionControl')) {
     next.factionControl = updates.factionControl ?? undefined;
   }
+  if (hasOwn(updates, 'customColor')) {
+    next.customColor = updates.customColor ?? undefined;
+  }
 
   return next;
 };
