@@ -9,11 +9,9 @@ import { PlanetModel, hasPlanetModel } from '@/components/three/ModelLoader';
 interface SystemDetailViewProps {
   system: StarSystem;
 }
-
-// Planet type to detailed appearance mapping (no emissive/glow)
-const PLANET_APPEARANCES: Record<PlanetType, { 
-  color: string; 
-  roughness: number; 
+const PLANET_APPEARANCES: Record<PlanetType, {
+  color: string;
+  roughness: number;
   metalness: number;
   secondaryColor?: string;
   hasRings?: boolean;
@@ -21,99 +19,91 @@ const PLANET_APPEARANCES: Record<PlanetType, {
   hasAtmosphere?: boolean;
   atmosphereColor?: string;
 }> = {
-  terrestrial: { 
-    color: '#4A7C59', 
-    roughness: 0.8, 
+  terrestrial: {
+    color: '#4A7C59',
+    roughness: 0.8,
     metalness: 0.1,
     secondaryColor: '#8B7355',
     hasAtmosphere: true,
     atmosphereColor: '#87CEEB',
     hasClouds: true,
   },
-  gas_giant: { 
-    color: '#D4A574', 
-    roughness: 0.9, 
+  gas_giant: {
+    color: '#D4A574',
+    roughness: 0.9,
     metalness: 0,
     secondaryColor: '#8B6914',
     hasRings: true,
   },
-  ice: { 
-    color: '#E8F4F8', 
-    roughness: 0.3, 
+  ice: {
+    color: '#E8F4F8',
+    roughness: 0.3,
     metalness: 0.2,
     secondaryColor: '#A8D8EA',
     hasAtmosphere: true,
     atmosphereColor: '#CCE5FF',
   },
-  desert: { 
-    color: '#C2956E', 
-    roughness: 0.9, 
+  desert: {
+    color: '#C2956E',
+    roughness: 0.9,
     metalness: 0.05,
     secondaryColor: '#D4A574',
   },
-  volcanic: { 
-    color: '#4A3030', 
-    roughness: 0.7, 
+  volcanic: {
+    color: '#4A3030',
+    roughness: 0.7,
     metalness: 0.3,
     secondaryColor: '#8B0000',
   },
-  ocean: { 
-    color: '#1E5F8A', 
-    roughness: 0.2, 
+  ocean: {
+    color: '#1E5F8A',
+    roughness: 0.2,
     metalness: 0.1,
     secondaryColor: '#2E8B57',
     hasAtmosphere: true,
     atmosphereColor: '#87CEEB',
     hasClouds: true,
   },
-  jungle: { 
-    color: '#228B22', 
-    roughness: 0.85, 
+  jungle: {
+    color: '#228B22',
+    roughness: 0.85,
     metalness: 0.05,
     secondaryColor: '#006400',
     hasAtmosphere: true,
     atmosphereColor: '#90EE90',
     hasClouds: true,
   },
-  city: { 
-    color: '#505060', 
-    roughness: 0.4, 
+  city: {
+    color: '#505060',
+    roughness: 0.4,
     metalness: 0.6,
     secondaryColor: '#303040',
   },
-  barren: { 
-    color: '#696969', 
-    roughness: 1.0, 
+  barren: {
+    color: '#696969',
+    roughness: 1.0,
     metalness: 0.1,
     secondaryColor: '#505050',
   },
-  destroyed: { 
-    color: '#3A3A3A', 
-    roughness: 0.9, 
+  destroyed: {
+    color: '#3A3A3A',
+    roughness: 0.9,
     metalness: 0.2,
     secondaryColor: '#1A1A1A',
   },
 };
 
-
-
 export function SystemDetailView({ system }: SystemDetailViewProps) {
   const { showLabels, viewMode, selectedPlanetId } = useGalaxyStore();
-  
-  // If the system has planets, show just the first planet directly
   const planet = system.planets[0];
-  
+
   if (!planet) {
-    // No planet in this system, show nothing or a placeholder
     return null;
   }
-  
-  // Lighting is now handled by the parent GalaxyScene with view-mode-aware configuration
-  // The scene automatically adjusts lighting for system/planet views
-  
+
   return (
     <group>
-      {/* Single planet - centered, no orbit */}
+
       <StaticPlanet
         planet={planet}
         showLabels={showLabels}
@@ -123,8 +113,6 @@ export function SystemDetailView({ system }: SystemDetailViewProps) {
     </group>
   );
 }
-
-// Static planet component - just the planet, no orbit
 interface StaticPlanetProps {
   planet: Planet;
   showLabels: boolean;
@@ -135,14 +123,12 @@ interface StaticPlanetProps {
 function StaticPlanet({ planet, showLabels, isDetailView, customColor }: StaticPlanetProps) {
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
-  
+
   const { setSelectedPlanet, setInfoPanelData, selectedPlanetId } = useGalaxyStore();
   const isSelected = selectedPlanetId === planet.id;
-  
+
   const appearance = PLANET_APPEARANCES[planet.type] || PLANET_APPEARANCES.terrestrial;
-  const planetSize = planet.radius * 2.2; // Larger size since it's the main focus
-  
-  // Generate procedural planet texture colors
+  const planetSize = planet.radius * 2.2;
   const planetMaterial = useMemo(() => {
     return {
       color: customColor || appearance.color,
@@ -150,8 +136,8 @@ function StaticPlanet({ planet, showLabels, isDetailView, customColor }: StaticP
       metalness: appearance.metalness,
     };
   }, [appearance, customColor]);
-  
-  
+
+
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
     setSelectedPlanet(planet.id);
@@ -160,32 +146,28 @@ function StaticPlanet({ planet, showLabels, isDetailView, customColor }: StaticP
       data: planet,
     });
   };
-  
+
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     setHovered(true);
     document.body.style.cursor = 'pointer';
   };
-  
+
   const handlePointerOut = () => {
     setHovered(false);
     document.body.style.cursor = 'auto';
   };
-  
-  // Scale up planet when in detail view
   const viewScale = isDetailView ? 1.6 : 1.1;
-  
-  // Check if this planet has a GLB model available
   const hasGLBModel = hasPlanetModel(planet.id);
-  
+
   return (
-    <group 
+    <group
       ref={groupRef}
       onClick={handleClick}
       onPointerOver={handlePointerOver}
       onPointerOut={handlePointerOut}
     >
-      {/* GLB Model for planets that have one */}
+
       {hasGLBModel ? (
         <Suspense fallback={
           <mesh scale={viewScale * planetSize}>
@@ -203,7 +185,7 @@ function StaticPlanet({ planet, showLabels, isDetailView, customColor }: StaticP
         </Suspense>
       ) : (
         <>
-          {/* Main planet body - procedural fallback */}
+
           <mesh scale={viewScale}>
             <sphereGeometry args={[planetSize, 64, 64]} />
             <meshStandardMaterial
@@ -214,8 +196,8 @@ function StaticPlanet({ planet, showLabels, isDetailView, customColor }: StaticP
           </mesh>
         </>
       )}
-      
-      {/* Selection/hover indicator */}
+
+
       {(hovered || isSelected) && (
         <mesh rotation={[Math.PI / 2, 0, 0]} scale={viewScale}>
           <ringGeometry args={[planetSize * 1.2, planetSize * 1.25, 64]} />
@@ -227,8 +209,8 @@ function StaticPlanet({ planet, showLabels, isDetailView, customColor }: StaticP
           />
         </mesh>
       )}
-      
-      {/* Planet label */}
+
+
       {showLabels && (
         <Html
           position={[0, planetSize * viewScale + 1, 0]}

@@ -41,8 +41,6 @@ const getAuthenticatedUserId = async (): Promise<string | null> => {
   }
 };
 
-// ─── Serialize / Deserialize helpers ────────────
-
 interface DbSystem {
   id: string;
   name: string;
@@ -137,8 +135,6 @@ function dbToFleet(row: DbFleet): Fleet {
   };
 }
 
-// ─── CRUD: Custom Systems ───────────────────────
-
 export async function loadCustomSystems(): Promise<StarSystem[]> {
   if (!supabaseConfigured) return [];
   const { data, error } = await supabase
@@ -204,7 +200,10 @@ export async function upsertSystem(system: StarSystem, userId: string): Promise<
     })),
     created_by: userId,
   }, { onConflict: 'id' });
-  if (error) console.error('Failed to upsert system:', error);
+  if (error) {
+    console.error('Failed to upsert system:', error);
+    throw error;
+  }
 }
 
 export async function deleteCustomSystem(id: string): Promise<void> {
@@ -212,8 +211,6 @@ export async function deleteCustomSystem(id: string): Promise<void> {
   const { error } = await supabase.from('custom_systems').delete().eq('id', id);
   if (error) console.error('Failed to delete custom system:', error);
 }
-
-// ─── CRUD: Custom Fleets ────────────────────────
 
 export async function loadCustomFleets(): Promise<Fleet[]> {
   if (!supabaseConfigured) return [];
@@ -256,7 +253,10 @@ export async function upsertFleet(fleet: Fleet, userId: string): Promise<void> {
     marker_size: fleet.markerSize ?? null,
     created_by: userId,
   }, { onConflict: 'id' });
-  if (error) console.error('Failed to upsert fleet:', error);
+  if (error) {
+    console.error('Failed to upsert fleet:', error);
+    throw error;
+  }
 }
 
 export async function deleteCustomFleet(id: string): Promise<void> {
@@ -264,8 +264,6 @@ export async function deleteCustomFleet(id: string): Promise<void> {
   const { error } = await supabase.from('custom_fleets').delete().eq('id', id);
   if (error) console.error('Failed to delete custom fleet:', error);
 }
-
-// ─── App Settings (global key/value) ────────────
 
 export async function loadSetting(key: string): Promise<unknown> {
   if (!supabaseConfigured) return null;
@@ -288,10 +286,11 @@ export async function updateSetting(key: string, value: unknown): Promise<void> 
     .from('app_settings')
     .update({ value: value as never, updated_by: userId })
     .eq('key', key);
-  if (error) console.error(`Failed to update setting "${key}":`, error);
+  if (error) {
+    console.error(`Failed to update setting "${key}":`, error);
+    throw error;
+  }
 }
-
-// ─── Audit Logging ──────────────────────────────
 
 export async function logAction(
   action: AuditAction,
@@ -345,8 +344,6 @@ export async function fetchAuditLogs(limit = 50, offset = 0): Promise<{ logs: Au
 
   return { logs, total: count ?? 0 };
 }
-
-// ─── User Management ────────────────────────────
 
 export async function fetchAllProfiles(): Promise<UserProfile[]> {
   if (!supabaseConfigured) return [];

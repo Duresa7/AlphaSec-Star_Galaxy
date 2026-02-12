@@ -1,38 +1,23 @@
 import * as THREE from 'three';
-
-// View modes for the galaxy map
-// 'topdown' - 2D overhead view with placeholder markers
-// 'system' - 3D view of a selected planet
-// 'fleet' - 3D view of a selected fleet
 export type ViewMode = 'topdown' | 'system' | 'fleet';
-
-// Faction affiliations
 export type Faction = 'sith_empire' | 'galactic_republic' | 'neutral' | 'contested' | 'hutt_cartel';
-
-// Faction filter state
 export type FactionFilters = Record<Faction, boolean>;
-
-// Planet types
-export type PlanetType = 
-  | 'terrestrial' 
-  | 'gas_giant' 
-  | 'ice' 
-  | 'desert' 
-  | 'volcanic' 
-  | 'ocean' 
-  | 'jungle' 
-  | 'city' 
+export type PlanetType =
+  | 'terrestrial'
+  | 'gas_giant'
+  | 'ice'
+  | 'desert'
+  | 'volcanic'
+  | 'ocean'
+  | 'jungle'
+  | 'city'
   | 'barren'
   | 'destroyed';
-
-// Anomaly types
-export type AnomalyType = 
-  | 'nebula' 
-  | 'black_hole' 
-  | 'space_station' 
+export type AnomalyType =
+  | 'nebula'
+  | 'black_hole'
+  | 'space_station'
   | 'hyperspace_lane';
-
-// Planet data structure
 export interface Planet {
   id: string;
   name: string;
@@ -48,8 +33,6 @@ export interface Planet {
   systemId: string;
   factionControl?: Partial<Record<Faction, number>>;
 }
-
-// Star system data structure
 export interface StarSystem {
   id: string;
   name: string;
@@ -64,9 +47,7 @@ export interface StarSystem {
   customColor?: string;
   markerSize?: number;
 }
-
-// Galaxy regions
-export type GalaxyRegion = 
+export type GalaxyRegion =
   | 'deep_core'
   | 'core_worlds'
   | 'colonies'
@@ -75,10 +56,6 @@ export type GalaxyRegion =
   | 'mid_rim'
   | 'outer_rim'
   | 'unknown_regions';
-
-
-
-// Space anomaly
 export interface Anomaly {
   id: string;
   name: string;
@@ -87,8 +64,6 @@ export interface Anomaly {
   radius: number;
   description: string;
 }
-
-// Fleet marker
 export interface Fleet {
   id: string;
   name: string;
@@ -101,23 +76,18 @@ export interface Fleet {
   systemId?: string;
   isCustom?: boolean;
 }
-
-// UI panel payload (discriminated union for strict type safety)
 export type InfoPanelData =
   | { type: 'system'; data: StarSystem }
   | { type: 'planet'; data: Planet }
   | { type: 'fleet'; data: Fleet }
   | { type: 'anomaly'; data: Anomaly };
-
-// Search result type
 export interface SearchResult {
   type: 'system' | 'planet' | 'fleet';
   id: string;
   name: string;
   parentName?: string;
+  parentSystemId?: string;
 }
-
-// ─── Auth & RBAC ────────────────────────────────
 
 export type UserRole = 'user' | 'admin' | 'bossman';
 
@@ -155,8 +125,6 @@ export interface AuditLogEntry {
   display_name?: string;
 }
 
-// ─── Existing Types ─────────────────────────────
-
 export interface PlanetStatsUpdate {
   population?: string | null;
   factionControl?: Partial<Record<Faction, number>> | null;
@@ -165,13 +133,8 @@ export interface PlanetStatsUpdate {
   terrain?: string | null;
   notable?: string[] | null;
 }
-
-// App state store type
 export interface GalaxyStore {
-  // View state
   viewMode: ViewMode;
-  
-  // Selection state
   selectedSystemId: string | null;
   selectedPlanetId: string | null;
   selectedFleetId: string | null;
@@ -180,50 +143,30 @@ export interface GalaxyStore {
   setTopDownFleetSelection: (fleetId: string | null) => void;
   setSelectedPlanet: (id: string | null) => void;
   setSelectedFleet: (id: string | null) => void;
-  
-  // Data
   systems: StarSystem[];
   anomalies: Anomaly[];
   fleets: Fleet[];
-  
-  // UI state
   showFleets: boolean;
   showAnomalies: boolean;
   showLabels: boolean;
   toggleFleets: () => void;
   toggleAnomalies: () => void;
   toggleLabels: () => void;
-  
-  // Info panel
   infoPanelData: InfoPanelData | null;
   setInfoPanelData: (data: InfoPanelData | null) => void;
-  
-  // Timeline
-  currentYear: number; // Default ~4000 BBY
+  currentYear: number;
   setCurrentYear: (year: number) => void;
-  
-  // Loading
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;
-  
-  // Search and filtering
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   factionFilters: FactionFilters;
   toggleFactionFilter: (faction: Faction) => void;
-  
-  // Computed getters
   getFilteredSystems: () => StarSystem[];
   getSearchResults: () => SearchResult[];
   getFactionStats: () => Record<Faction, { planets: number; fleetShips: number }>;
-
-  // Data initialization
   initializeData: () => Promise<void>;
-
-  // Planet stats editing
   updatePlanetStats: (systemId: string, planetId: string, stats: PlanetStatsUpdate) => void;
-
-  // Custom planet creation
   placementMode: boolean;
   pendingCustomPlanet: { name: string; color: string } | null;
   setPlacementMode: (mode: boolean, pending?: { name: string; color: string } | null) => void;
@@ -234,8 +177,6 @@ export interface GalaxyStore {
   updateCustomSystemMarkerSize: (id: string, markerSize: number) => void;
   draggingCustomPlanet: boolean;
   setDraggingCustomPlanet: (dragging: boolean) => void;
-
-  // Custom fleet creation
   fleetPlacementMode: boolean;
   pendingCustomFleet: { name: string; faction: Faction; shipCount: number } | null;
   setFleetPlacementMode: (mode: boolean, pending?: { name: string; faction: Faction; shipCount: number } | null) => void;
@@ -246,8 +187,6 @@ export interface GalaxyStore {
   updateFleetMarkerSize: (id: string, markerSize: number) => void;
   draggingCustomFleet: boolean;
   setDraggingCustomFleet: (dragging: boolean) => void;
-
-  // Dirty tracking & manual save
   dirtySystemIds: Set<string>;
   dirtyFleetIds: Set<string>;
   dirtyTimeline: boolean;

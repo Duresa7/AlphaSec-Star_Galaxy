@@ -25,19 +25,23 @@ import { TOPDOWN_MARKER_MAX_SIZE, TOPDOWN_MARKER_MIN_SIZE } from '@/config/topDo
 import { supabase, supabaseConfigured } from '@/lib/supabase';
 import type { StarSystem, Fleet } from '@/types';
 
-/** Deep-clone systems array (positions are THREE.Vector3 and must be cloned). */
+const cloneSystem = (system: StarSystem): StarSystem => ({
+  ...system,
+  position: system.position.clone(),
+  planets: system.planets.map((planet) => ({ ...planet, position: planet.position.clone() })),
+});
+
+const cloneFleet = (fleet: Fleet): Fleet => ({
+  ...fleet,
+  position: fleet.position.clone(),
+});
+
 const cloneSystems = (systems: StarSystem[]): StarSystem[] =>
-  systems.map((s) => ({
-    ...s,
-    position: s.position.clone(),
-    planets: s.planets.map((p) => ({ ...p, position: p.position.clone() })),
-  }));
+  systems.map((s) => cloneSystem(s));
 
-/** Deep-clone fleets array. */
 const cloneFleets = (fleetArr: Fleet[]): Fleet[] =>
-  fleetArr.map((f) => ({ ...f, position: f.position.clone() }));
+  fleetArr.map((f) => cloneFleet(f));
 
-/** Module-level snapshot of the "clean" state (after init / after save). */
 let _systemsSnapshot: StarSystem[] = [];
 let _fleetsSnapshot: Fleet[] = [];
 let _yearSnapshot: number = 3956;
@@ -85,23 +89,22 @@ const applyPlanetStatsPatch = (planet: Planet, updates: PlanetStatsUpdate): Plan
 
 const withTimeout = <T,>(promise: Promise<T>, timeoutMs: number, timeoutMessage: string): Promise<T> =>
   new Promise<T>((resolve, reject) => {
-    const timeoutId = window.setTimeout(() => {
+    const timeoutId = globalThis.setTimeout(() => {
       reject(new Error(timeoutMessage));
     }, timeoutMs);
 
     promise.then(
       (value) => {
-        window.clearTimeout(timeoutId);
+        globalThis.clearTimeout(timeoutId);
         resolve(value);
       },
       (error) => {
-        window.clearTimeout(timeoutId);
+        globalThis.clearTimeout(timeoutId);
         reject(error);
       },
     );
   });
 
-/** Get the current auth user id (or null). */
 const getCurrentUserId = async (): Promise<string | null> => {
   if (!supabaseConfigured) return null;
   try {
@@ -121,8 +124,6 @@ const getCurrentUserId = async (): Promise<string | null> => {
   }
 };
 
-
-/** Fire-and-forget audit log. */
 const auditLog = (
   action: import('@/types').AuditAction,
   entityType: 'system' | 'fleet' | 'user',
@@ -133,17 +134,12 @@ const auditLog = (
   logAction(action, entityType, entityId, entityName, details).catch(() => {});
 };
 
-/** Merge incoming entities: override matching ids, append new ones. */
 const mergeById = <T extends { id: string }>(current: T[], incoming: T[]): T[] => {
   if (incoming.length === 0) return current;
 
   const overrideMap = new Map(incoming.map((item) => [item.id, item]));
   const merged = current.map((item) => overrideMap.get(item.id) ?? item);
-
-  // Mark merged ids
   const existingIds = new Set(current.map((item) => item.id));
-
-  // Append truly new entries (custom systems not in built-in data)
   for (const item of incoming) {
     if (existingIds.has(item.id)) continue;
     merged.push(item);
@@ -153,11 +149,39 @@ const mergeById = <T extends { id: string }>(current: T[], incoming: T[]): T[] =
   return merged;
 };
 
-export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
-  // View state
-  viewMode: 'topdown',
+const mergeSavedSnapshotEntries = <T extends { id: string }>(
+  currentSnapshot: T[],
+  latestData: T[],
+  attemptedIds: Set<string>,
+  failedIds: Set<string>,
+  cloneItem: (item: T) => T,
+): T[] => {
+  if (attemptedIds.size === 0) return currentSnapshot;
 
-  // Selection state
+  const latestById = new Map(latestData.map((item) => [item.id, item]));
+  const nextSnapshot = currentSnapshot.map((item) => {
+    if (!attemptedIds.has(item.id) || failedIds.has(item.id)) {
+      return item;
+    }
+
+    const latestItem = latestById.get(item.id);
+    return latestItem ? cloneItem(latestItem) : item;
+  });
+
+  const existingIds = new Set(nextSnapshot.map((item) => item.id));
+  for (const id of attemptedIds) {
+    if (failedIds.has(id) || existingIds.has(id)) continue;
+    const latestItem = latestById.get(id);
+    if (!latestItem) continue;
+    nextSnapshot.push(cloneItem(latestItem));
+    existingIds.add(id);
+  }
+
+  return nextSnapshot;
+};
+
+export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
+  viewMode: 'topdown',
   selectedSystemId: null,
   selectedPlanetId: null,
   selectedFleetId: null,
@@ -193,33 +217,21 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
       selectedSystemId: null,
       selectedPlanetId: null,
     }),
-
-  // Data — start with static data only; custom data loads via initializeData
   systems: [...starSystems],
   anomalies,
   fleets: [...fleets],
-
-  // UI state
   showFleets: true,
   showAnomalies: true,
   showLabels: true,
   toggleFleets: () => set((state) => ({ showFleets: !state.showFleets })),
   toggleAnomalies: () => set((state) => ({ showAnomalies: !state.showAnomalies })),
   toggleLabels: () => set((state) => ({ showLabels: !state.showLabels })),
-
-  // Info panel
   infoPanelData: null,
   setInfoPanelData: (data: InfoPanelData | null) => set({ infoPanelData: data }),
-
-  // Timeline - Old Republic era ~3956 BBY (KOTOR 1)
   currentYear: 3956,
   setCurrentYear: (year: number) => set({ currentYear: year, dirtyTimeline: true, hasPendingChanges: true }),
-
-  // Loading
   isLoading: true,
   setIsLoading: (loading: boolean) => set({ isLoading: loading }),
-
-  // Search and filtering
   searchQuery: '',
   setSearchQuery: (query: string) => set({ searchQuery: query }),
 
@@ -237,8 +249,6 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
         [faction]: !state.factionFilters[faction],
       },
     })),
-
-  // Computed: filtered systems
   getFilteredSystems: () => {
     const state = get();
     const query = state.searchQuery.toLowerCase().trim();
@@ -258,8 +268,6 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
       return true;
     });
   },
-
-  // Get search results for dropdown
   getSearchResults: () => {
     const state = get();
     const query = state.searchQuery.toLowerCase().trim();
@@ -282,6 +290,7 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
             id: planet.id,
             name: planet.name,
             parentName: system.name,
+            parentSystemId: system.id,
           });
         }
       });
@@ -295,8 +304,6 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
 
     return results.slice(0, 10);
   },
-
-  // Faction stats
   getFactionStats: () => {
     const state = get();
     const factions: Faction[] = ['galactic_republic', 'sith_empire', 'neutral', 'contested', 'hutt_cartel'];
@@ -318,8 +325,6 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
     }
     return stats;
   },
-
-  // ─── Data Initialization (Supabase) ────────────
   initializeData: async () => {
     try {
       const [customSystems, customFleets, yearSetting] = await Promise.all([
@@ -329,16 +334,12 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
       ]);
 
       const loadedYear = typeof yearSetting === 'number' ? yearSetting : 3956;
-
-      // Rebuild from static baselines each sync so deletes propagate correctly.
       set(() => ({
         systems: mergeById([...starSystems], customSystems),
         fleets: mergeById([...fleets], customFleets),
         currentYear: loadedYear,
         isLoading: false,
       }));
-
-      // Snapshot clean state so Discard can restore it
       const s = get();
       _systemsSnapshot = cloneSystems(s.systems);
       _fleetsSnapshot = cloneFleets(s.fleets);
@@ -348,8 +349,6 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
       set({ isLoading: false });
     }
   },
-
-  // ─── Planet Stats Editing ──────────────────────────
   updatePlanetStats: (systemId, planetId, updates) => {
     const state = get();
     const resolvedSystem =
@@ -372,8 +371,6 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
       hasPendingChanges: true,
     }));
   },
-
-  // ─── Custom Planet Creation ────────────────────────
   placementMode: false,
   pendingCustomPlanet: null,
   draggingCustomPlanet: false,
@@ -393,7 +390,6 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
       placementMode: false,
       pendingCustomPlanet: null,
     }));
-    // Persist to Supabase
     getCurrentUserId().then((uid) => {
       if (uid) {
         insertCustomSystem(system, uid).catch(() => {});
@@ -452,8 +448,6 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
       hasPendingChanges: true,
     }));
   },
-
-  // ─── Custom Fleet Creation ─────────────────────────
   fleetPlacementMode: false,
   pendingCustomFleet: null,
   draggingCustomFleet: false,
@@ -529,8 +523,6 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
       hasPendingChanges: true,
     }));
   },
-
-  // ─── Dirty Tracking & Manual Save ──────────────
   dirtySystemIds: new Set<string>(),
   dirtyFleetIds: new Set<string>(),
   dirtyTimeline: false,
@@ -542,40 +534,83 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
     const uid = await getCurrentUserId();
     if (!uid) return;
 
-    const systemPromises = [...state.dirtySystemIds].map((id) => {
-      const system = state.systems.find((s) => s.id === id);
-      if (!system) return Promise.resolve();
-      return upsertSystem(system, uid)
-        .then(() => auditLog('system_moved', 'system', id, system.name))
-        .catch(() => {});
+    const failedSystemIds = new Set<string>();
+    const failedFleetIds = new Set<string>();
+
+    await Promise.all(
+      [...state.dirtySystemIds].map(async (id) => {
+        const system = state.systems.find((s) => s.id === id);
+        if (!system) return;
+
+        try {
+          await upsertSystem(system, uid);
+          auditLog('system_moved', 'system', id, system.name);
+        } catch (error) {
+          console.error(`Failed to save system "${id}":`, error);
+          failedSystemIds.add(id);
+        }
+      }),
+    );
+
+    await Promise.all(
+      [...state.dirtyFleetIds].map(async (id) => {
+        const fleet = state.fleets.find((f) => f.id === id);
+        if (!fleet) return;
+
+        try {
+          await upsertFleet(fleet, uid);
+          auditLog('fleet_moved', 'fleet', id, fleet.name);
+        } catch (error) {
+          console.error(`Failed to save fleet "${id}":`, error);
+          failedFleetIds.add(id);
+        }
+      }),
+    );
+
+    let timelineFailed = false;
+    if (state.dirtyTimeline) {
+      try {
+        await updateSetting('current_year', state.currentYear);
+        auditLog('timeline_changed', 'system', 'current_year', 'Timeline', { year: state.currentYear });
+      } catch (error) {
+        console.error('Failed to save timeline setting:', error);
+        timelineFailed = true;
+      }
+    }
+
+    const nextDirtySystemIds = failedSystemIds;
+    const nextDirtyFleetIds = failedFleetIds;
+    const nextDirtyTimeline = timelineFailed;
+    const hasPendingChanges = nextDirtySystemIds.size > 0 || nextDirtyFleetIds.size > 0 || nextDirtyTimeline;
+
+    set({
+      dirtySystemIds: nextDirtySystemIds,
+      dirtyFleetIds: nextDirtyFleetIds,
+      dirtyTimeline: nextDirtyTimeline,
+      hasPendingChanges,
     });
 
-    const fleetPromises = [...state.dirtyFleetIds].map((id) => {
-      const fleet = state.fleets.find((f) => f.id === id);
-      if (!fleet) return Promise.resolve();
-      return upsertFleet(fleet, uid)
-        .then(() => auditLog('fleet_moved', 'fleet', id, fleet.name))
-        .catch(() => {});
-    });
-
-    const timelinePromise = state.dirtyTimeline
-      ? updateSetting('current_year', state.currentYear)
-          .then(() => auditLog('timeline_changed', 'system', 'current_year', 'Timeline', { year: state.currentYear }))
-          .catch(() => {})
-      : Promise.resolve();
-
-    await Promise.all([...systemPromises, ...fleetPromises, timelinePromise]);
-    set({ dirtySystemIds: new Set<string>(), dirtyFleetIds: new Set<string>(), dirtyTimeline: false, hasPendingChanges: false });
-
-    // Update snapshot to reflect the newly saved state
     const saved = get();
-    _systemsSnapshot = cloneSystems(saved.systems);
-    _fleetsSnapshot = cloneFleets(saved.fleets);
-    _yearSnapshot = saved.currentYear;
+    _systemsSnapshot = mergeSavedSnapshotEntries(
+      _systemsSnapshot,
+      saved.systems,
+      state.dirtySystemIds,
+      failedSystemIds,
+      cloneSystem,
+    );
+    _fleetsSnapshot = mergeSavedSnapshotEntries(
+      _fleetsSnapshot,
+      saved.fleets,
+      state.dirtyFleetIds,
+      failedFleetIds,
+      cloneFleet,
+    );
+    if (state.dirtyTimeline && !timelineFailed) {
+      _yearSnapshot = saved.currentYear;
+    }
   },
 
   discardAllChanges: async () => {
-    // Restore from the clean snapshot (taken after init / after save)
     set({
       systems: cloneSystems(_systemsSnapshot),
       fleets: cloneFleets(_fleetsSnapshot),

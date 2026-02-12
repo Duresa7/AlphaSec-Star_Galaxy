@@ -1,6 +1,7 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useGalaxyStore } from '@/store/galaxyStore';
 import { useRole } from '@/hooks/useRole';
+import { normalizeFactionControl } from '@/utils/factionControl';
 
 import type { StarSystem, Fleet, Anomaly, Planet, Faction, InfoPanelData, ViewMode } from '@/types';
 import {
@@ -126,7 +127,7 @@ export function InfoPanel() {
   return (
     <div className="absolute right-4 top-4 z-50 w-96 max-h-[calc(100vh-2rem)] animate-slide-in-right">
       <div className="holo-panel max-h-[calc(100vh-2rem)] overflow-y-auto">
-        {/* Close button */}
+
         <button
           onClick={handleClose}
           className="holo-close-button absolute -top-2 right-4 z-10"
@@ -144,11 +145,11 @@ export function InfoPanel() {
 
 function SystemInfo({ system, editable }: { system: StarSystem; editable: boolean }) {
   const { removeCustomSystem, setInfoPanelData, setSelectedSystem, setSelectedPlanet, updateCustomSystemMarkerSize, viewMode } = useGalaxyStore();
-  
+
 
   return (
     <div className="space-y-4">
-      {/* Header */}
+
       <div className="pb-3">
         <h2 className="text-xl font-semibold mb-2" style={{ fontFamily: 'Orbitron, monospace', color: 'var(--holo-text-primary)' }}>{system.name}</h2>
         <div className="flex items-center gap-2">
@@ -170,14 +171,14 @@ function SystemInfo({ system, editable }: { system: StarSystem; editable: boolea
 
       <div className="holo-divider" />
 
-      {/* Info grid */}
+
       <div className="holo-info-grid space-y-2">
         <InfoRow label="Region" value={formatRegion(system.region)} />
         <InfoRow label="Star Type" value={capitalizeFirst(system.starType)} />
         <InfoRow label="Importance" value={capitalizeFirst(system.importance)} />
       </div>
 
-      {/* Marker Size - admin only */}
+
       {editable && viewMode === 'topdown' && (
         <div>
           <label className="holo-label" style={{ marginBottom: '8px' }}>Marker Size</label>
@@ -198,10 +199,10 @@ function SystemInfo({ system, editable }: { system: StarSystem; editable: boolea
         </div>
       )}
 
-      {/* Description */}
+
       <p className="text-sm leading-relaxed" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Rajdhani, sans-serif' }}>{system.description}</p>
 
-      {/* Planets */}
+
       {system.planets.length > 0 && (
         <div>
           <label className="holo-label" style={{ marginBottom: '8px' }}>Planets ({system.planets.length})</label>
@@ -223,7 +224,7 @@ function SystemInfo({ system, editable }: { system: StarSystem; editable: boolea
         </div>
       )}
 
-      {/* Notable locations */}
+
       {system.planets.length > 0 && system.planets[0].notable && (
         <div>
           <label className="holo-label" style={{ marginBottom: '8px' }}>Notable Locations</label>
@@ -240,14 +241,14 @@ function SystemInfo({ system, editable }: { system: StarSystem; editable: boolea
         </div>
       )}
 
-      {/* Hint to zoom in */}
+
       {system.planets.length > 0 && (
         <div className="text-xs text-center animate-pulse" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Orbitron, monospace', fontSize: '9px' }}>
           Select a planet to open details
         </div>
       )}
 
-      {/* Delete button for custom planets — admin only */}
+
       {editable && system.isCustom && (
         <button
           onClick={() => {
@@ -282,7 +283,7 @@ const FACTION_BAR_COLORS: Record<Faction, string> = {
 
 function PlanetInfo({ planet, editable }: { planet: Planet; editable: boolean }) {
   const { updatePlanetStats, systems, updateCustomSystemMarkerSize, viewMode } = useGalaxyStore();
-  
+
   const [editingPopulation, setEditingPopulation] = useState(false);
   const [populationDraft, setPopulationDraft] = useState(planet.population || '');
   const [editingDescription, setEditingDescription] = useState(false);
@@ -314,15 +315,17 @@ function PlanetInfo({ planet, editable }: { planet: Planet; editable: boolean })
     (system ? TOPDOWN_SYSTEM_MARKER_SIZE_BY_IMPORTANCE[system.importance] : DEFAULT_TOPDOWN_SYSTEM_MARKER_SIZE);
 
   const handlePopulationSave = () => {
-    
+
     updatePlanetStats(planet.systemId, planet.id, { population: populationDraft });
     setEditingPopulation(false);
   };
 
   const handleControlChange = (faction: Faction, value: number) => {
-    
-    const updated = { ...factionControl, [faction]: Math.max(0, Math.min(100, value)) };
-    // Remove factions with 0%
+    const updated = normalizeFactionControl({
+      current: factionControl,
+      editedFaction: faction,
+      editedValue: value,
+    });
     const cleaned: Partial<Record<Faction, number>> = {};
     for (const [f, v] of Object.entries(updated)) {
       if (v > 0) cleaned[f as Faction] = v;
@@ -332,7 +335,7 @@ function PlanetInfo({ planet, editable }: { planet: Planet; editable: boolean })
 
   return (
     <div className="space-y-4">
-      {/* Header */}
+
       <div className="pb-3">
         <h2 className="text-xl font-semibold mb-2" style={{ fontFamily: 'Orbitron, monospace', color: 'var(--holo-text-primary)' }}>{planet.name}</h2>
         <span className={`holo-badge border border-white/10 bg-white/5 ${planetTypeColors[planet.type] || 'text-gray-400'}`}>
@@ -342,15 +345,15 @@ function PlanetInfo({ planet, editable }: { planet: Planet; editable: boolean })
 
       <div className="holo-divider" />
 
-      {/* Faction */}
+
       <div className={`text-sm font-medium ${FACTION_COLORS[planet.faction]} flex items-center gap-2`} style={{ fontFamily: 'Rajdhani, sans-serif' }}>
         <span className="w-2 h-2 bg-current" style={{ clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)', boxShadow: '0 0 5px currentColor' }}></span>
         {FACTION_LABELS[planet.faction]} Territory
       </div>
 
-      {/* Info grid */}
+
       <div className="holo-info-grid space-y-2">
-        {/* Editable Climate */}
+
         <EditableInfoRow
           label="Climate"
           value={planet.climate || ''}
@@ -363,7 +366,7 @@ function PlanetInfo({ planet, editable }: { planet: Planet; editable: boolean })
           onSave={() => { updatePlanetStats(planet.systemId, planet.id, { climate: climateDraft }); setEditingClimate(false); }}
           onCancel={() => setEditingClimate(false)}
         />
-        {/* Editable Terrain */}
+
         <EditableInfoRow
           label="Terrain"
           value={planet.terrain || ''}
@@ -376,7 +379,7 @@ function PlanetInfo({ planet, editable }: { planet: Planet; editable: boolean })
           onSave={() => { updatePlanetStats(planet.systemId, planet.id, { terrain: terrainDraft }); setEditingTerrain(false); }}
           onCancel={() => setEditingTerrain(false)}
         />
-        {/* Editable Population */}
+
         <EditableInfoRow
           label="Population"
           value={planet.population || ''}
@@ -391,10 +394,10 @@ function PlanetInfo({ planet, editable }: { planet: Planet; editable: boolean })
         />
       </div>
 
-      {/* Faction Control Percentages */}
+
       <div>
         <label className="holo-label" style={{ marginBottom: '8px' }}>Faction Control</label>
-        {/* Visual bar */}
+
         <div className="flex h-3 mt-2 overflow-hidden" style={{ clipPath: 'polygon(2px 0%, calc(100% - 2px) 0%, 100% 2px, 100% calc(100% - 2px), calc(100% - 2px) 100%, 2px 100%, 0% calc(100% - 2px), 0% 2px)' }}>
           {(Object.entries(factionControl) as [Faction, number][])
             .filter(([, v]) => v > 0)
@@ -409,7 +412,7 @@ function PlanetInfo({ planet, editable }: { planet: Planet; editable: boolean })
               />
             ))}
         </div>
-        {/* Editable faction sliders */}
+
         <div className="space-y-2 mt-3">
           {(Object.keys(FACTION_LABELS) as Faction[]).map((faction) => {
             const pct = factionControl[faction] || 0;
@@ -439,7 +442,7 @@ function PlanetInfo({ planet, editable }: { planet: Planet; editable: boolean })
               </div>
             );
           })}
-          {/* Button to add another faction's control — admin only */}
+
           {editable && Object.keys(FACTION_LABELS).filter(f => !factionControl[f as Faction]).length > 0 && (
             <AddFactionControl
               existingFactions={Object.keys(factionControl) as Faction[]}
@@ -449,7 +452,7 @@ function PlanetInfo({ planet, editable }: { planet: Planet; editable: boolean })
         </div>
       </div>
 
-      {/* Description (editable for admin) */}
+
       <div>
         <label className="holo-label" style={{ marginBottom: '6px' }}>Description</label>
         {editable && editingDescription ? (
@@ -502,7 +505,7 @@ function PlanetInfo({ planet, editable }: { planet: Planet; editable: boolean })
         )}
       </div>
 
-      {/* Per-selected system marker size (top-down view marker) — admin only */}
+
       {editable && viewMode === 'topdown' && (
         <div>
           <label className="holo-label" style={{ marginBottom: '8px' }}>Top-Down Marker Size</label>
@@ -523,7 +526,7 @@ function PlanetInfo({ planet, editable }: { planet: Planet; editable: boolean })
         </div>
       )}
 
-      {/* Notable Locations (editable for admin) */}
+
       <div>
         <label className="holo-label" style={{ marginBottom: '8px' }}>Points of Interest</label>
         {editable && editingNotable ? (
@@ -595,7 +598,7 @@ function PlanetInfo({ planet, editable }: { planet: Planet; editable: boolean })
         )}
       </div>
 
-      {/* Special warnings */}
+
       {planet.type === 'destroyed' && (
         <div className="holo-info-grid" style={{ background: 'rgba(220, 20, 60, 0.08)', borderColor: 'rgba(220, 20, 60, 0.2)' }}>
           <div className="flex items-center gap-2 text-xs font-bold" style={{ color: 'var(--holo-crimson)', fontFamily: 'Orbitron, monospace', fontSize: '9px' }}>
@@ -657,17 +660,15 @@ function AddFactionControl({ existingFactions, onAdd }: { existingFactions: Fact
 
 function FleetInfo({ fleet, editable }: { fleet: Fleet; editable: boolean }) {
   const { removeCustomFleet, setInfoPanelData, setSelectedFleet, updateFleetMarkerSize, viewMode } = useGalaxyStore();
-  
-  const markerSize = fleet.markerSize ?? DEFAULT_TOPDOWN_FLEET_MARKER_SIZE;
 
-  // Segmented meter for fleet strength
+  const markerSize = fleet.markerSize ?? DEFAULT_TOPDOWN_FLEET_MARKER_SIZE;
   const totalSegments = 10;
   const filledSegments = Math.min(Math.ceil(fleet.shipCount / 20), totalSegments);
   const segmentColor = fleet.faction === 'sith_empire' ? 'var(--holo-crimson)' : fleet.faction === 'hutt_cartel' ? '#8B9A46' : 'var(--holo-amber)';
 
   return (
     <div className="space-y-4">
-      {/* Header */}
+
       <div className="pb-3">
         <div className="flex items-center gap-2 mb-2">
           <div
@@ -699,7 +700,7 @@ function FleetInfo({ fleet, editable }: { fleet: Fleet; editable: boolean }) {
 
       <div className="holo-divider" />
 
-      {/* Info grid */}
+
       <div className="holo-info-grid space-y-2">
         <InfoRow label="Ship Count" value={`${fleet.shipCount} Vessels`} />
         {fleet.flagship && <InfoRow label="Flagship" value={fleet.flagship} />}
@@ -726,7 +727,7 @@ function FleetInfo({ fleet, editable }: { fleet: Fleet; editable: boolean }) {
         </div>
       )}
 
-      {/* Fleet strength - KOTOR segmented meter */}
+
       <div>
         <label className="holo-label" style={{ marginBottom: '8px' }}>Fleet Strength</label>
         <div className="flex gap-1 mt-2">
@@ -749,7 +750,7 @@ function FleetInfo({ fleet, editable }: { fleet: Fleet; editable: boolean }) {
         </div>
       </div>
 
-      {/* Delete button for custom fleets — admin only */}
+
       {editable && fleet.isCustom && (
         <button
           onClick={() => {
@@ -784,7 +785,7 @@ function AnomalyInfo({ anomaly }: { anomaly: Anomaly }) {
 
   return (
     <div className="space-y-4">
-      {/* Header */}
+
       <div className="pb-3">
         <h2 className="text-xl font-semibold mb-2" style={{ fontFamily: 'Orbitron, monospace', color: 'var(--holo-text-primary)' }}>{anomaly.name}</h2>
         <span className={`holo-badge border border-white/10 bg-white/5 ${typeColors[anomaly.type] || 'text-gray-400'}`}>
@@ -794,15 +795,15 @@ function AnomalyInfo({ anomaly }: { anomaly: Anomaly }) {
 
       <div className="holo-divider" />
 
-      {/* Info */}
+
       <div className="holo-info-grid">
         <InfoRow label="Radius" value={`${anomaly.radius} parsecs`} />
       </div>
 
-      {/* Description */}
+
       <p className="text-sm leading-relaxed" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Rajdhani, sans-serif' }}>{anomaly.description}</p>
 
-      {/* Warning for dangerous anomalies */}
+
       {(anomaly.type === 'black_hole' || anomaly.type === 'nebula') && (
         <div className="holo-info-grid" style={{ background: 'rgba(200, 170, 110, 0.06)', borderColor: 'rgba(200, 170, 110, 0.2)' }}>
           <div className="flex items-center gap-2 text-xs font-bold" style={{ color: 'var(--holo-amber)', fontFamily: 'Orbitron, monospace', fontSize: '9px' }}>

@@ -20,12 +20,10 @@ const ANOMALY_COLORS = {
 function AnomalyMarker({ anomaly }: AnomalyMarkerProps) {
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
-  
+
   const { showLabels, setInfoPanelData } = useGalaxyStore();
-  
+
   const color = ANOMALY_COLORS[anomaly.type] || '#FFFFFF';
-  
-  // Animation based on type
   useFrame((state) => {
     if (groupRef.current) {
       if (anomaly.type === 'black_hole') {
@@ -36,7 +34,7 @@ function AnomalyMarker({ anomaly }: AnomalyMarkerProps) {
       }
     }
   });
-  
+
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
     setInfoPanelData({
@@ -44,52 +42,50 @@ function AnomalyMarker({ anomaly }: AnomalyMarkerProps) {
       data: anomaly,
     });
   };
-  
+
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     setHovered(true);
     document.body.style.cursor = 'pointer';
   };
-  
+
   const handlePointerOut = () => {
     setHovered(false);
     document.body.style.cursor = 'auto';
   };
-  
-  // Fallback geometry for each anomaly type
   const renderFallback = () => {
     switch (anomaly.type) {
       case 'black_hole':
         return (
           <group>
-            {/* Event horizon */}
+
             <mesh>
               <sphereGeometry args={[anomaly.radius * 0.3, 32, 32]} />
               <meshBasicMaterial color="#000000" />
             </mesh>
-            {/* Accretion disk */}
+
             <mesh rotation={[Math.PI / 2, 0, 0]}>
               <torusGeometry args={[anomaly.radius * 0.6, anomaly.radius * 0.15, 16, 32]} />
               <meshBasicMaterial color="#FF4500" transparent opacity={0.7} />
             </mesh>
-            {/* Outer glow */}
+
             <mesh rotation={[Math.PI / 2, 0, 0]}>
               <ringGeometry args={[anomaly.radius * 0.8, anomaly.radius, 32]} />
               <meshBasicMaterial color="#FF6B00" transparent opacity={0.3} side={THREE.DoubleSide} />
             </mesh>
           </group>
         );
-      
+
       case 'nebula':
         return (
           <group>
-            {/* Multiple cloud layers */}
+
             {[0.6, 0.8, 1.0].map((scale, i) => (
               <mesh key={i} scale={scale}>
                 <icosahedronGeometry args={[anomaly.radius, 1]} />
-                <meshBasicMaterial 
-                  color={i === 2 ? '#9400D3' : i === 1 ? '#00CED1' : '#FF69B4'} 
-                  transparent 
+                <meshBasicMaterial
+                  color={i === 2 ? '#9400D3' : i === 1 ? '#00CED1' : '#FF69B4'}
+                  transparent
                   opacity={0.3 - i * 0.08}
                   wireframe={i === 0}
                 />
@@ -97,28 +93,28 @@ function AnomalyMarker({ anomaly }: AnomalyMarkerProps) {
             ))}
           </group>
         );
-      
+
       case 'space_station':
         return (
           <group>
-            {/* Central hub */}
+
             <mesh>
               <cylinderGeometry args={[0.5, 0.5, 1, 8]} />
               <meshStandardMaterial color="#4A5568" metalness={0.8} roughness={0.3} />
             </mesh>
-            {/* Ring */}
+
             <mesh rotation={[Math.PI / 2, 0, 0]}>
               <torusGeometry args={[1.2, 0.15, 8, 16]} />
               <meshStandardMaterial color="#4A5568" metalness={0.8} roughness={0.3} />
             </mesh>
-            {/* Lights */}
+
             <mesh position={[0, 0.6, 0]}>
               <sphereGeometry args={[0.15, 8, 8]} />
               <meshBasicMaterial color="#00BFFF" />
             </mesh>
           </group>
         );
-      
+
       case 'hyperspace_lane':
         return (
           <group>
@@ -128,7 +124,7 @@ function AnomalyMarker({ anomaly }: AnomalyMarkerProps) {
             </mesh>
           </group>
         );
-      
+
       default:
         return (
           <mesh>
@@ -138,33 +134,33 @@ function AnomalyMarker({ anomaly }: AnomalyMarkerProps) {
         );
     }
   };
-  
+
   return (
-    <group 
-      ref={groupRef} 
+    <group
+      ref={groupRef}
       position={anomaly.position}
       onClick={handleClick}
       onPointerOver={handlePointerOver}
       onPointerOut={handlePointerOut}
     >
-      {/* Try to load GLB model, fallback to procedural geometry */}
+
       <Suspense fallback={renderFallback()}>
-        <AnomalyModel 
-          type={anomaly.type} 
-          position={new THREE.Vector3(0, 0, 0)} 
+        <AnomalyModel
+          type={anomaly.type}
+          position={new THREE.Vector3(0, 0, 0)}
           scale={anomaly.radius * 0.5}
         />
       </Suspense>
-      
-      {/* Hover glow effect */}
+
+
       {hovered && (
         <mesh>
           <sphereGeometry args={[anomaly.radius * 1.2, 16, 16]} />
           <meshBasicMaterial color={color} transparent opacity={0.2} />
         </mesh>
       )}
-      
-      {/* Label */}
+
+
       {showLabels && hovered && (
         <Html
           position={[0, anomaly.radius + 2, 0]}
@@ -181,13 +177,11 @@ function AnomalyMarker({ anomaly }: AnomalyMarkerProps) {
     </group>
   );
 }
-
-// Anomaly markers container
 export function AnomalyMarkers() {
   const { anomalies, showAnomalies } = useGalaxyStore();
-  
+
   if (!showAnomalies) return null;
-  
+
   return (
     <group>
       {anomalies.map(anomaly => (

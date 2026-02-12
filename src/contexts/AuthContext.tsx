@@ -7,6 +7,7 @@ export interface AuthContextValue {
   session: Session | null;
   profile: UserProfile | null;
   loading: boolean;
+  profileLoading: boolean;
   supabaseConfigured: boolean;
   signUp: (email: string, password: string, displayName: string) => Promise<{ error: string | null }>;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
@@ -42,10 +43,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(supabaseConfigured);
+  const [profileLoading, setProfileLoading] = useState(false);
   const initialAuthResolvedRef = useRef(!supabaseConfigured);
+  const profileRequestsInFlightRef = useRef(0);
 
   const fetchProfile = useCallback(async (userId: string) => {
     if (!supabaseConfigured) return;
+    profileRequestsInFlightRef.current += 1;
+    setProfileLoading(true);
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -63,6 +68,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('Failed to fetch profile:', error);
       setProfile(null);
+    } finally {
+      profileRequestsInFlightRef.current = Math.max(0, profileRequestsInFlightRef.current - 1);
+      if (profileRequestsInFlightRef.current === 0) {
+        setProfileLoading(false);
+      }
     }
   }, []);
 
@@ -83,6 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         void fetchProfile(newSession.user.id);
       } else {
         setProfile(null);
+        setProfileLoading(false);
       }
 
       if (!initialAuthResolvedRef.current) {
@@ -90,16 +101,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setLoading(false);
       }
     };
-
-    // Use onAuthStateChange as the primary session source (Supabase-recommended).
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, newSession) => {
         resolveAuthState(newSession);
       }
     );
-
-    // Secondary bootstrap path: if a valid persisted session exists, hydrate it
-    // even when auth-state events are delayed by browser/platform behavior.
     void withTimeout(
       supabase.auth.getSession(),
       SESSION_BOOTSTRAP_TIMEOUT_MS,
@@ -111,8 +117,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       })
       .catch(() => {});
-
-    // Safety timeout: if auth callback never resolves, unblock route guards.
     const timeout = window.setTimeout(() => {
       if (!initialAuthResolvedRef.current) {
         initialAuthResolvedRef.current = true;
@@ -125,8 +129,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       window.clearTimeout(timeout);
     };
   }, [fetchProfile]);
-
-  // Periodically refresh profile so role changes propagate without a page reload
   useEffect(() => {
     if (!supabaseConfigured || !session?.user?.id) return;
     const interval = setInterval(() => {
@@ -181,6 +183,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(null);
     setProfile(null);
     setLoading(false);
+    setProfileLoading(false);
     if (!supabaseConfigured) return;
 
     try {
@@ -198,7 +201,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ session, profile, loading, supabaseConfigured, signUp, signIn, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ session, profile, loading, profileLoading, supabaseConfigured, signUp, signIn, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

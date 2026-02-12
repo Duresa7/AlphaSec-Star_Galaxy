@@ -32,50 +32,43 @@ function GalaxyContent() {
   } = useGalaxyStore();
 
   useEffect(() => {
-    // Simulate loading complete
     const timer = setTimeout(() => setIsLoading(false), 1500);
     return () => clearTimeout(timer);
   }, [setIsLoading]);
-  
-  // Get selected system for detail view
-  const selectedSystem = selectedSystemId 
-    ? systems.find(s => s.id === selectedSystemId) 
+  const selectedSystem = selectedSystemId
+    ? systems.find(s => s.id === selectedSystemId)
     : null;
-    
-  // Get selected fleet for detail view
   const selectedFleet = selectedFleetId
     ? fleets.find(f => f.id === selectedFleetId)
     : null;
-  
-  // Get lighting config based on current view mode
   const isSystemView = viewMode === 'system';
   const ambientConfig = isSystemView ? AMBIENT_LIGHT.system : AMBIENT_LIGHT.galaxy;
   const hemisphereConfig = isSystemView ? HEMISPHERE_LIGHT.system : HEMISPHERE_LIGHT.galaxy;
   const directionalConfig = isSystemView ? DIRECTIONAL_LIGHT.system : DIRECTIONAL_LIGHT.galaxy;
   const pointLightsConfig = isSystemView ? POINT_LIGHTS.system : POINT_LIGHTS.galaxy;
-  
+
   return (
     <group>
-      {/* Environment map for subtle reflections on metallic surfaces */}
+
       <Environment preset="night" background={false} blur={0.5} />
-      
-      {/* Hemisphere light for subtle sky/ground gradient */}
+
+
       <hemisphereLight
         args={[hemisphereConfig.skyColor, hemisphereConfig.groundColor, hemisphereConfig.intensity]}
       />
-      
-      {/* Ambient lighting - base illumination */}
+
+
       <ambientLight intensity={ambientConfig.intensity} color={ambientConfig.color} />
-      
-      {/* Main directional light - simulates distant star */}
+
+
       <directionalLight
         position={directionalConfig.position}
         intensity={directionalConfig.intensity}
         color={directionalConfig.color}
         castShadow={directionalConfig.castShadow}
       />
-      
-      {/* Point lights for atmospheric colored illumination */}
+
+
       {pointLightsConfig.map((light) => (
         <pointLight
           key={light.name}
@@ -86,15 +79,15 @@ function GalaxyContent() {
           decay={light.decay}
         />
       ))}
-      
-      {/* Galaxy skybox - Blender model with stars and nebula */}
+
+
       <GalaxySkybox />
-      
-      {/* Conditional rendering based on view mode */}
+
+
       {viewMode === 'topdown' && (
         <TopDownView />
       )}
-      
+
       {viewMode === 'system' && selectedSystem && (
         <group position={selectedSystem.position}>
           <SystemDetailView system={selectedSystem} />
@@ -106,14 +99,12 @@ function GalaxyContent() {
           <FleetDetailView fleet={selectedFleet} />
         </group>
       )}
-      
-      {/* Camera controls */}
+
+
       <CameraController />
     </group>
   );
 }
-
-// Top-down view components (2D map with markers)
 function TopDownView() {
   const { isAdmin } = useRole();
   const { placementMode, pendingCustomPlanet, addCustomSystem, fleetPlacementMode, pendingCustomFleet, addCustomFleet } = useGalaxyStore();
@@ -165,19 +156,19 @@ function TopDownView() {
 
   return (
     <>
-      {/* Procedural galaxy map background */}
+
       <GalaxyMapBackground />
 
-      {/* Anomalies (nebulae, black holes, stations) */}
+
       <AnomalyMarkers />
 
-      {/* Fleet markers */}
+
       <FleetMarkers />
 
-      {/* Top-down planet markers (placeholder dots, not 3D models) */}
+
       <TopDownMarkers />
 
-      {/* Invisible ground plane for placement clicks */}
+
       {(placementMode || fleetPlacementMode) && (
         <mesh
           rotation={[-Math.PI / 2, 0, 0]}
@@ -191,8 +182,6 @@ function TopDownView() {
     </>
   );
 }
-
-// Loading fallback
 function LoadingFallback() {
   return (
     <group>
@@ -213,8 +202,6 @@ export function GalaxyScene() {
     setSelectedFleet,
     setInfoPanelData,
   } = useGalaxyStore();
-
-  // Only deselect when clicking empty space, not when clicking selectable objects.
   const handlePointerMissed = () => {
     if (placementMode || fleetPlacementMode) return;
     switch (viewMode) {
@@ -252,7 +239,7 @@ export function GalaxyScene() {
       }}
     >
       <color attach="background" args={[BACKGROUND_COLOR]} />
-      
+
       <Suspense fallback={<LoadingFallback />}>
         <GalaxyContent />
       </Suspense>
