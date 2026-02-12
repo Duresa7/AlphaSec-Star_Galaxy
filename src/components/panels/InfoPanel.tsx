@@ -3,7 +3,8 @@ import { useGalaxyStore } from '@/store/galaxyStore';
 import { useRole } from '@/hooks/useRole';
 import { normalizeFactionControl } from '@/utils/factionControl';
 
-import type { StarSystem, Fleet, Anomaly, Planet, Faction, InfoPanelData, ViewMode } from '@/types';
+import type { StarSystem, Fleet, Anomaly, Planet, Faction, InfoPanelData, ViewMode, PlanetType } from '@/types';
+import { PLANET_APPEARANCES } from '@/components/galaxy/SystemDetailView';
 import {
   DEFAULT_TOPDOWN_FLEET_MARKER_SIZE,
   DEFAULT_TOPDOWN_SYSTEM_MARKER_SIZE,
@@ -412,6 +413,32 @@ function PlanetInfo({ planet, editable }: { planet: Planet; editable: boolean })
         />
       </div>
 
+      {editable && (
+        <div>
+          <label className="holo-label" style={{ marginBottom: '8px' }}>Planet Color</label>
+          <div className="flex items-center gap-3 mt-2">
+            <input
+              type="color"
+              value={planet.customColor || (PLANET_APPEARANCES[planet.type as PlanetType] || PLANET_APPEARANCES.terrestrial).color}
+              onChange={(e) => updatePlanetStats(planet.systemId, planet.id, { customColor: e.target.value })}
+              className="w-8 h-8 border cursor-pointer bg-transparent"
+              style={{ borderColor: 'rgba(200, 170, 110, 0.2)' }}
+            />
+            <span className="text-[11px] flex-1" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Orbitron, monospace', fontSize: '9px' }}>
+              {planet.customColor ? 'Custom' : 'Type Default'}
+            </span>
+            {planet.customColor && (
+              <button
+                onClick={() => updatePlanetStats(planet.systemId, planet.id, { customColor: null })}
+                className="text-[9px] uppercase tracking-wide hover:underline"
+                style={{ color: 'var(--holo-cyan)', fontFamily: 'Orbitron, monospace' }}
+              >
+                Reset
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       <div>
         <label className="holo-label" style={{ marginBottom: '8px' }}>Faction Control</label>

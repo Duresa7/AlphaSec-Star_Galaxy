@@ -9,7 +9,7 @@ import { PlanetModel, hasPlanetModel } from '@/components/three/ModelLoader';
 interface SystemDetailViewProps {
   system: StarSystem;
 }
-const PLANET_APPEARANCES: Record<PlanetType, {
+export const PLANET_APPEARANCES: Record<PlanetType, {
   color: string;
   roughness: number;
   metalness: number;
@@ -131,11 +131,11 @@ function StaticPlanet({ planet, showLabels, isDetailView, customColor }: StaticP
   const planetSize = planet.radius * 2.2;
   const planetMaterial = useMemo(() => {
     return {
-      color: customColor || appearance.color,
+      color: planet.customColor || customColor || appearance.color,
       roughness: appearance.roughness,
       metalness: appearance.metalness,
     };
-  }, [appearance, customColor]);
+  }, [appearance, customColor, planet.customColor]);
 
 
   const handleClick = (e: ThreeEvent<MouseEvent>) => {

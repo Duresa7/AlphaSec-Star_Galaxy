@@ -32,6 +32,7 @@ export interface Planet {
   notable?: string[];
   systemId: string;
   factionControl?: Partial<Record<Faction, number>>;
+  customColor?: string;
 }
 export interface StarSystem {
   id: string;
@@ -132,6 +133,7 @@ export interface PlanetStatsUpdate {
   climate?: string | null;
   terrain?: string | null;
   notable?: string[] | null;
+  customColor?: string | null;
 }
 export interface GalaxyStore {
   viewMode: ViewMode;

@@ -49,9 +49,10 @@ function TopDownMarker({ system }: TopDownMarkerProps) {
     placementMode,
   } = useGalaxyStore();
 
-  const factionColor = system.isCustom && system.customColor
-    ? system.customColor
-    : FACTION_COLORS[system.faction];
+  const primaryPlanetColor = system.planets[0]?.customColor;
+  const factionColor = primaryPlanetColor
+    || (system.isCustom && system.customColor ? system.customColor : null)
+    || FACTION_COLORS[system.faction];
   const markerSize =
     system.markerSize ??
     TOPDOWN_SYSTEM_MARKER_SIZE_BY_IMPORTANCE[system.importance] ??
