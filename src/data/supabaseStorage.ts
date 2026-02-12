@@ -65,6 +65,7 @@ interface DbPlanet {
   terrain?: string;
   notable?: string[];
   factionControl?: Partial<Record<Faction, number>>;
+  customColor?: string;
 }
 
 interface DbFleet {
@@ -95,6 +96,7 @@ function dbToSystem(row: DbSystem): StarSystem {
         notable: p.notable,
         systemId: row.id,
         factionControl: p.factionControl,
+        customColor: p.customColor,
       }))
     : [{
         id: `${row.id}-prime`,
@@ -169,6 +171,7 @@ export async function insertCustomSystem(system: StarSystem, userId: string): Pr
       terrain: p.terrain,
       notable: p.notable,
       factionControl: p.factionControl,
+      customColor: p.customColor,
     })),
     created_by: userId,
   });
@@ -197,6 +200,7 @@ export async function upsertSystem(system: StarSystem, userId: string): Promise<
       terrain: p.terrain,
       notable: p.notable,
       factionControl: p.factionControl,
+      customColor: p.customColor,
     })),
     created_by: userId,
   }, { onConflict: 'id' });
