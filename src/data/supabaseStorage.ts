@@ -41,8 +41,6 @@ const getAuthenticatedUserId = async (): Promise<string | null> => {
   }
 };
 
-// ─── Serialize / Deserialize helpers ────────────
-
 interface DbSystem {
   id: string;
   name: string;
@@ -137,8 +135,6 @@ function dbToFleet(row: DbFleet): Fleet {
   };
 }
 
-// ─── CRUD: Custom Systems ───────────────────────
-
 export async function loadCustomSystems(): Promise<StarSystem[]> {
   if (!supabaseConfigured) return [];
   const { data, error } = await supabase
@@ -213,8 +209,6 @@ export async function deleteCustomSystem(id: string): Promise<void> {
   if (error) console.error('Failed to delete custom system:', error);
 }
 
-// ─── CRUD: Custom Fleets ────────────────────────
-
 export async function loadCustomFleets(): Promise<Fleet[]> {
   if (!supabaseConfigured) return [];
   const { data, error } = await supabase
@@ -265,8 +259,6 @@ export async function deleteCustomFleet(id: string): Promise<void> {
   if (error) console.error('Failed to delete custom fleet:', error);
 }
 
-// ─── App Settings (global key/value) ────────────
-
 export async function loadSetting(key: string): Promise<unknown> {
   if (!supabaseConfigured) return null;
   const { data, error } = await supabase
@@ -290,8 +282,6 @@ export async function updateSetting(key: string, value: unknown): Promise<void> 
     .eq('key', key);
   if (error) console.error(`Failed to update setting "${key}":`, error);
 }
-
-// ─── Audit Logging ──────────────────────────────
 
 export async function logAction(
   action: AuditAction,
@@ -345,8 +335,6 @@ export async function fetchAuditLogs(limit = 50, offset = 0): Promise<{ logs: Au
 
   return { logs, total: count ?? 0 };
 }
-
-// ─── User Management ────────────────────────────
 
 export async function fetchAllProfiles(): Promise<UserProfile[]> {
   if (!supabaseConfigured) return [];

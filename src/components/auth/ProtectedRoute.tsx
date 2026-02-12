@@ -21,8 +21,6 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
     return () => window.clearTimeout(timeoutId);
   }, [loading, session]);
-
-  // Block access when Supabase is not configured — auth is required
   if (!supabaseConfigured) {
     return <Navigate to="/" replace />;
   }

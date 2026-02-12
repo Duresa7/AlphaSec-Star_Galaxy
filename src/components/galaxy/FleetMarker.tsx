@@ -23,15 +23,13 @@ const FACTION_COLORS: Record<Faction, string> = {
   contested: '#FF8C00',
   hutt_cartel: '#8B9A46',
 };
-
-// Diamond shape geometry for custom fleet markers in top-down view
 function useDiamondShape(size: number) {
   return useMemo(() => {
     const shape = new THREE.Shape();
-    shape.moveTo(0, size);      // top
-    shape.lineTo(size, 0);      // right
-    shape.lineTo(0, -size);     // bottom
-    shape.lineTo(-size, 0);     // left
+    shape.moveTo(0, size);
+    shape.lineTo(size, 0);
+    shape.lineTo(0, -size);
+    shape.lineTo(-size, 0);
     shape.closePath();
     return new THREE.ShapeGeometry(shape);
   }, [size]);
@@ -83,8 +81,6 @@ function FleetMarker({ fleet }: FleetMarkerProps) {
       data: fleet,
     });
   };
-
-  // Subtle bobbing animation for non-custom fleets
   useFrame((state) => {
     if (groupRef.current && !fleet.isCustom) {
       groupRef.current.position.y = fleet.position.y + Math.sin(state.clock.elapsedTime + fleet.position.x) * 0.2;
@@ -190,12 +186,10 @@ function FleetMarker({ fleet }: FleetMarkerProps) {
       document.body.style.cursor = 'auto';
     }
   };
-
-  // Custom fleets use diamond marker in top-down view
   if (fleet.isCustom) {
     return (
       <group position={fleet.position}>
-        {/* Diamond marker */}
+
         <mesh
           onClick={handleClick}
           onDoubleClick={handleDoubleClick}
@@ -213,7 +207,7 @@ function FleetMarker({ fleet }: FleetMarkerProps) {
           />
         </mesh>
 
-        {/* Custom fleet glow ring (diamond outline) */}
+
         <mesh rotation={[-Math.PI / 2, 0, 0]}>
           <ringGeometry args={[markerSize * 1.1, markerSize * 1.3, 4]} />
           <meshBasicMaterial
@@ -223,7 +217,7 @@ function FleetMarker({ fleet }: FleetMarkerProps) {
           />
         </mesh>
 
-        {/* Label - always show for custom fleets */}
+
         {(showLabels || hovered || fleet.isCustom) && (
           <Html
             position={[0, 0, -markerSize * 1.5]}
@@ -254,8 +248,6 @@ function FleetMarker({ fleet }: FleetMarkerProps) {
       </group>
     );
   }
-
-  // Built-in fleets use 3D ship models
   return (
     <group
       ref={groupRef}
@@ -266,7 +258,7 @@ function FleetMarker({ fleet }: FleetMarkerProps) {
       onPointerOver={handlePointerOver}
       onPointerOut={handlePointerOut}
     >
-      {/* Try to load ship model, fallback to simple geometry */}
+
       <Suspense fallback={
         <mesh scale={markerScale}>
           <coneGeometry args={[2, 5, 4]} />
@@ -281,7 +273,7 @@ function FleetMarker({ fleet }: FleetMarkerProps) {
         />
       </Suspense>
 
-      {/* Label / Tooltip - Shows stats on hover */}
+
       {hovered && (
         <Html
           position={[0, markerSize * 1.8, 0]}
@@ -300,8 +292,6 @@ function FleetMarker({ fleet }: FleetMarkerProps) {
     </group>
   );
 }
-
-// Fleet markers container
 export function FleetMarkers() {
   const { fleets, showFleets } = useGalaxyStore();
 

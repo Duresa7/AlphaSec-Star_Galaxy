@@ -3,8 +3,6 @@ import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { ProceduralSkybox } from './ProceduralSkybox';
-
-// Preload models
 const MODEL_PATHS = {
   sithDreadnought: '/models/ships/sith_dreadnought.glb',
   republicFrigate: '/models/ships/republic_frigate.glb',
@@ -12,7 +10,6 @@ const MODEL_PATHS = {
   blackHole: '/models/icons/black_hole.glb',
   spaceStation: '/models/icons/space_station.glb',
   hyperspaceMarker: '/models/icons/hyperspace_marker.glb',
-  // Planet models from Sketchfab
   planetAlderaan: '/models/planets/alderaan.glb',
   planetBalmorra: '/models/planets/balmorra.glb',
   planetBelsavis: '/models/planets/belsavis.glb',
@@ -32,8 +29,6 @@ const MODEL_PATHS = {
   planetTython: '/models/planets/tython.glb',
   planetVoss: '/models/planets/voss.glb',
 };
-
-// Planet ID to model path mapping
 const PLANET_MODEL_PATHS: Record<string, string> = {
   'alderaan-prime': MODEL_PATHS.planetAlderaan,
   'balmorra-prime': MODEL_PATHS.planetBalmorra,
@@ -65,18 +60,16 @@ interface ShipModelProps {
 export function ShipModel({ type, position, scale = 0.5, rotation = [0, 0, 0] }: ShipModelProps) {
   const groupRef = useRef<THREE.Group>(null);
   const modelPath = type === 'sith' ? MODEL_PATHS.sithDreadnought : MODEL_PATHS.republicFrigate;
-  
+
   const { scene } = useGLTF(modelPath);
-  
+
   const clonedScene = useMemo(() => scene.clone(), [scene]);
-  
-  // Gentle floating animation
   useFrame((state) => {
     if (groupRef.current) {
       groupRef.current.position.y = position.y + Math.sin(state.clock.elapsedTime * 0.5) * 0.1;
     }
   });
-  
+
   return (
     <group ref={groupRef} position={position} rotation={rotation} scale={scale}>
       <primitive object={clonedScene} />
@@ -92,7 +85,7 @@ interface AnomalyModelProps {
 
 export function AnomalyModel({ type, position, scale = 1 }: AnomalyModelProps) {
   const groupRef = useRef<THREE.Group>(null);
-  
+
   const modelPath = useMemo(() => {
     switch (type) {
       case 'nebula': return MODEL_PATHS.nebula;
@@ -102,12 +95,8 @@ export function AnomalyModel({ type, position, scale = 1 }: AnomalyModelProps) {
       default: return null;
     }
   }, [type]);
-  
-  // Gracefully handle missing models
   const { scene } = useGLTF(modelPath || MODEL_PATHS.nebula);
   const clonedScene = useMemo(() => scene.clone(), [scene]);
-  
-  // Rotation animation for anomalies
   useFrame(() => {
     if (groupRef.current) {
       if (type === 'black_hole') {
@@ -119,9 +108,9 @@ export function AnomalyModel({ type, position, scale = 1 }: AnomalyModelProps) {
       }
     }
   });
-  
+
   if (!modelPath) return null;
-  
+
   return (
     <group ref={groupRef} position={position} scale={scale}>
       <primitive object={clonedScene} />
@@ -138,26 +127,20 @@ interface PlanetModelProps {
 
 export function PlanetModel({ planetId, position, scale = 1, rotation = [0, 0, 0] }: PlanetModelProps) {
   const groupRef = useRef<THREE.Group>(null);
-  
+
   const modelPath = PLANET_MODEL_PATHS[planetId];
-  
-  // Load the model (will throw if path doesn't exist, caught by Suspense)
   const { scene } = useGLTF(modelPath);
   const clonedScene = useMemo(() => scene.clone(), [scene]);
-  
+
   return (
     <group ref={groupRef} position={position} rotation={rotation} scale={scale}>
       <primitive object={clonedScene} />
     </group>
   );
 }
-
-// Check if a planet has a GLB model available
 export function hasPlanetModel(planetId: string): boolean {
   return planetId in PLANET_MODEL_PATHS;
 }
-
-// Galaxy Skybox component
 export function GalaxySkybox() {
   return <ProceduralSkybox />;
 }

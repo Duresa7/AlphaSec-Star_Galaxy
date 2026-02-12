@@ -1,9 +1,6 @@
 @import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Manrope:wght@400;500;600;700;800&family=Oxanium:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&family=Spline+Sans:wght@300;400;500;600&display=swap");
 @import "tailwindcss";
 
-/* ═══════════════════════════════════════════════════
-   KOTOR HOLOTERM CSS VARIABLES
-   ═══════════════════════════════════════════════════ */
 :root {
   --holo-void: #050508;
   --holo-amber: #C8AA6E;
@@ -18,7 +15,6 @@
   --holo-text-muted: rgba(200, 170, 110, 0.5);
 }
 
-/* Modern Reset & Base */
 body {
   font-family: "Rajdhani", "Outfit", sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -28,7 +24,6 @@ body {
   overflow: hidden;
 }
 
-/* Custom scrollbar - KOTOR Amber */
 ::-webkit-scrollbar {
   width: 4px;
   height: 4px;
@@ -47,10 +42,9 @@ body {
   background: rgba(200, 170, 110, 0.5);
 }
 
-/* Hide scrollbar visuals while preserving scroll behavior */
 .holo-scroll-invisible {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and legacy Edge */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .holo-scroll-invisible::-webkit-scrollbar {
@@ -58,7 +52,6 @@ body {
   height: 0;
 }
 
-/* Utility Animations */
 @keyframes slideInRight {
   from { opacity: 0; transform: translateX(20px); }
   to { opacity: 1; transform: translateX(0); }
@@ -80,7 +73,6 @@ body {
   100% { opacity: 0; transform: scale(1.25); }
 }
 
-/* KOTOR Holo Animations */
 @keyframes holoScanline {
   0% { transform: translateY(-100%); }
   100% { transform: translateY(100%); }
@@ -120,12 +112,6 @@ body {
   animation: fadeIn 0.5s ease-out forwards;
 }
 
-/* ═══════════════════════════════════════════════════
-   KOTOR HOLOTERM DESIGN SYSTEM
-   Weathered ancient-tech navicomputer aesthetic
-   ═══════════════════════════════════════════════════ */
-
-/* Chamfered corner clip-path — durasteel cut */
 .holo-clip {
   clip-path: polygon(
     12px 0%, calc(100% - 12px) 0%,
@@ -135,7 +121,6 @@ body {
   );
 }
 
-/* Main panel — the core container */
 .holo-panel {
   position: relative;
   background: var(--holo-panel-bg);
@@ -155,7 +140,6 @@ body {
   animation: holoFlicker 8s infinite;
 }
 
-/* Scan-line overlay on panels */
 .holo-panel::before {
   content: "";
   position: absolute;
@@ -171,7 +155,6 @@ body {
   z-index: 1;
 }
 
-/* Subtle scrolling scan beam */
 .holo-panel::after {
   content: "";
   position: absolute;
@@ -189,13 +172,11 @@ body {
   z-index: 1;
 }
 
-/* Noise/grain texture overlay */
 .holo-panel > * {
   position: relative;
   z-index: 2;
 }
 
-/* Section label — angular, technical */
 .holo-label {
   display: block;
   font-family: "Orbitron", monospace;
@@ -207,7 +188,6 @@ body {
   text-shadow: 0 0 6px rgba(200, 170, 110, 0.4);
 }
 
-/* Input field — KOTOR datapad style */
 .holo-input {
   background: rgba(5, 5, 8, 0.7);
   border: 1px solid rgba(200, 170, 110, 0.2);
@@ -235,7 +215,6 @@ body {
   box-shadow: 0 0 12px rgba(200, 170, 110, 0.15), inset 0 0 8px rgba(200, 170, 110, 0.05);
 }
 
-/* Hide number input spinners for clean KOTOR look */
 .holo-number-input::-webkit-inner-spin-button,
 .holo-number-input::-webkit-outer-spin-button {
   -webkit-appearance: none;
@@ -245,7 +224,6 @@ body {
   -moz-appearance: textfield;
 }
 
-/* Button — angular KOTOR style */
 .holo-button {
   display: flex;
   align-items: center;
@@ -281,7 +259,6 @@ body {
   cursor: not-allowed;
 }
 
-/* Tooltip — for 3D markers */
 .holo-tooltip {
   background: rgba(5, 5, 8, 0.95);
   border: 1px solid rgba(200, 170, 110, 0.3);
@@ -295,7 +272,6 @@ body {
   );
 }
 
-/* Badge/tag — angular KOTOR */
 .holo-badge {
   font-family: "Orbitron", monospace;
   font-size: 9px;
@@ -311,7 +287,6 @@ body {
   );
 }
 
-/* Info row */
 .holo-info-row {
   display: flex;
   justify-content: space-between;
@@ -327,7 +302,6 @@ body {
   );
 }
 
-/* Info grid */
 .holo-info-grid {
   background: rgba(200, 170, 110, 0.04);
   border: 1px solid rgba(200, 170, 110, 0.1);
@@ -340,7 +314,6 @@ body {
   );
 }
 
-/* Close button */
 .holo-close-button {
   width: 28px;
   height: 28px;
@@ -365,7 +338,6 @@ body {
   box-shadow: 0 0 10px rgba(200, 170, 110, 0.2);
 }
 
-/* Divider — amber gradient line */
 .holo-divider {
   height: 1px;
   background: linear-gradient(
@@ -378,7 +350,6 @@ body {
   margin: 12px 0;
 }
 
-/* Slider — KOTOR style */
 .holo-slider {
   -webkit-appearance: none;
   width: 100%;
@@ -405,11 +376,6 @@ body {
   box-shadow: 0 0 8px rgba(200, 170, 110, 0.5);
   border: none;
 }
-
-/*
-  PORTFOLIO HERO LANDING
-  Full-screen portrait reveal with spotlight interaction.
-*/
 
 .portfolio-hero {
   --cursor-x: 50%;
@@ -896,11 +862,6 @@ body {
   }
 }
 
-/*
-  ROUTE AUTH LOADING
-  Landing-style loading state for protected routes.
-*/
-
 .route-auth-loading {
   position: relative;
   min-height: 100vh;
@@ -1310,11 +1271,6 @@ body {
   }
 }
 
-/*
-  AUTH MODAL
-  Light portfolio overlay for sign in / sign up.
-*/
-
 .auth-modal__backdrop {
   position: fixed;
   inset: 0;
@@ -1523,7 +1479,6 @@ body {
   color: #333;
 }
 
-/* Auth pill on landing page */
 .portfolio-hero__auth-pill {
   display: inline-flex;
   align-items: center;
@@ -1549,11 +1504,6 @@ body {
   background: rgba(255, 255, 255, 0.94);
   box-shadow: 0 14px 28px rgba(0, 0, 0, 0.18);
 }
-
-/*
-  ADMIN PAGE
-  Light portfolio theme matching Resume/Landing.
-*/
 
 .admin-page {
   position: relative;
@@ -1903,11 +1853,6 @@ body {
   }
 }
 
-/*
-  SITE FOOTER
-  Minimal footer for public pages.
-*/
-
 .site-footer {
   position: relative;
   z-index: 2;
@@ -1958,7 +1903,6 @@ body {
   color: rgba(17, 17, 17, 0.4);
 }
 
-/* Landing page: pin footer to bottom of viewport */
 .portfolio-hero .site-footer {
   position: absolute;
   bottom: 0;
@@ -1995,11 +1939,6 @@ body {
     gap: 8px;
   }
 }
-
-/*
-  LEGAL PAGES
-  Typography for Privacy Policy and Terms of Service.
-*/
 
 .legal-page {
   border-radius: 24px;

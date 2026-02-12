@@ -142,7 +142,6 @@ function TopDownMarker({ system }: TopDownMarkerProps) {
         didDragRef.current = true;
       }
       if (didDragRef.current) {
-        // Raycast against Y=0 plane from current mouse position
         const rect = gl.domElement.getBoundingClientRect();
         const mouseX = ((moveEvent.clientX - rect.left) / rect.width) * 2 - 1;
         const mouseY = -((moveEvent.clientY - rect.top) / rect.height) * 2 + 1;
@@ -193,7 +192,7 @@ function TopDownMarker({ system }: TopDownMarkerProps) {
 
   return (
     <group position={system.position}>
-      {/* Main marker dot */}
+
       <mesh
         onClick={handleClick}
         onDoubleClick={handleDoubleClick}
@@ -210,7 +209,7 @@ function TopDownMarker({ system }: TopDownMarkerProps) {
         />
       </mesh>
 
-      {/* Custom planet glow ring */}
+
       {system.isCustom && (
         <mesh rotation={[-Math.PI / 2, 0, 0]}>
           <ringGeometry args={[markerSize * 1.1, markerSize * 1.3, 32]} />
@@ -222,7 +221,7 @@ function TopDownMarker({ system }: TopDownMarkerProps) {
         </mesh>
       )}
 
-      {/* Label - positioned above the planet */}
+
       {(showLabels || hovered || system.importance === 'capital' || system.isCustom) && (
         <Html
           position={[0, 0, -markerSize * 1.5]}
@@ -250,8 +249,6 @@ function TopDownMarker({ system }: TopDownMarkerProps) {
     </group>
   );
 }
-
-// Render all systems as top-down markers
 export function TopDownMarkers() {
   const { getFilteredSystems } = useGalaxyStore();
   const systems = getFilteredSystems();

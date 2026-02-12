@@ -25,7 +25,6 @@ import { TOPDOWN_MARKER_MAX_SIZE, TOPDOWN_MARKER_MIN_SIZE } from '@/config/topDo
 import { supabase, supabaseConfigured } from '@/lib/supabase';
 import type { StarSystem, Fleet } from '@/types';
 
-/** Deep-clone systems array (positions are THREE.Vector3 and must be cloned). */
 const cloneSystems = (systems: StarSystem[]): StarSystem[] =>
   systems.map((s) => ({
     ...s,
@@ -33,11 +32,9 @@ const cloneSystems = (systems: StarSystem[]): StarSystem[] =>
     planets: s.planets.map((p) => ({ ...p, position: p.position.clone() })),
   }));
 
-/** Deep-clone fleets array. */
 const cloneFleets = (fleetArr: Fleet[]): Fleet[] =>
   fleetArr.map((f) => ({ ...f, position: f.position.clone() }));
 
-/** Module-level snapshot of the "clean" state (after init / after save). */
 let _systemsSnapshot: StarSystem[] = [];
 let _fleetsSnapshot: Fleet[] = [];
 let _yearSnapshot: number = 3956;
@@ -101,7 +98,6 @@ const withTimeout = <T,>(promise: Promise<T>, timeoutMs: number, timeoutMessage:
     );
   });
 
-/** Get the current auth user id (or null). */
 const getCurrentUserId = async (): Promise<string | null> => {
   if (!supabaseConfigured) return null;
   try {
@@ -121,8 +117,6 @@ const getCurrentUserId = async (): Promise<string | null> => {
   }
 };
 
-
-/** Fire-and-forget audit log. */
 const auditLog = (
   action: import('@/types').AuditAction,
   entityType: 'system' | 'fleet' | 'user',
@@ -133,17 +127,12 @@ const auditLog = (
   logAction(action, entityType, entityId, entityName, details).catch(() => {});
 };
 
-/** Merge incoming entities: override matching ids, append new ones. */
 const mergeById = <T extends { id: string }>(current: T[], incoming: T[]): T[] => {
   if (incoming.length === 0) return current;
 
   const overrideMap = new Map(incoming.map((item) => [item.id, item]));
   const merged = current.map((item) => overrideMap.get(item.id) ?? item);
-
-  // Mark merged ids
   const existingIds = new Set(current.map((item) => item.id));
-
-  // Append truly new entries (custom systems not in built-in data)
   for (const item of incoming) {
     if (existingIds.has(item.id)) continue;
     merged.push(item);
@@ -154,10 +143,7 @@ const mergeById = <T extends { id: string }>(current: T[], incoming: T[]): T[] =
 };
 
 export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
-  // View state
   viewMode: 'topdown',
-
-  // Selection state
   selectedSystemId: null,
   selectedPlanetId: null,
   selectedFleetId: null,
@@ -193,33 +179,21 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
       selectedSystemId: null,
       selectedPlanetId: null,
     }),
-
-  // Data — start with static data only; custom data loads via initializeData
   systems: [...starSystems],
   anomalies,
   fleets: [...fleets],
-
-  // UI state
   showFleets: true,
   showAnomalies: true,
   showLabels: true,
   toggleFleets: () => set((state) => ({ showFleets: !state.showFleets })),
   toggleAnomalies: () => set((state) => ({ showAnomalies: !state.showAnomalies })),
   toggleLabels: () => set((state) => ({ showLabels: !state.showLabels })),
-
-  // Info panel
   infoPanelData: null,
   setInfoPanelData: (data: InfoPanelData | null) => set({ infoPanelData: data }),
-
-  // Timeline - Old Republic era ~3956 BBY (KOTOR 1)
   currentYear: 3956,
   setCurrentYear: (year: number) => set({ currentYear: year, dirtyTimeline: true, hasPendingChanges: true }),
-
-  // Loading
   isLoading: true,
   setIsLoading: (loading: boolean) => set({ isLoading: loading }),
-
-  // Search and filtering
   searchQuery: '',
   setSearchQuery: (query: string) => set({ searchQuery: query }),
 
@@ -237,8 +211,6 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
         [faction]: !state.factionFilters[faction],
       },
     })),
-
-  // Computed: filtered systems
   getFilteredSystems: () => {
     const state = get();
     const query = state.searchQuery.toLowerCase().trim();
@@ -258,8 +230,6 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
       return true;
     });
   },
-
-  // Get search results for dropdown
   getSearchResults: () => {
     const state = get();
     const query = state.searchQuery.toLowerCase().trim();
@@ -295,8 +265,6 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
 
     return results.slice(0, 10);
   },
-
-  // Faction stats
   getFactionStats: () => {
     const state = get();
     const factions: Faction[] = ['galactic_republic', 'sith_empire', 'neutral', 'contested', 'hutt_cartel'];
@@ -318,8 +286,6 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
     }
     return stats;
   },
-
-  // ─── Data Initialization (Supabase) ────────────
   initializeData: async () => {
     try {
       const [customSystems, customFleets, yearSetting] = await Promise.all([
@@ -329,16 +295,12 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
       ]);
 
       const loadedYear = typeof yearSetting === 'number' ? yearSetting : 3956;
-
-      // Rebuild from static baselines each sync so deletes propagate correctly.
       set(() => ({
         systems: mergeById([...starSystems], customSystems),
         fleets: mergeById([...fleets], customFleets),
         currentYear: loadedYear,
         isLoading: false,
       }));
-
-      // Snapshot clean state so Discard can restore it
       const s = get();
       _systemsSnapshot = cloneSystems(s.systems);
       _fleetsSnapshot = cloneFleets(s.fleets);
@@ -348,8 +310,6 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
       set({ isLoading: false });
     }
   },
-
-  // ─── Planet Stats Editing ──────────────────────────
   updatePlanetStats: (systemId, planetId, updates) => {
     const state = get();
     const resolvedSystem =
@@ -372,8 +332,6 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
       hasPendingChanges: true,
     }));
   },
-
-  // ─── Custom Planet Creation ────────────────────────
   placementMode: false,
   pendingCustomPlanet: null,
   draggingCustomPlanet: false,
@@ -393,7 +351,6 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
       placementMode: false,
       pendingCustomPlanet: null,
     }));
-    // Persist to Supabase
     getCurrentUserId().then((uid) => {
       if (uid) {
         insertCustomSystem(system, uid).catch(() => {});
@@ -452,8 +409,6 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
       hasPendingChanges: true,
     }));
   },
-
-  // ─── Custom Fleet Creation ─────────────────────────
   fleetPlacementMode: false,
   pendingCustomFleet: null,
   draggingCustomFleet: false,
@@ -529,8 +484,6 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
       hasPendingChanges: true,
     }));
   },
-
-  // ─── Dirty Tracking & Manual Save ──────────────
   dirtySystemIds: new Set<string>(),
   dirtyFleetIds: new Set<string>(),
   dirtyTimeline: false,
@@ -566,8 +519,6 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
 
     await Promise.all([...systemPromises, ...fleetPromises, timelinePromise]);
     set({ dirtySystemIds: new Set<string>(), dirtyFleetIds: new Set<string>(), dirtyTimeline: false, hasPendingChanges: false });
-
-    // Update snapshot to reflect the newly saved state
     const saved = get();
     _systemsSnapshot = cloneSystems(saved.systems);
     _fleetsSnapshot = cloneFleets(saved.fleets);
@@ -575,7 +526,6 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
   },
 
   discardAllChanges: async () => {
-    // Restore from the clean snapshot (taken after init / after save)
     set({
       systems: cloneSystems(_systemsSnapshot),
       fleets: cloneFleets(_fleetsSnapshot),
