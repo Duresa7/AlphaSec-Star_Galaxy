@@ -64,6 +64,24 @@ function resolvePanelData({
     return selectedFleet ? { type: 'fleet', data: selectedFleet } : null;
   }
 
+  // Always resolve fresh data from the store so edits are reflected immediately
+  if (infoPanelData?.type === 'planet') {
+    const stale = infoPanelData.data;
+    const sys = systems.find((s) => s.id === stale.systemId);
+    const fresh = sys?.planets.find((p) => p.id === stale.id);
+    if (fresh) return { type: 'planet', data: fresh };
+  }
+
+  if (infoPanelData?.type === 'system') {
+    const fresh = systems.find((s) => s.id === infoPanelData.data.id);
+    if (fresh) return { type: 'system', data: fresh };
+  }
+
+  if (infoPanelData?.type === 'fleet') {
+    const fresh = fleets.find((f) => f.id === infoPanelData.data.id);
+    if (fresh) return { type: 'fleet', data: fresh };
+  }
+
   return infoPanelData;
 }
 
