@@ -200,7 +200,10 @@ export async function upsertSystem(system: StarSystem, userId: string): Promise<
     })),
     created_by: userId,
   }, { onConflict: 'id' });
-  if (error) console.error('Failed to upsert system:', error);
+  if (error) {
+    console.error('Failed to upsert system:', error);
+    throw error;
+  }
 }
 
 export async function deleteCustomSystem(id: string): Promise<void> {
@@ -250,7 +253,10 @@ export async function upsertFleet(fleet: Fleet, userId: string): Promise<void> {
     marker_size: fleet.markerSize ?? null,
     created_by: userId,
   }, { onConflict: 'id' });
-  if (error) console.error('Failed to upsert fleet:', error);
+  if (error) {
+    console.error('Failed to upsert fleet:', error);
+    throw error;
+  }
 }
 
 export async function deleteCustomFleet(id: string): Promise<void> {
@@ -280,7 +286,10 @@ export async function updateSetting(key: string, value: unknown): Promise<void> 
     .from('app_settings')
     .update({ value: value as never, updated_by: userId })
     .eq('key', key);
-  if (error) console.error(`Failed to update setting "${key}":`, error);
+  if (error) {
+    console.error(`Failed to update setting "${key}":`, error);
+    throw error;
+  }
 }
 
 export async function logAction(

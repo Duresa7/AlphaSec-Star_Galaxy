@@ -1,6 +1,7 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useGalaxyStore } from '@/store/galaxyStore';
 import { useRole } from '@/hooks/useRole';
+import { normalizeFactionControl } from '@/utils/factionControl';
 
 import type { StarSystem, Fleet, Anomaly, Planet, Faction, InfoPanelData, ViewMode } from '@/types';
 import {
@@ -320,8 +321,11 @@ function PlanetInfo({ planet, editable }: { planet: Planet; editable: boolean })
   };
 
   const handleControlChange = (faction: Faction, value: number) => {
-
-    const updated = { ...factionControl, [faction]: Math.max(0, Math.min(100, value)) };
+    const updated = normalizeFactionControl({
+      current: factionControl,
+      editedFaction: faction,
+      editedValue: value,
+    });
     const cleaned: Partial<Record<Faction, number>> = {};
     for (const [f, v] of Object.entries(updated)) {
       if (v > 0) cleaned[f as Faction] = v;

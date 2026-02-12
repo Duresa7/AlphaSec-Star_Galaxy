@@ -86,6 +86,7 @@ export interface SearchResult {
   id: string;
   name: string;
   parentName?: string;
+  parentSystemId?: string;
 }
 
 export type UserRole = 'user' | 'admin' | 'bossman';

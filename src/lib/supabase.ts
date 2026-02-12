@@ -7,8 +7,7 @@ export const supabaseConfigured = !!(supabaseUrl && supabaseAnonKey);
 
 if (!supabaseConfigured) {
   console.warn(
-    '[Supabase] Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY. '
-    'Auth and cloud persistence are disabled. Copy .env.example to .env and fill in your credentials.',
+    '[Supabase] Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY. Auth and cloud persistence are disabled. Copy .env.example to .env and fill in your credentials.',
   );
 }
 export const supabase: SupabaseClient = supabaseConfigured

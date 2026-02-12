@@ -27,18 +27,20 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const resetForm = useCallback(() => {
+  const resetForm = useCallback((options?: { keepSuccessMessage?: boolean }) => {
     setEmail('');
     setPassword('');
     setConfirmPassword('');
     setDisplayName('');
     setError(null);
-    setSuccessMessage(null);
+    if (!options?.keepSuccessMessage) {
+      setSuccessMessage(null);
+    }
   }, []);
 
-  const switchMode = useCallback((newMode: Mode) => {
+  const switchMode = useCallback((newMode: Mode, options?: { keepSuccessMessage?: boolean }) => {
     setMode(newMode);
-    resetForm();
+    resetForm(options);
   }, [resetForm]);
 
   const handleSubmit = async (e: FormEvent) => {
@@ -72,7 +74,7 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
         const { error: err } = await signUp(email, password, displayName.trim());
         if (err) { setError(err); return; }
         setSuccessMessage('Account created! Check your email to confirm, then sign in. If you don\'t see it, check your spam folder.');
-        switchMode('login');
+        switchMode('login', { keepSuccessMessage: true });
       }
     } finally {
       setSubmitting(false);
