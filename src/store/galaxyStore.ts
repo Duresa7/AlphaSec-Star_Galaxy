@@ -84,6 +84,9 @@ const applyPlanetStatsPatch = (planet: Planet, updates: PlanetStatsUpdate): Plan
   if (hasOwn(updates, 'nativeInhabitants')) {
     next.nativeInhabitants = updates.nativeInhabitants ?? undefined;
   }
+  if (hasOwn(updates, 'faction') && updates.faction) {
+    next.faction = updates.faction;
+  }
   if (hasOwn(updates, 'factionControl')) {
     next.factionControl = updates.factionControl ?? undefined;
   }

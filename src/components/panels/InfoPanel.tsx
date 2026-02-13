@@ -351,7 +351,21 @@ function PlanetInfo({ planet, editable }: { planet: Planet; editable: boolean })
     for (const [f, v] of Object.entries(updated)) {
       if (v > 0) cleaned[f as Faction] = v;
     }
-    updatePlanetStats(planet.systemId, planet.id, { factionControl: cleaned });
+
+    // Auto-update territory to the faction with the highest control %
+    let dominantFaction: Faction = planet.faction;
+    let maxPct = 0;
+    for (const [f, v] of Object.entries(cleaned) as [Faction, number][]) {
+      if (v > maxPct) {
+        maxPct = v;
+        dominantFaction = f;
+      }
+    }
+
+    updatePlanetStats(planet.systemId, planet.id, {
+      factionControl: cleaned,
+      faction: dominantFaction,
+    });
   };
 
   return (
@@ -490,11 +504,12 @@ function PlanetInfo({ planet, editable }: { planet: Planet; editable: boolean })
                   type="range"
                   min={0}
                   max={100}
+                  step={1}
                   value={pct}
                   onChange={(e) => handleControlChange(faction, parseInt(e.target.value))}
                   disabled={!editable}
                   className="holo-slider flex-shrink-0"
-                  style={{ width: '80px', accentColor: FACTION_BAR_COLORS[faction] }}
+                  style={{ width: '140px', accentColor: FACTION_BAR_COLORS[faction] }}
                 />
                 <span className="text-[10px] w-8 text-right" style={{ color: 'var(--holo-text-primary)', fontFamily: 'Orbitron, monospace' }}>
                   {pct}%
