@@ -64,6 +64,7 @@ interface DbPlanet {
   climate?: string;
   terrain?: string;
   notable?: string[];
+  nativeInhabitants?: string;
   factionControl?: Partial<Record<Faction, number>>;
   customColor?: string;
 }
@@ -94,6 +95,7 @@ function dbToSystem(row: DbSystem): StarSystem {
         climate: p.climate,
         terrain: p.terrain,
         notable: p.notable,
+        nativeInhabitants: p.nativeInhabitants,
         systemId: row.id,
         factionControl: p.factionControl,
         customColor: p.customColor,
@@ -170,6 +172,7 @@ export async function insertCustomSystem(system: StarSystem, userId: string): Pr
       climate: p.climate,
       terrain: p.terrain,
       notable: p.notable,
+      nativeInhabitants: p.nativeInhabitants,
       factionControl: p.factionControl,
       customColor: p.customColor,
     })),
@@ -199,6 +202,7 @@ export async function upsertSystem(system: StarSystem, userId: string): Promise<
       climate: p.climate,
       terrain: p.terrain,
       notable: p.notable,
+      nativeInhabitants: p.nativeInhabitants,
       factionControl: p.factionControl,
       customColor: p.customColor,
     })),
