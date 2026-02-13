@@ -129,6 +129,7 @@ export interface AuditLogEntry {
 
 export interface PlanetStatsUpdate {
   population?: string | null;
+  faction?: Faction;
   factionControl?: Partial<Record<Faction, number>> | null;
   description?: string | null;
   climate?: string | null;
