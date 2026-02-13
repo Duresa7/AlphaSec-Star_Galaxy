@@ -1,4 +1,7 @@
 # Alpha-Control
-Developing an Interactive Map, Cybersecurity MCP Tools, AI Intergration
+Developing
+Interactive Map (Open-Source)
+Cybersecurity MCP Tools (Close-Source)
+AI Intergration (Close-Source)
 
-Phase #1: Interactive Map
+
