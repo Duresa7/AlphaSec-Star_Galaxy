@@ -45,6 +45,7 @@ const cloneFleets = (fleetArr: Fleet[]): Fleet[] =>
 let _systemsSnapshot: StarSystem[] = [];
 let _fleetsSnapshot: Fleet[] = [];
 let _yearSnapshot: number = 3956;
+let _pendingPlanetAudits: Map<string, { systemId: string; planetName: string; fields: Set<string> }> = new Map();
 const AUTH_LOOKUP_TIMEOUT_MS = 8_000;
 
 const shouldClearPanelForSystem = (panel: InfoPanelData | null, systemId: string): boolean => {
@@ -79,6 +80,9 @@ const applyPlanetStatsPatch = (planet: Planet, updates: PlanetStatsUpdate): Plan
   }
   if (hasOwn(updates, 'notable')) {
     next.notable = updates.notable ?? undefined;
+  }
+  if (hasOwn(updates, 'nativeInhabitants')) {
+    next.nativeInhabitants = updates.nativeInhabitants ?? undefined;
   }
   if (hasOwn(updates, 'factionControl')) {
     next.factionControl = updates.factionControl ?? undefined;
@@ -373,6 +377,18 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
       dirtySystemIds: new Set(currentState.dirtySystemIds).add(resolvedSystem.id),
       hasPendingChanges: true,
     }));
+
+    const existing = _pendingPlanetAudits.get(planetId);
+    const changedFields = Object.keys(updates);
+    if (existing) {
+      changedFields.forEach((f) => existing.fields.add(f));
+    } else {
+      _pendingPlanetAudits.set(planetId, {
+        systemId: resolvedSystem.id,
+        planetName: currentPlanet.name,
+        fields: new Set(changedFields),
+      });
+    }
   },
   placementMode: false,
   pendingCustomPlanet: null,
@@ -547,7 +563,17 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
 
         try {
           await upsertSystem(system, uid);
-          auditLog('system_moved', 'system', id, system.name);
+          const planetAudits = [..._pendingPlanetAudits.entries()].filter(([, v]) => v.systemId === id);
+          if (planetAudits.length > 0) {
+            for (const [pId, audit] of planetAudits) {
+              auditLog('planet_stats_updated', 'system', pId, audit.planetName, {
+                fields: [...audit.fields],
+              });
+              _pendingPlanetAudits.delete(pId);
+            }
+          } else {
+            auditLog('system_moved', 'system', id, system.name);
+          }
         } catch (error) {
           console.error(`Failed to save system "${id}":`, error);
           failedSystemIds.add(id);
@@ -614,6 +640,7 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
   },
 
   discardAllChanges: async () => {
+    _pendingPlanetAudits.clear();
     set({
       systems: cloneSystems(_systemsSnapshot),
       fleets: cloneFleets(_fleetsSnapshot),

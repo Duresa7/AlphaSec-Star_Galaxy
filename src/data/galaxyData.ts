@@ -47,6 +47,7 @@ export const starSystems: StarSystem[] = [
         population: '1 trillion',
         climate: 'Controlled',
         terrain: 'Urban cityscape',
+        nativeInhabitants: 'Humans',
         systemId: 'coruscant',
       }
     ],
@@ -167,6 +168,7 @@ export const starSystems: StarSystem[] = [
         description: 'Storm-wrapped jungle world of the Sith Empire.',
         climate: 'Stormy',
         terrain: 'Jungles, swamps',
+        nativeInhabitants: 'Sith Purebloods',
         systemId: 'dromund-kaas',
       }
     ],
@@ -191,6 +193,7 @@ export const starSystems: StarSystem[] = [
         description: 'Barren world steeped in dark side energy.',
         climate: 'Arid',
         terrain: 'Desert, tombs, canyons',
+        nativeInhabitants: 'Sith species',
         systemId: 'korriban',
       }
     ],
@@ -239,6 +242,7 @@ export const starSystems: StarSystem[] = [
         description: 'Toxic world of swamps and pollution, ruled by the Hutt clans.',
         climate: 'Toxic',
         terrain: 'Swamps, industrial waste',
+        nativeInhabitants: 'Hutts',
         population: '7 billion',
         systemId: 'hutta',
       }
@@ -312,6 +316,7 @@ export const starSystems: StarSystem[] = [
         description: 'Urban sprawl and towering skylines, ruled by Hutt crime lords.',
         climate: 'Polluted',
         terrain: 'Urban, industrial',
+        nativeInhabitants: 'Evocii',
         population: '85 billion',
         systemId: 'nar-shaddaa',
       }
@@ -409,6 +414,7 @@ export const starSystems: StarSystem[] = [
         description: 'Twin-sunned desert world.',
         climate: 'Arid',
         terrain: 'Desert, canyons',
+        nativeInhabitants: 'Jawas, Tusken Raiders',
         systemId: 'tatooine',
       }
     ],
@@ -433,6 +439,7 @@ export const starSystems: StarSystem[] = [
         description: 'Mystical forests and ancient shrines.',
         climate: 'Temperate',
         terrain: 'Forests, plateaus',
+        nativeInhabitants: 'Voss, Gormak',
         systemId: 'voss',
       }
     ],

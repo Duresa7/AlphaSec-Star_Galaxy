@@ -311,6 +311,8 @@ function PlanetInfo({ planet, editable }: { planet: Planet; editable: boolean })
   const [climateDraft, setClimateDraft] = useState(planet.climate || '');
   const [editingTerrain, setEditingTerrain] = useState(false);
   const [terrainDraft, setTerrainDraft] = useState(planet.terrain || '');
+  const [editingInhabitants, setEditingInhabitants] = useState(false);
+  const [inhabitantsDraft, setInhabitantsDraft] = useState(planet.nativeInhabitants || '');
   const [editingNotable, setEditingNotable] = useState(false);
   const [notableDraft, setNotableDraft] = useState((planet.notable || []).join(', '));
 
@@ -397,6 +399,19 @@ function PlanetInfo({ planet, editable }: { planet: Planet; editable: boolean })
           onDraftChange={setTerrainDraft}
           onSave={() => { updatePlanetStats(planet.systemId, planet.id, { terrain: terrainDraft }); setEditingTerrain(false); }}
           onCancel={() => setEditingTerrain(false)}
+        />
+
+        <EditableInfoRow
+          label="Native Inhabitants"
+          value={planet.nativeInhabitants || ''}
+          placeholder="Unknown"
+          editable={editable}
+          editing={editingInhabitants}
+          draft={inhabitantsDraft}
+          onStartEdit={() => { setInhabitantsDraft(planet.nativeInhabitants || ''); setEditingInhabitants(true); }}
+          onDraftChange={setInhabitantsDraft}
+          onSave={() => { updatePlanetStats(planet.systemId, planet.id, { nativeInhabitants: inhabitantsDraft }); setEditingInhabitants(false); }}
+          onCancel={() => setEditingInhabitants(false)}
         />
 
         <EditableInfoRow

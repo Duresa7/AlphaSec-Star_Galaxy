@@ -30,6 +30,7 @@ export interface Planet {
   climate?: string;
   terrain?: string;
   notable?: string[];
+  nativeInhabitants?: string;
   systemId: string;
   factionControl?: Partial<Record<Faction, number>>;
   customColor?: string;
@@ -133,6 +134,7 @@ export interface PlanetStatsUpdate {
   climate?: string | null;
   terrain?: string | null;
   notable?: string[] | null;
+  nativeInhabitants?: string | null;
   customColor?: string | null;
 }
 export interface GalaxyStore {
