@@ -588,8 +588,8 @@ body {
 
 .portfolio-hero__nav-link--icon svg,
 .portfolio-hero__nav-icon-img {
-  width: clamp(40px, 5.6vw, 54px);
-  height: clamp(40px, 5.6vw, 54px);
+  width: clamp(48px, 6.4vw, 64px);
+  height: clamp(48px, 6.4vw, 64px);
   display: block;
   object-fit: contain;
 }
