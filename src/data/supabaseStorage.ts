@@ -367,6 +367,38 @@ export async function fetchAllProfiles(): Promise<UserProfile[]> {
   return data as UserProfile[];
 }
 
+export async function updateDisplayName(userId: string, displayName: string): Promise<{ error: string | null }> {
+  if (!supabaseConfigured) return { error: 'Supabase not configured' };
+  const { error } = await supabase
+    .from('profiles')
+    .update({ display_name: displayName })
+    .eq('id', userId);
+
+  if (error) return { error: error.message };
+  return { error: null };
+}
+
+export async function deleteAccount(accessToken: string): Promise<{ error: string | null }> {
+  if (!supabaseConfigured) return { error: 'Supabase not configured' };
+  const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-account`;
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      return { error: (body as Record<string, string>).error || `Delete failed (${res.status})` };
+    }
+    return { error: null };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : 'Failed to delete account' };
+  }
+}
+
 export async function updateUserRole(userId: string, role: 'user' | 'admin' | 'bossman'): Promise<{ error: string | null }> {
   if (!supabaseConfigured) return { error: 'Supabase not configured' };
   const { error } = await supabase
