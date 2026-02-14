@@ -362,24 +362,13 @@ export function LandingPage() {
 
       <div className="portfolio-hero__nav-block portfolio-hero__parallax">
         <div className="portfolio-hero__nav-actions">
-          {interactive ? (
-            <Link
-              className="portfolio-hero__nav-link portfolio-hero__nav-link--icon"
-              to="/resume"
-              aria-label="Duresa Kadi Resume"
-              data-hover-label="Duresa Kadi Resume"
-            >
-              <ResumeIcon />
-            </Link>
-          ) : (
-            <span
-              className="portfolio-hero__nav-link portfolio-hero__nav-link--icon"
-              aria-label="Duresa Kadi Resume"
-              data-hover-label="Duresa Kadi Resume"
-            >
-              <ResumeIcon />
-            </span>
-          )}
+          <span
+            className="portfolio-hero__nav-link portfolio-hero__nav-link--icon portfolio-hero__nav-link--disabled"
+            aria-label="Resume Coming Soon"
+            data-hover-label="Resume Coming Soon"
+          >
+            <ResumeIcon />
+          </span>
           {interactive ? (
             session ? (
               <Link
