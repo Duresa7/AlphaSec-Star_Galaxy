@@ -79,17 +79,6 @@ function InstagramIcon() {
   );
 }
 
-function GalaxyMapIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path
-        fill="currentColor"
-        d="M5.25 3.5a1.75 1.75 0 1 0 0 3.5 1.75 1.75 0 0 0 0-3.5Zm13.5 0a1.75 1.75 0 1 0 0 3.5 1.75 1.75 0 0 0 0-3.5ZM3.5 18.75a1.75 1.75 0 1 0 3.5 0 1.75 1.75 0 0 0-3.5 0Zm13.5 0a1.75 1.75 0 1 0 3.5 0 1.75 1.75 0 0 0-3.5 0ZM12 8.25a3.75 3.75 0 1 0 0 7.5 3.75 3.75 0 0 0 0-7.5Zm-6.2-2.28a.75.75 0 0 1 1.06 0l1.88 1.88a.75.75 0 0 1-1.06 1.06L5.8 7.03a.75.75 0 0 1 0-1.06Zm12.4 0a.75.75 0 0 1 0 1.06L16.32 8.9a.75.75 0 0 1-1.06-1.06l1.88-1.88a.75.75 0 0 1 1.06 0ZM6.86 17.14a.75.75 0 0 1 0 1.06L4.98 20.1a.75.75 0 1 1-1.06-1.06l1.88-1.9a.75.75 0 0 1 1.06 0Zm10.28 0 1.88 1.9a.75.75 0 0 1-1.06 1.06l-1.88-1.9a.75.75 0 0 1 1.06-1.06ZM12 0a.75.75 0 0 1 .75.75v4a.75.75 0 0 1-1.5 0v-4A.75.75 0 0 1 12 0Zm0 19.25a.75.75 0 0 1 .75.75v3.25a.75.75 0 0 1-1.5 0V20a.75.75 0 0 1 .75-.75ZM0 12a.75.75 0 0 1 .75-.75h4a.75.75 0 0 1 0 1.5h-4A.75.75 0 0 1 0 12Zm19.25 0a.75.75 0 0 1 .75-.75h3.25a.75.75 0 0 1 0 1.5H20a.75.75 0 0 1-.75-.75Z"
-      />
-    </svg>
-  );
-}
-
 function ResumeIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -377,7 +366,7 @@ export function LandingPage() {
                 aria-label="Interactive Galaxy Map"
                 data-hover-label="Interactive Galaxy Map"
               >
-                <GalaxyMapIcon />
+                <img src={`${import.meta.env.BASE_URL}icons/codex-planets.png`} alt="" className="portfolio-hero__nav-icon-img" />
               </Link>
             ) : (
               <button
@@ -386,7 +375,7 @@ export function LandingPage() {
                 aria-label="Interactive Galaxy Map"
                 data-hover-label="Interactive Galaxy Map"
               >
-                <GalaxyMapIcon />
+                <img src={`${import.meta.env.BASE_URL}icons/codex-planets.png`} alt="" className="portfolio-hero__nav-icon-img" />
               </button>
             )
           ) : (
@@ -395,7 +384,7 @@ export function LandingPage() {
               aria-label="Interactive Galaxy Map"
               data-hover-label="Interactive Galaxy Map"
             >
-              <GalaxyMapIcon />
+              <img src={`${import.meta.env.BASE_URL}icons/codex-planets.png`} alt="" className="portfolio-hero__nav-icon-img" />
             </span>
           )}
           <span
@@ -411,7 +400,7 @@ export function LandingPage() {
             data-hover-label="TNIO: Codex of Planets"
           >
             <img
-              src={`${import.meta.env.BASE_URL}icons/codex-planets.png`}
+              src={`${import.meta.env.BASE_URL}icons/codex-icon.png`}
               alt=""
               className="portfolio-hero__nav-icon-img"
             />
