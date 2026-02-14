@@ -638,6 +638,17 @@ body {
   transform: translate(-50%, 0);
 }
 
+.portfolio-hero__nav-link--disabled {
+  opacity: 0.45;
+  cursor: default;
+  pointer-events: auto;
+}
+
+.portfolio-hero__content--base .portfolio-hero__nav-link--disabled:hover {
+  transform: none;
+  background: rgba(255, 255, 255, 0.72);
+}
+
 .portfolio-hero__content--base .portfolio-hero__nav-link:focus-visible {
   outline: none;
   box-shadow:
