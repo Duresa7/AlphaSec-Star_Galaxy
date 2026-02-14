@@ -79,23 +79,23 @@ function InstagramIcon() {
   );
 }
 
-function GalaxyMapIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path
-        fill="currentColor"
-        d="M5.25 3.5a1.75 1.75 0 1 0 0 3.5 1.75 1.75 0 0 0 0-3.5Zm13.5 0a1.75 1.75 0 1 0 0 3.5 1.75 1.75 0 0 0 0-3.5ZM3.5 18.75a1.75 1.75 0 1 0 3.5 0 1.75 1.75 0 0 0-3.5 0Zm13.5 0a1.75 1.75 0 1 0 3.5 0 1.75 1.75 0 0 0-3.5 0ZM12 8.25a3.75 3.75 0 1 0 0 7.5 3.75 3.75 0 0 0 0-7.5Zm-6.2-2.28a.75.75 0 0 1 1.06 0l1.88 1.88a.75.75 0 0 1-1.06 1.06L5.8 7.03a.75.75 0 0 1 0-1.06Zm12.4 0a.75.75 0 0 1 0 1.06L16.32 8.9a.75.75 0 0 1-1.06-1.06l1.88-1.88a.75.75 0 0 1 1.06 0ZM6.86 17.14a.75.75 0 0 1 0 1.06L4.98 20.1a.75.75 0 1 1-1.06-1.06l1.88-1.9a.75.75 0 0 1 1.06 0Zm10.28 0 1.88 1.9a.75.75 0 0 1-1.06 1.06l-1.88-1.9a.75.75 0 0 1 1.06-1.06ZM12 0a.75.75 0 0 1 .75.75v4a.75.75 0 0 1-1.5 0v-4A.75.75 0 0 1 12 0Zm0 19.25a.75.75 0 0 1 .75.75v3.25a.75.75 0 0 1-1.5 0V20a.75.75 0 0 1 .75-.75ZM0 12a.75.75 0 0 1 .75-.75h4a.75.75 0 0 1 0 1.5h-4A.75.75 0 0 1 0 12Zm19.25 0a.75.75 0 0 1 .75-.75h3.25a.75.75 0 0 1 0 1.5H20a.75.75 0 0 1-.75-.75Z"
-      />
-    </svg>
-  );
-}
-
 function ResumeIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
       <path
         fill="currentColor"
         d="M7.75 2.5A2.25 2.25 0 0 0 5.5 4.75v14.5A2.25 2.25 0 0 0 7.75 21.5h8.5a2.25 2.25 0 0 0 2.25-2.25V8.78a2.25 2.25 0 0 0-.66-1.59l-3.03-3.03a2.25 2.25 0 0 0-1.59-.66H7.75Zm5.5 1.7v3.55c0 .55.45 1 1 1h3.55v10.5a1.55 1.55 0 0 1-1.55 1.55h-8.5a1.55 1.55 0 0 1-1.55-1.55V4.75c0-.86.7-1.55 1.55-1.55h5.5Zm1.7.5 2.85 2.85H14.95V4.7ZM8.5 11.2c0-.2.16-.35.35-.35h6.3a.35.35 0 0 1 0 .7h-6.3a.35.35 0 0 1-.35-.35Zm0 3.1c0-.2.16-.35.35-.35h6.3a.35.35 0 1 1 0 .7h-6.3a.35.35 0 0 1-.35-.35Zm0 3.1c0-.2.16-.35.35-.35h3.7a.35.35 0 1 1 0 .7h-3.7a.35.35 0 0 1-.35-.35Z"
+      />
+    </svg>
+  );
+}
+
+function BlogIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path
+        fill="currentColor"
+        d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2Zm-1.5 3a.75.75 0 0 1 0 1.5h-11a.75.75 0 0 1 0-1.5h11Zm0 4a.75.75 0 0 1 0 1.5h-11a.75.75 0 0 1 0-1.5h11Zm-4 4a.75.75 0 0 1 0 1.5h-7a.75.75 0 0 1 0-1.5h7Z"
       />
     </svg>
   );
@@ -351,24 +351,13 @@ export function LandingPage() {
 
       <div className="portfolio-hero__nav-block portfolio-hero__parallax">
         <div className="portfolio-hero__nav-actions">
-          {interactive ? (
-            <Link
-              className="portfolio-hero__nav-link portfolio-hero__nav-link--icon"
-              to="/resume"
-              aria-label="Duresa Kadi Resume"
-              data-hover-label="Duresa Kadi Resume"
-            >
-              <ResumeIcon />
-            </Link>
-          ) : (
-            <span
-              className="portfolio-hero__nav-link portfolio-hero__nav-link--icon"
-              aria-label="Duresa Kadi Resume"
-              data-hover-label="Duresa Kadi Resume"
-            >
-              <ResumeIcon />
-            </span>
-          )}
+          <span
+            className="portfolio-hero__nav-link portfolio-hero__nav-link--icon portfolio-hero__nav-link--disabled"
+            aria-label="Resume Coming Soon"
+            data-hover-label="Resume Coming Soon"
+          >
+            <ResumeIcon />
+          </span>
           {interactive ? (
             session ? (
               <Link
@@ -377,7 +366,7 @@ export function LandingPage() {
                 aria-label="Interactive Galaxy Map"
                 data-hover-label="Interactive Galaxy Map"
               >
-                <GalaxyMapIcon />
+                <img src={`${import.meta.env.BASE_URL}icons/codex-planets.png`} alt="" className="portfolio-hero__nav-icon-img" />
               </Link>
             ) : (
               <button
@@ -386,7 +375,7 @@ export function LandingPage() {
                 aria-label="Interactive Galaxy Map"
                 data-hover-label="Interactive Galaxy Map"
               >
-                <GalaxyMapIcon />
+                <img src={`${import.meta.env.BASE_URL}icons/codex-planets.png`} alt="" className="portfolio-hero__nav-icon-img" />
               </button>
             )
           ) : (
@@ -395,9 +384,27 @@ export function LandingPage() {
               aria-label="Interactive Galaxy Map"
               data-hover-label="Interactive Galaxy Map"
             >
-              <GalaxyMapIcon />
+              <img src={`${import.meta.env.BASE_URL}icons/codex-planets.png`} alt="" className="portfolio-hero__nav-icon-img" />
             </span>
           )}
+          <span
+            className="portfolio-hero__nav-link portfolio-hero__nav-link--icon portfolio-hero__nav-link--disabled"
+            aria-label="Blog Coming Soon"
+            data-hover-label="Blog Coming Soon"
+          >
+            <BlogIcon />
+          </span>
+          <span
+            className="portfolio-hero__nav-link portfolio-hero__nav-link--icon portfolio-hero__nav-link--disabled"
+            aria-label="TNIO: Codex of Planets Coming Soon"
+            data-hover-label="TNIO: Codex of Planets Coming Soon"
+          >
+            <img
+              src={`${import.meta.env.BASE_URL}icons/codex-icon.png`}
+              alt=""
+              className="portfolio-hero__nav-icon-img"
+            />
+          </span>
         </div>
       </div>
 
@@ -472,6 +479,16 @@ export function LandingPage() {
             >
               {displayName}
             </span>
+            <Link
+              to="/settings"
+              className="portfolio-hero__settings-icon"
+              aria-label="Account settings"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+            </Link>
             <button
               onClick={() => signOut()}
               className="portfolio-hero__auth-pill"
