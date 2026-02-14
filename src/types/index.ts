@@ -113,7 +113,11 @@ export type AuditAction =
   | 'fleet_resized'
   | 'planet_stats_updated'
   | 'role_changed'
-  | 'timeline_changed';
+  | 'timeline_changed'
+  | 'display_name_changed'
+  | 'email_changed'
+  | 'password_changed'
+  | 'account_deleted';
 
 export interface AuditLogEntry {
   id: number;

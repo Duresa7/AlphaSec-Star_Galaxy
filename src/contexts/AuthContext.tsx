@@ -1,6 +1,7 @@
 import { createContext, useEffect, useState, useRef, useCallback, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase, supabaseConfigured } from '@/lib/supabase';
+import { deleteAccount as deleteAccountRequest } from '@/data/supabaseStorage';
 import type { UserProfile } from '@/types';
 
 export interface AuthContextValue {
@@ -13,6 +14,9 @@ export interface AuthContextValue {
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
+  updateEmail: (newEmail: string) => Promise<{ error: string | null }>;
+  updatePassword: (newPassword: string) => Promise<{ error: string | null }>;
+  deleteAccount: () => Promise<{ error: string | null }>;
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
@@ -200,8 +204,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const updateEmail = useCallback(async (newEmail: string) => {
+    if (!supabaseConfigured) return { error: 'Supabase is not configured' };
+    try {
+      const { error } = await withTimeout(
+        supabase.auth.updateUser({ email: newEmail }),
+        AUTH_OPERATION_TIMEOUT_MS,
+        'Email update timed out. Please try again.',
+      );
+      if (error) return { error: error.message };
+      return { error: null };
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : 'Unable to update email. Please try again.' };
+    }
+  }, []);
+
+  const updatePassword = useCallback(async (newPassword: string) => {
+    if (!supabaseConfigured) return { error: 'Supabase is not configured' };
+    try {
+      const { error } = await withTimeout(
+        supabase.auth.updateUser({ password: newPassword }),
+        AUTH_OPERATION_TIMEOUT_MS,
+        'Password update timed out. Please try again.',
+      );
+      if (error) return { error: error.message };
+      return { error: null };
+    } catch (error) {
+      return { error: error instanceof Error ? error.message : 'Unable to update password. Please try again.' };
+    }
+  }, []);
+
+  const deleteAccount = useCallback(async () => {
+    if (!supabaseConfigured) return { error: 'Supabase is not configured' };
+    const token = session?.access_token;
+    if (!token) return { error: 'Not authenticated' };
+    const result = await deleteAccountRequest(token);
+    if (!result.error) {
+      setSession(null);
+      setProfile(null);
+      setLoading(false);
+      setProfileLoading(false);
+      try { await supabase.auth.signOut({ scope: 'local' }); } catch { }
+    }
+    return result;
+  }, [session]);
+
   return (
-    <AuthContext.Provider value={{ session, profile, loading, profileLoading, supabaseConfigured, signUp, signIn, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ session, profile, loading, profileLoading, supabaseConfigured, signUp, signIn, signOut, refreshProfile, updateEmail, updatePassword, deleteAccount }}>
       {children}
     </AuthContext.Provider>
   );

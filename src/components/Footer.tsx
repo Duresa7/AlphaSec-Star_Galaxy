@@ -12,6 +12,7 @@ export function Footer() {
         <p className="site-footer__copy">
           &copy; {new Date().getFullYear()} Alpha Sec. All rights reserved.
         </p>
+        <p className="site-footer__copy">Made by Duresa Kadi</p>
       </div>
     </footer>
   );
