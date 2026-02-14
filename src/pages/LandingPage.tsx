@@ -397,7 +397,7 @@ export function LandingPage() {
           <span
             className="portfolio-hero__nav-link portfolio-hero__nav-link--icon portfolio-hero__nav-link--disabled"
             aria-label="TNIO: Codex of Planets Coming Soon"
-            data-hover-label="TNIO: Codex of Planets"
+            data-hover-label="TNIO: Codex of Planets Coming Soon"
           >
             <img
               src={`${import.meta.env.BASE_URL}icons/codex-icon.png`}
