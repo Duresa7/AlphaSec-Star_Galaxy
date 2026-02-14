@@ -586,10 +586,20 @@ body {
   overflow: visible;
 }
 
-.portfolio-hero__nav-link--icon svg {
+.portfolio-hero__nav-link--icon svg,
+.portfolio-hero__nav-icon-img {
   width: clamp(34px, 4.8vw, 46px);
   height: clamp(34px, 4.8vw, 46px);
   display: block;
+  object-fit: contain;
+}
+
+.portfolio-hero__content--base .portfolio-hero__nav-icon-img {
+  filter: invert(1);
+}
+
+.portfolio-hero__content--invert .portfolio-hero__nav-icon-img {
+  filter: none;
 }
 
 .portfolio-hero__nav-link--icon::after {
