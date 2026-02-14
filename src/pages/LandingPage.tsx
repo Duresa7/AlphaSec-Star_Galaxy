@@ -101,6 +101,17 @@ function ResumeIcon() {
   );
 }
 
+function BlogIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path
+        fill="currentColor"
+        d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2Zm-1.5 3a.75.75 0 0 1 0 1.5h-11a.75.75 0 0 1 0-1.5h11Zm0 4a.75.75 0 0 1 0 1.5h-11a.75.75 0 0 1 0-1.5h11Zm-4 4a.75.75 0 0 1 0 1.5h-7a.75.75 0 0 1 0-1.5h7Z"
+      />
+    </svg>
+  );
+}
+
 const SOCIAL_LINKS: SocialLink[] = [
   {
     href: 'https://github.com/Duresa7',
@@ -398,6 +409,13 @@ export function LandingPage() {
               <GalaxyMapIcon />
             </span>
           )}
+          <span
+            className="portfolio-hero__nav-link portfolio-hero__nav-link--icon portfolio-hero__nav-link--disabled"
+            aria-label="Blog Coming Soon"
+            data-hover-label="Blog Coming Soon"
+          >
+            <BlogIcon />
+          </span>
         </div>
       </div>
 
