@@ -1,4 +1,5 @@
-import type { Fleet } from '@/types';
+import { useState } from 'react';
+import type { Fleet, Faction, ShipModelType } from '@/types';
 import { useGalaxyStore } from '@/store/galaxyStore';
 import {
   FACTION_LABELS,
@@ -7,15 +8,27 @@ import {
   FLEET_STRENGTH_LIGHT_THRESHOLD,
   FLEET_STRENGTH_HEAVY_THRESHOLD,
 } from '@/constants/factions';
-import { InfoRow } from '@/components/panels/infoPanelShared';
+import { EditableInfoRow, InfoRow } from '@/components/panels/infoPanelShared';
 import { DEFAULT_TOPDOWN_FLEET_MARKER_SIZE } from '@/config/topDownMarkerConfig';
+
+const MODEL_TYPE_LABELS: Record<ShipModelType, string> = {
+  republic: 'Republic',
+  sith: 'Sith',
+  venator: 'Venator',
+};
 
 export function FleetInfo({ fleet, editable }: { fleet: Fleet; editable: boolean }) {
   const removeCustomFleet = useGalaxyStore((s) => s.removeCustomFleet);
   const setInfoPanelData = useGalaxyStore((s) => s.setInfoPanelData);
   const setSelectedFleet = useGalaxyStore((s) => s.setSelectedFleet);
   const updateFleetMarkerSize = useGalaxyStore((s) => s.updateFleetMarkerSize);
+  const updateFleetStats = useGalaxyStore((s) => s.updateFleetStats);
   const viewMode = useGalaxyStore((s) => s.viewMode);
+
+  const [editingName, setEditingName] = useState(false);
+  const [nameDraft, setNameDraft] = useState(fleet.name);
+  const [editingShipCount, setEditingShipCount] = useState(false);
+  const [shipCountDraft, setShipCountDraft] = useState(String(fleet.shipCount));
 
   const markerSize = fleet.markerSize ?? DEFAULT_TOPDOWN_FLEET_MARKER_SIZE;
   const filledSegments = Math.min(Math.ceil(fleet.shipCount / FLEET_STRENGTH_DIVISOR), FLEET_STRENGTH_SEGMENTS);
@@ -55,7 +68,73 @@ export function FleetInfo({ fleet, editable }: { fleet: Fleet; editable: boolean
       <div className="holo-divider" />
 
       <div className="holo-info-grid space-y-2">
-        <InfoRow label="Ship Count" value={`${fleet.shipCount} Vessels`} />
+        {editable && fleet.isCustom ? (
+          <>
+            <EditableInfoRow
+              label="Name"
+              value={fleet.name}
+              placeholder="Fleet Name"
+              editable
+              editing={editingName}
+              draft={nameDraft}
+              onStartEdit={() => { setEditingName(true); setNameDraft(fleet.name); }}
+              onDraftChange={setNameDraft}
+              onSave={() => {
+                if (nameDraft.trim()) updateFleetStats(fleet.id, { name: nameDraft.trim() });
+                setEditingName(false);
+              }}
+              onCancel={() => setEditingName(false)}
+            />
+            <EditableInfoRow
+              label="Ships"
+              value={`${fleet.shipCount} Vessels`}
+              placeholder="10"
+              editable
+              editing={editingShipCount}
+              draft={shipCountDraft}
+              onStartEdit={() => { setEditingShipCount(true); setShipCountDraft(String(fleet.shipCount)); }}
+              onDraftChange={setShipCountDraft}
+              onSave={() => {
+                const parsed = parseInt(shipCountDraft, 10);
+                if (!isNaN(parsed) && parsed > 0) updateFleetStats(fleet.id, { shipCount: parsed });
+                setEditingShipCount(false);
+              }}
+              onCancel={() => setEditingShipCount(false)}
+            />
+            <div className="flex justify-between items-center text-sm">
+              <span className="holo-label-inline">Faction</span>
+              <select
+                value={fleet.faction}
+                onChange={(e) => updateFleetStats(fleet.id, { faction: e.target.value as Faction })}
+                className="holo-input text-right"
+                style={{ padding: '2px 6px', fontSize: '12px' }}
+              >
+                {(Object.keys(FACTION_LABELS) as Faction[]).map((f) => (
+                  <option key={f} value={f}>{FACTION_LABELS[f]}</option>
+                ))}
+              </select>
+            </div>
+            <div className="flex justify-between items-center text-sm">
+              <span className="holo-label-inline">Model</span>
+              <select
+                value={fleet.modelType}
+                onChange={(e) => updateFleetStats(fleet.id, { modelType: e.target.value as ShipModelType })}
+                className="holo-input text-right"
+                style={{ padding: '2px 6px', fontSize: '12px' }}
+              >
+                {(Object.keys(MODEL_TYPE_LABELS) as ShipModelType[]).map((m) => (
+                  <option key={m} value={m}>{MODEL_TYPE_LABELS[m]}</option>
+                ))}
+              </select>
+            </div>
+          </>
+        ) : (
+          <>
+            <InfoRow label="Ship Count" value={`${fleet.shipCount} Vessels`} />
+            <InfoRow label="Faction" value={FACTION_LABELS[fleet.faction]} />
+            <InfoRow label="Model" value={MODEL_TYPE_LABELS[fleet.modelType] ?? fleet.modelType} />
+          </>
+        )}
         {fleet.flagship && <InfoRow label="Flagship" value={fleet.flagship} />}
         {fleet.commander && <InfoRow label="Commander" value={fleet.commander} />}
       </div>
