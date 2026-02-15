@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useGalaxyStore } from '@/store/galaxyStore';
 import { useRole } from '@/hooks/useRole';
+import { FleetLogisticsModal } from '@/components/panels/FleetLogisticsModal';
 import type { Faction, SearchResult } from '@/types';
 
 const FACTION_STAT_CONFIG: { key: Faction; label: string; color: string }[] = [
@@ -55,10 +57,7 @@ export function ControlsPanel() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newPlanetName, setNewPlanetName] = useState('');
   const [newPlanetColor, setNewPlanetColor] = useState('#4DD0E1');
-  const [showFleetCreateForm, setShowFleetCreateForm] = useState(false);
-  const [newFleetName, setNewFleetName] = useState('');
-  const [newFleetFaction, setNewFleetFaction] = useState<Faction>('neutral');
-  const [newFleetShipCount, setNewFleetShipCount] = useState(10);
+  const [showFleetModal, setShowFleetModal] = useState(false);
   const [yearDraft, setYearDraft] = useState(String(currentYear));
   const [collapsedSections, setCollapsedSections] = useState<Record<SectionKey, boolean>>({
     navigation: false,
@@ -490,84 +489,9 @@ export function ControlsPanel() {
               )}
 
 
-              {showFleetCreateForm && !fleetPlacementMode ? (
-                <div className="mt-3 space-y-3">
-                  <input
-                    type="text"
-                    value={newFleetName}
-                    onChange={(e) => setNewFleetName(e.target.value)}
-                    placeholder="Fleet name"
-                    className="holo-input w-full px-3 py-2 text-[13px]"
-                    maxLength={30}
-                    autoFocus
-                  />
-                  <div className="flex items-center gap-3">
-                    <label className="text-[11px] uppercase tracking-wide" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Orbitron, monospace', fontSize: '9px' }}>Faction</label>
-                    <div className="relative flex-1">
-                      <select
-                        value={newFleetFaction}
-                        onChange={(e) => setNewFleetFaction(e.target.value as Faction)}
-                        className="holo-input w-full px-2 py-1.5 pr-7 text-[12px]"
-                        style={{
-                          background: 'rgba(5, 5, 8, 0.7)',
-                          appearance: 'none',
-                          WebkitAppearance: 'none',
-                          MozAppearance: 'none',
-                          backgroundImage:
-                            'linear-gradient(45deg, transparent 50%, rgba(200, 170, 110, 0.9) 50%), linear-gradient(135deg, rgba(200, 170, 110, 0.9) 50%, transparent 50%)',
-                          backgroundPosition: 'calc(100% - 12px) calc(50% - 2px), calc(100% - 8px) calc(50% - 2px)',
-                          backgroundSize: '4px 4px, 4px 4px',
-                          backgroundRepeat: 'no-repeat',
-                        }}
-                      >
-                        <option value="neutral">Neutral</option>
-                        <option value="galactic_republic">Republic</option>
-                        <option value="sith_empire">Sith Empire</option>
-                        <option value="hutt_cartel">Hutt Cartel</option>
-                        <option value="contested">Contested</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <label className="text-[11px] uppercase tracking-wide" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Orbitron, monospace', fontSize: '9px' }}>Ships</label>
-                    <input
-                      type="number"
-                      value={newFleetShipCount}
-                      onChange={(e) => setNewFleetShipCount(Math.max(1, parseInt(e.target.value) || 1))}
-                      min={1}
-                      max={500}
-                      className="holo-input flex-1 px-2 py-1.5 text-[12px]"
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        if (newFleetName.trim()) {
-                          setFleetPlacementMode(true, { name: newFleetName.trim(), faction: newFleetFaction, shipCount: newFleetShipCount });
-                          setShowFleetCreateForm(false);
-                        }
-                      }}
-                      disabled={!newFleetName.trim()}
-                      className="holo-button flex-1 disabled:opacity-30 disabled:cursor-not-allowed"
-                      style={{ padding: '6px 12px' }}
-                    >
-                      <span className="text-[11px]">Place on Map</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowFleetCreateForm(false);
-                        setNewFleetName('');
-                      }}
-                      className="text-[12px] hover:text-white transition-colors px-3"
-                      style={{ color: 'var(--holo-text-muted)' }}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              ) : !fleetPlacementMode && (
+              {!fleetPlacementMode && (
                 <button
-                  onClick={() => setShowFleetCreateForm(true)}
+                  onClick={() => setShowFleetModal(true)}
                   className="holo-button mt-3 w-full"
                   style={{ padding: '6px 16px' }}
                 >
@@ -576,6 +500,17 @@ export function ControlsPanel() {
                   </svg>
                   <span>Create Fleet</span>
                 </button>
+              )}
+
+              {showFleetModal && createPortal(
+                <FleetLogisticsModal
+                  onConfirm={(data) => {
+                    setFleetPlacementMode(true, { name: data.name, faction: data.faction, shipCount: data.shipCount });
+                    setShowFleetModal(false);
+                  }}
+                  onCancel={() => setShowFleetModal(false)}
+                />,
+                document.body,
               )}
 
 

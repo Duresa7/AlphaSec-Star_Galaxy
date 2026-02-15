@@ -78,6 +78,12 @@ export interface Fleet {
   systemId?: string;
   isCustom?: boolean;
 }
+export interface FleetShipEntry {
+  catalogId: string;
+  name: string;
+  shipClass: string;
+  quantity: number;
+}
 export type InfoPanelData =
   | { type: 'system'; data: StarSystem }
   | { type: 'planet'; data: Planet }
