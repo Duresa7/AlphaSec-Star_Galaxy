@@ -13,7 +13,7 @@ export function FleetDetailView({ fleet }: FleetDetailViewProps) {
   const { showLabels } = useGalaxyStore();
   const groupRef = useRef<THREE.Group>(null);
 
-  const shipType = fleet.faction === 'sith_empire' ? 'sith' : 'republic';
+  const shipType = fleet.modelType;
   const factionColor = fleet.faction === 'sith_empire' ? '#DC143C' : '#FFD700';
   const shipScale = 8;
 

@@ -3,9 +3,11 @@ import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { ProceduralSkybox } from './ProceduralSkybox';
+import type { ShipModelType } from '@/types';
 const MODEL_PATHS = {
   sithDreadnought: '/models/ships/sith_dreadnought.glb',
   republicFrigate: '/models/ships/republic_frigate.glb',
+  republicVenator: '/models/ships/venator_destroyer.glb',
   nebula: '/models/icons/nebula.glb',
   blackHole: '/models/icons/black_hole.glb',
   spaceStation: '/models/icons/space_station.glb',
@@ -51,7 +53,7 @@ const PLANET_MODEL_PATHS: Record<string, string> = {
 };
 
 interface ShipModelProps {
-  type: 'sith' | 'republic';
+  type: ShipModelType;
   position: THREE.Vector3;
   scale?: number;
   rotation?: [number, number, number];
@@ -59,7 +61,17 @@ interface ShipModelProps {
 
 export function ShipModel({ type, position, scale = 0.5, rotation = [0, 0, 0] }: ShipModelProps) {
   const groupRef = useRef<THREE.Group>(null);
-  const modelPath = type === 'sith' ? MODEL_PATHS.sithDreadnought : MODEL_PATHS.republicFrigate;
+  const modelPath = useMemo(() => {
+    switch (type) {
+      case 'sith':
+        return MODEL_PATHS.sithDreadnought;
+      case 'venator':
+        return MODEL_PATHS.republicVenator;
+      case 'republic':
+      default:
+        return MODEL_PATHS.republicFrigate;
+    }
+  }, [type]);
 
   const { scene } = useGLTF(modelPath);
 
@@ -144,4 +156,3 @@ export function hasPlanetModel(planetId: string): boolean {
 export function GalaxySkybox() {
   return <ProceduralSkybox />;
 }
-

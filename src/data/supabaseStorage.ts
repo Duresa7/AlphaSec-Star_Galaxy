@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { supabase, supabaseConfigured } from '@/lib/supabase';
-import type { StarSystem, Fleet, Faction, Planet, AuditAction, AuditLogEntry, UserProfile } from '@/types';
+import type { StarSystem, Fleet, Faction, Planet, AuditAction, AuditLogEntry, UserProfile, ShipModelType } from '@/types';
 
 const AUTH_LOOKUP_TIMEOUT_MS = 8_000;
 
@@ -77,6 +77,7 @@ interface DbFleet {
   position_z: number;
   faction: Faction;
   ship_count: number;
+  model_type: ShipModelType;
   marker_size: number | null;
   created_by: string | null;
 }
@@ -134,6 +135,7 @@ function dbToFleet(row: DbFleet): Fleet {
     position: new THREE.Vector3(row.position_x, row.position_y, row.position_z),
     faction: row.faction,
     shipCount: row.ship_count,
+    modelType: row.model_type,
     markerSize: row.marker_size ?? undefined,
     isCustom: true,
   };
@@ -242,6 +244,7 @@ export async function insertCustomFleet(fleet: Fleet, userId: string): Promise<v
     position_z: fleet.position.z,
     faction: fleet.faction,
     ship_count: fleet.shipCount,
+    model_type: fleet.modelType,
     marker_size: fleet.markerSize ?? null,
     created_by: userId,
   });
@@ -258,6 +261,7 @@ export async function upsertFleet(fleet: Fleet, userId: string): Promise<void> {
     position_z: fleet.position.z,
     faction: fleet.faction,
     ship_count: fleet.shipCount,
+    model_type: fleet.modelType,
     marker_size: fleet.markerSize ?? null,
     created_by: userId,
   }, { onConflict: 'id' });
