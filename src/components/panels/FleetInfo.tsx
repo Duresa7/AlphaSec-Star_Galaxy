@@ -43,7 +43,6 @@ export function FleetInfo({ fleet, editable }: { fleet: Fleet; editable: boolean
             className="w-2.5 h-2.5 rounded-full animate-pulse"
             style={{
               backgroundColor: fleet.faction === 'sith_empire' ? '#DC143C' : fleet.faction === 'galactic_republic' ? '#C8AA6E' : fleet.faction === 'hutt_cartel' ? '#8B9A46' : '#808080',
-              boxShadow: fleet.faction === 'sith_empire' ? '0 0 10px rgba(220,20,60,0.5)' : fleet.faction === 'hutt_cartel' ? '0 0 10px rgba(139,154,70,0.5)' : '0 0 10px rgba(200,170,110,0.5)',
             }}
           />
           <h2 className="text-xl font-semibold holo-heading">{fleet.name}</h2>
@@ -169,14 +168,13 @@ export function FleetInfo({ fleet, editable }: { fleet: Fleet; editable: boolean
               style={{
                 background: i < filledSegments ? segmentColor : 'rgba(200, 170, 110, 0.06)',
                 border: `1px solid ${i < filledSegments ? segmentColor : 'rgba(200, 170, 110, 0.1)'}`,
-                boxShadow: i < filledSegments ? `0 0 8px ${segmentColor}30` : 'none',
                 borderRadius: '3px',
                 opacity: i < filledSegments ? 1 : 0.35,
               }}
             />
           ))}
         </div>
-        <div className="text-xs mt-1 text-right holo-label-orbitron" style={{ color: 'var(--holo-text-muted)', fontSize: '9px' }}>
+        <div className="text-xs mt-1 text-right holo-label-orbitron" style={{ color: 'var(--holo-text-muted)', fontSize: '11px' }}>
           {fleet.shipCount < FLEET_STRENGTH_LIGHT_THRESHOLD ? 'Light' : fleet.shipCount < FLEET_STRENGTH_HEAVY_THRESHOLD ? 'Medium' : 'Heavy'} Task Force
         </div>
       </div>
@@ -193,8 +191,8 @@ export function FleetInfo({ fleet, editable }: { fleet: Fleet; editable: boolean
             borderColor: 'rgba(220, 20, 60, 0.25)',
             background: 'rgba(220, 20, 60, 0.06)',
             color: '#DC143C',
-            fontFamily: 'Orbitron, monospace',
-            fontSize: '10px',
+            fontFamily: 'Oxanium, Orbitron, monospace',
+            fontSize: '12px',
             borderRadius: '8px',
           }}
         >

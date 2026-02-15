@@ -216,6 +216,7 @@ function StaticPlanet({ planet, showLabels, isDetailView, customColor }: StaticP
           position={[0, planetSize * viewScale + 1, 0]}
           center
           distanceFactor={10}
+          zIndexRange={[0, 0]}
           style={{ pointerEvents: 'none', userSelect: 'none' }}
         >
           <div className="text-center whitespace-nowrap holo-tooltip">

@@ -108,6 +108,7 @@ const FleetMarker = memo(function FleetMarker({ fleet }: FleetMarkerProps) {
           <Html
             position={[0, 0, -markerSize * 1.5]}
             center
+            zIndexRange={[0, 0]}
             style={{ pointerEvents: 'none', userSelect: 'none' }}
           >
             <div
@@ -160,6 +161,7 @@ const FleetMarker = memo(function FleetMarker({ fleet }: FleetMarkerProps) {
         <Html
           position={[0, markerSize * 1.8, 0]}
           center
+          zIndexRange={[0, 0]}
           style={{ pointerEvents: 'none', userSelect: 'none' }}
         >
           <div

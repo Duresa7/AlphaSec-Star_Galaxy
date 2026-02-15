@@ -79,7 +79,16 @@ export function ControlsPanel() {
   }, []);
 
   const sectionArrow = useCallback(
-    (section: SectionKey) => (collapsedSections[section] ? '\u25b8' : '\u25be'),
+    (section: SectionKey) =>
+      collapsedSections[section] ? (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+      ) : (
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      ),
     [collapsedSections]
   );
 
@@ -134,27 +143,35 @@ export function ControlsPanel() {
   }, []);
 
   return (
-    <div className="holo-scroll-invisible absolute left-5 top-5 space-y-3 max-h-[calc(100vh-3rem)] overflow-y-auto w-[280px] animate-slide-in-left pb-4">
+    <div className="holo-scroll-invisible absolute left-5 top-5 z-30 space-y-3 max-h-[calc(100vh-3rem)] overflow-y-auto w-[310px] animate-slide-in-left pb-4">
 
       <div ref={searchRef} className="relative z-50">
         <div className="holo-panel">
           <label
-            className="holo-label flex items-center justify-between gap-2"
-            style={{ marginBottom: collapsedSections.navigation ? '0' : '12px', cursor: 'pointer', userSelect: 'none' }}
+            className="holo-label holo-section-header"
+            style={{ marginBottom: collapsedSections.navigation ? '0' : '12px' }}
             onClick={() => toggleSection('navigation')}
           >
-            <span>Navigation</span>
+            <span className="flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ opacity: 0.7 }}>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              Navigation
+            </span>
             <span aria-hidden="true" style={{ color: 'var(--holo-amber)', opacity: 0.7 }}>{sectionArrow('navigation')}</span>
           </label>
           {!collapsedSections.navigation && (
-            <div className="relative">
+            <div className="holo-search-wrapper">
+              <svg className="holo-search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setIsSearchFocused(true)}
-                placeholder=""
-                className="holo-input w-full px-4 py-2.5 text-[14px]"
+                placeholder="Search systems, planets, fleets..."
+                className="holo-input w-full py-2.5 text-[14px]"
               />
             </div>
           )}
@@ -169,7 +186,7 @@ export function ControlsPanel() {
                   onClick={() => handleSelectResult(result)}
                   className="w-full px-4 py-3 text-left hover:bg-amber-500/5 transition-colors flex items-center gap-3 border-b border-amber-500/10 last:border-0"
                 >
-                  <span className={`text-[9px] font-semibold px-2 py-0.5 holo-badge holo-label-orbitron ${
+                  <span className={`text-[10px] font-semibold px-2 py-0.5 holo-badge holo-label-orbitron ${
                     result.type === 'system'
                       ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
                       : result.type === 'fleet'
@@ -179,9 +196,9 @@ export function ControlsPanel() {
                     {result.type === 'system' ? 'LOC' : result.type === 'fleet' ? 'FLT' : 'PLN'}
                   </span>
                   <div className="flex flex-col">
-                    <span className="text-gray-100 text-[13px] font-medium holo-body-text">{result.name}</span>
+                    <span className="text-gray-100 text-[14px] font-medium holo-body-text">{result.name}</span>
                     {result.parentName && (
-                      <span className="text-gray-500 text-[11px]">in {result.parentName}</span>
+                      <span className="text-gray-500 text-[12px]">in {result.parentName}</span>
                     )}
                   </div>
                 </button>
@@ -193,16 +210,21 @@ export function ControlsPanel() {
 
       <div className="holo-panel" style={{ marginTop: '0' }}>
         <label
-          className="holo-label flex items-center justify-between gap-2"
-          style={{ cursor: 'pointer', userSelect: 'none' }}
+          className="holo-label holo-section-header"
           onClick={() => toggleSection('currentView')}
         >
-          <span>Current View</span>
+          <span className="flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ opacity: 0.7 }}>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            Current View
+          </span>
           <span aria-hidden="true" style={{ color: 'var(--holo-amber)', opacity: 0.7 }}>{sectionArrow('currentView')}</span>
         </label>
         {!collapsedSections.currentView && (
           <>
-            <h2 className="text-lg font-semibold mt-2 holo-heading">
+            <h2 className="text-lg font-semibold mt-3 holo-heading holo-heading-accent">
               {viewMode === 'topdown' ? 'Galaxy Map' : (viewMode === 'system' ? 'Planet View' : 'Fleet View')}
             </h2>
             {viewMode !== 'topdown' && (
@@ -228,15 +250,19 @@ export function ControlsPanel() {
       <div className="holo-panel" style={{ marginTop: '0' }}>
         <div>
           <label
-            className="holo-label flex items-center justify-between gap-2"
-            style={{ cursor: 'pointer', userSelect: 'none' }}
+            className="holo-label holo-section-header"
             onClick={() => toggleSection('timeline')}
           >
-            <span>Timeline</span>
+            <span className="flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ opacity: 0.7 }}>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Timeline
+            </span>
             <span aria-hidden="true" style={{ color: 'var(--holo-amber)', opacity: 0.7 }}>{sectionArrow('timeline')}</span>
           </label>
           {!collapsedSections.timeline && (
-            <p className="text-[13px] mt-1 holo-body-text">Old Republic Era</p>
+            <p className="text-[14px] mt-1 holo-body-text">Old Republic Era</p>
           )}
         </div>
         {!collapsedSections.timeline && (
@@ -259,11 +285,11 @@ export function ControlsPanel() {
                   }}
                 />
               ) : (
-                <span className="holo-label-orbitron" style={{ fontSize: '14px', color: 'var(--holo-amber)' }}>
+                <span className="holo-label-orbitron" style={{ fontSize: '15px', color: 'var(--holo-amber)' }}>
                   {currentYear}
                 </span>
               )}
-              <span className="holo-label-orbitron" style={{ fontSize: '10px', color: 'var(--holo-text-muted)' }}>BBY</span>
+              <span className="holo-label-orbitron" style={{ fontSize: '11px', color: 'var(--holo-text-muted)' }}>BBY</span>
             </div>
             <div className="mt-1">
             </div>
@@ -273,11 +299,16 @@ export function ControlsPanel() {
 
       <div className="holo-panel" style={{ marginTop: '0' }}>
         <label
-          className="holo-label flex items-center justify-between gap-2"
-          style={{ marginBottom: collapsedSections.galaxyOverview ? '0' : '10px', cursor: 'pointer', userSelect: 'none' }}
+          className="holo-label holo-section-header"
+          style={{ marginBottom: collapsedSections.galaxyOverview ? '0' : '10px' }}
           onClick={() => toggleSection('galaxyOverview')}
         >
-          <span>Galaxy Overview</span>
+          <span className="flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ opacity: 0.7 }}>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Galaxy Overview
+          </span>
           <span aria-hidden="true" style={{ color: 'var(--holo-cyan)', opacity: 0.8 }}>{sectionArrow('galaxyOverview')}</span>
         </label>
 
@@ -289,7 +320,7 @@ export function ControlsPanel() {
               return (
                 <div
                   key={key}
-                  className="flex items-center gap-3 py-2 px-3"
+                  className="flex items-center gap-3 py-2 px-4"
                   style={{
                     background: 'rgba(200, 170, 110, 0.03)',
                     border: '1px solid rgba(200, 170, 110, 0.08)',
@@ -297,26 +328,26 @@ export function ControlsPanel() {
                   }}
                 >
                   <div
-                    className="w-2 h-2 flex-shrink-0 rounded-full"
-                    style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}60` }}
+                    className="holo-status-dot"
+                    style={{ backgroundColor: color, boxShadow: `0 0 0 3px ${color}40` }}
                   />
-                  <span className="flex-1 text-[11px] font-medium holo-body-text" style={{ color }}>
+                  <span className="flex-1 text-[13px] font-medium holo-body-text" style={{ color }}>
                     {label}
                   </span>
                   <div className="flex gap-3 text-right">
                     <div className="text-center">
-                      <div className="holo-label-orbitron" style={{ fontSize: '11px', color: 'var(--holo-text-primary)' }}>
+                      <div className="holo-label-orbitron" style={{ fontSize: '13px', color: 'var(--holo-text-primary)' }}>
                         {stats.planets}
                       </div>
-                      <div className="holo-label-orbitron" style={{ fontSize: '7px', color: 'var(--holo-text-muted)' }}>
+                      <div className="holo-label-orbitron" style={{ fontSize: '9px', color: 'var(--holo-text-muted)' }}>
                         PLN
                       </div>
                     </div>
                     <div className="text-center">
-                      <div className="holo-label-orbitron" style={{ fontSize: '11px', color: 'var(--holo-text-primary)' }}>
+                      <div className="holo-label-orbitron" style={{ fontSize: '13px', color: 'var(--holo-text-primary)' }}>
                         {stats.fleetShips}
                       </div>
-                      <div className="holo-label-orbitron" style={{ fontSize: '7px', color: 'var(--holo-text-muted)' }}>
+                      <div className="holo-label-orbitron" style={{ fontSize: '9px', color: 'var(--holo-text-muted)' }}>
                         SHIPS
                       </div>
                     </div>
@@ -331,11 +362,15 @@ export function ControlsPanel() {
       {isAdmin && viewMode === 'topdown' && (
         <div className="holo-panel" style={{ marginTop: '0' }}>
           <label
-            className="holo-label flex items-center justify-between gap-2"
-            style={{ cursor: 'pointer', userSelect: 'none' }}
+            className="holo-label holo-section-header"
             onClick={() => toggleSection('customPlanets')}
           >
-            <span>Custom Planets</span>
+            <span className="flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ opacity: 0.7 }}>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+              </svg>
+              Custom Planets
+            </span>
             <span aria-hidden="true" style={{ color: 'var(--holo-cyan)', opacity: 0.8 }}>{sectionArrow('customPlanets')}</span>
           </label>
 
@@ -343,7 +378,7 @@ export function ControlsPanel() {
             <>
               {placementMode && (
                 <div className="mt-3 p-3 border" style={{ borderColor: 'rgba(0, 240, 255, 0.2)', background: 'rgba(0, 240, 255, 0.04)', borderRadius: '10px' }}>
-                  <p className="text-[12px] font-medium animate-pulse holo-label-orbitron" style={{ color: 'var(--holo-cyan)', fontSize: '10px' }}>
+                  <p className="text-[13px] font-medium animate-pulse holo-label-orbitron" style={{ color: 'var(--holo-cyan)' }}>
                     Click on the map to place your planet
                   </p>
                   <button
@@ -368,7 +403,7 @@ export function ControlsPanel() {
                     autoFocus
                   />
                   <div className="flex items-center gap-3">
-                    <label className="text-[11px] uppercase tracking-wide holo-label-orbitron" style={{ color: 'var(--holo-text-muted)', fontSize: '9px' }}>Color</label>
+                    <label className="text-[11px] uppercase tracking-wide holo-label-orbitron" style={{ color: 'var(--holo-text-muted)' }}>Color</label>
                     <input
                       type="color"
                       value={newPlanetColor}
@@ -378,7 +413,7 @@ export function ControlsPanel() {
                     />
                     <div
                       className="w-4 h-4 rounded-full"
-                      style={{ backgroundColor: newPlanetColor, boxShadow: `0 0 10px ${newPlanetColor}60` }}
+                      style={{ backgroundColor: newPlanetColor }}
                     />
                   </div>
                   <div className="flex gap-2">
@@ -421,7 +456,7 @@ export function ControlsPanel() {
               )}
 
               {systems.filter(s => s.isCustom).length > 0 && (
-                <p className="text-[11px] mt-2" style={{ color: 'var(--holo-text-muted)' }}>
+                <p className="text-[12px] mt-2" style={{ color: 'var(--holo-text-muted)' }}>
                   {systems.filter(s => s.isCustom).length} custom planet{systems.filter(s => s.isCustom).length !== 1 ? 's' : ''} placed
                 </p>
               )}
@@ -433,11 +468,15 @@ export function ControlsPanel() {
       {isAdmin && viewMode === 'topdown' && (
         <div className="holo-panel" style={{ marginTop: '0' }}>
           <label
-            className="holo-label flex items-center justify-between gap-2"
-            style={{ cursor: 'pointer', userSelect: 'none' }}
+            className="holo-label holo-section-header"
             onClick={() => toggleSection('customFleets')}
           >
-            <span>Custom Fleets</span>
+            <span className="flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ opacity: 0.7 }}>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              Custom Fleets
+            </span>
             <span aria-hidden="true" style={{ color: 'var(--holo-crimson)', opacity: 0.8 }}>{sectionArrow('customFleets')}</span>
           </label>
 
@@ -445,7 +484,7 @@ export function ControlsPanel() {
             <>
               {fleetPlacementMode && (
                 <div className="mt-3 p-3 border" style={{ borderColor: 'rgba(0, 240, 255, 0.2)', background: 'rgba(0, 240, 255, 0.04)', borderRadius: '10px' }}>
-                  <p className="text-[12px] font-medium animate-pulse holo-label-orbitron" style={{ color: 'var(--holo-cyan)', fontSize: '10px' }}>
+                  <p className="text-[13px] font-medium animate-pulse holo-label-orbitron" style={{ color: 'var(--holo-cyan)' }}>
                     Click on the map to place your fleet
                   </p>
                   <button
@@ -488,7 +527,7 @@ export function ControlsPanel() {
               )}
 
               {fleets.filter(f => f.isCustom).length > 0 && (
-                <p className="text-[11px] mt-2" style={{ color: 'var(--holo-text-muted)' }}>
+                <p className="text-[12px] mt-2" style={{ color: 'var(--holo-text-muted)' }}>
                   {fleets.filter(f => f.isCustom).length} custom fleet{fleets.filter(f => f.isCustom).length !== 1 ? 's' : ''} placed
                 </p>
               )}
@@ -499,11 +538,15 @@ export function ControlsPanel() {
 
       <div className="holo-panel space-y-4" style={{ marginTop: '0' }}>
         <label
-          className="holo-label flex items-center justify-between gap-2"
-          style={{ cursor: 'pointer', userSelect: 'none' }}
+          className="holo-label holo-section-header"
           onClick={() => toggleSection('filters')}
         >
-          <span>Filters</span>
+          <span className="flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ opacity: 0.7 }}>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+            </svg>
+            Filters
+          </span>
           <span aria-hidden="true" style={{ color: 'var(--holo-amber)', opacity: 0.7 }}>{sectionArrow('filters')}</span>
         </label>
 
@@ -520,11 +563,15 @@ export function ControlsPanel() {
             <div className="holo-divider" />
 
             <label
-              className="holo-label mb-2 flex items-center justify-between gap-2"
-              style={{ cursor: 'pointer', userSelect: 'none' }}
+              className="holo-label holo-section-header mb-2"
               onClick={() => toggleSection('layers')}
             >
-              <span>Layers</span>
+              <span className="flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ opacity: 0.7 }}>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                Layers
+              </span>
               <span aria-hidden="true" style={{ color: 'var(--holo-amber)', opacity: 0.7 }}>{sectionArrow('layers')}</span>
             </label>
 
@@ -570,22 +617,13 @@ function FilterBox({ active, onClick, label, color = 'blue' }: FilterBoxProps) {
       style={{
         background: active ? `rgba(200, 170, 110, 0.06)` : 'rgba(5, 5, 8, 0.4)',
         borderColor: active ? `${activeColor}50` : 'rgba(200, 170, 110, 0.08)',
-        borderRadius: '10px',
-        boxShadow: active ? `0 0 16px ${activeColor}12` : 'none',
+        borderRadius: '8px',
       }}
     >
-      <div
-        className={`w-1.5 h-1.5 mb-2 rounded-full transition-all duration-300 ${active ? 'scale-110' : 'scale-75 opacity-40'}`}
-        style={{
-          backgroundColor: active ? activeColor : '#666',
-          boxShadow: active ? `0 0 10px ${activeColor}` : 'none',
-        }}
-      />
       <span
-        className="text-[10px] font-medium tracking-wider uppercase holo-label-orbitron"
+        className="text-[11px] font-medium tracking-wider uppercase holo-label-orbitron"
         style={{
           color: active ? activeColor : 'rgba(200, 170, 110, 0.3)',
-          textShadow: active ? `0 0 8px ${activeColor}30` : 'none',
         }}
       >
         {label}
