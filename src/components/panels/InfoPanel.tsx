@@ -301,7 +301,7 @@ const FACTION_BAR_COLORS: Record<Faction, string> = {
 };
 
 function PlanetInfo({ planet, editable }: { planet: Planet; editable: boolean }) {
-  const { updatePlanetStats, systems, updateCustomSystemMarkerSize, viewMode } = useGalaxyStore();
+  const { updatePlanetStats, systems, updateCustomSystemMarkerSize, viewMode, removeCustomSystem, setInfoPanelData, setSelectedSystem, setSelectedPlanet } = useGalaxyStore();
 
   const [editingPopulation, setEditingPopulation] = useState(false);
   const [populationDraft, setPopulationDraft] = useState(planet.population || '');
@@ -698,6 +698,28 @@ function PlanetInfo({ planet, editable }: { planet: Planet; editable: boolean })
             <span>EXTREME VOLCANIC ACTIVITY</span>
           </div>
         </div>
+      )}
+
+      {editable && system?.isCustom && (
+        <button
+          onClick={() => {
+            removeCustomSystem(planet.systemId);
+            setInfoPanelData(null);
+            setSelectedPlanet(null);
+            setSelectedSystem(null);
+          }}
+          className="w-full mt-2 px-4 py-2 border text-[12px] font-medium hover:bg-red-500/20 transition-colors"
+          style={{
+            borderColor: 'rgba(220, 20, 60, 0.25)',
+            background: 'rgba(220, 20, 60, 0.06)',
+            color: '#DC143C',
+            fontFamily: 'Orbitron, monospace',
+            fontSize: '10px',
+            borderRadius: '8px',
+          }}
+        >
+          Delete Custom Planet
+        </button>
       )}
     </div>
   );
