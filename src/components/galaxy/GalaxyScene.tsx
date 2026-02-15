@@ -22,14 +22,12 @@ import {
 } from '@/config/lightingConfig';
 
 function GalaxyContent() {
-  const {
-    systems,
-    setIsLoading,
-    viewMode,
-    selectedSystemId,
-    selectedFleetId,
-    fleets,
-  } = useGalaxyStore();
+  const systems = useGalaxyStore((s) => s.systems);
+  const setIsLoading = useGalaxyStore((s) => s.setIsLoading);
+  const viewMode = useGalaxyStore((s) => s.viewMode);
+  const selectedSystemId = useGalaxyStore((s) => s.selectedSystemId);
+  const selectedFleetId = useGalaxyStore((s) => s.selectedFleetId);
+  const fleets = useGalaxyStore((s) => s.fleets);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 1500);
@@ -107,7 +105,12 @@ function GalaxyContent() {
 }
 function TopDownView() {
   const { isAdmin } = useRole();
-  const { placementMode, pendingCustomPlanet, addCustomSystem, fleetPlacementMode, pendingCustomFleet, addCustomFleet } = useGalaxyStore();
+  const placementMode = useGalaxyStore((s) => s.placementMode);
+  const pendingCustomPlanet = useGalaxyStore((s) => s.pendingCustomPlanet);
+  const addCustomSystem = useGalaxyStore((s) => s.addCustomSystem);
+  const fleetPlacementMode = useGalaxyStore((s) => s.fleetPlacementMode);
+  const pendingCustomFleet = useGalaxyStore((s) => s.pendingCustomFleet);
+  const addCustomFleet = useGalaxyStore((s) => s.addCustomFleet);
 
   const handlePlacementClick = (e: ThreeEvent<MouseEvent>) => {
     if (!isAdmin) return;
@@ -195,14 +198,12 @@ function LoadingFallback() {
 }
 
 export function GalaxyScene() {
-  const {
-    viewMode,
-    placementMode,
-    fleetPlacementMode,
-    setSelectedSystem,
-    setSelectedFleet,
-    setInfoPanelData,
-  } = useGalaxyStore();
+  const viewMode = useGalaxyStore((s) => s.viewMode);
+  const placementMode = useGalaxyStore((s) => s.placementMode);
+  const fleetPlacementMode = useGalaxyStore((s) => s.fleetPlacementMode);
+  const setSelectedSystem = useGalaxyStore((s) => s.setSelectedSystem);
+  const setSelectedFleet = useGalaxyStore((s) => s.setSelectedFleet);
+  const setInfoPanelData = useGalaxyStore((s) => s.setInfoPanelData);
   const handlePointerMissed = () => {
     if (placementMode || fleetPlacementMode) return;
     switch (viewMode) {
