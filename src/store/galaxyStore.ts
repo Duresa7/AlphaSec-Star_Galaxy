@@ -6,6 +6,7 @@ import type {
   SearchResult,
   Planet,
   PlanetStatsUpdate,
+  FleetStatsUpdate,
 } from '@/types';
 import { starSystems, anomalies, fleets } from '@/data/galaxyData';
 import {
@@ -544,6 +545,18 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
       dirtyFleetIds: new Set(state.dirtyFleetIds).add(id),
       hasPendingChanges: true,
     }));
+  },
+  updateFleetStats: (id: string, updates: FleetStatsUpdate) => {
+    const existing = get().fleets.find((f) => f.id === id);
+    if (!existing) return;
+
+    set((state) => ({
+      fleets: state.fleets.map((f) => (f.id === id ? { ...f, ...updates } : f)),
+      dirtyFleetIds: new Set(state.dirtyFleetIds).add(id),
+      hasPendingChanges: true,
+    }));
+
+    auditLog('fleet_updated', 'fleet', id, updates.name ?? existing.name, { fields: Object.keys(updates) });
   },
   dirtySystemIds: new Set<string>(),
   dirtyFleetIds: new Set<string>(),
