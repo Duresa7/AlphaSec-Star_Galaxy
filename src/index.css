@@ -162,14 +162,6 @@ body {
 .animate-slide-in-left {
   animation: slideInLeft 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
-.animate-fade-in {
-  animation: fadeIn 0.5s ease-out forwards;
-}
-
-.holo-clip {
-  border-radius: 12px;
-}
-
 .holo-panel {
   position: relative;
   background: rgba(8, 8, 14, 0.82);
@@ -235,6 +227,36 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.15em;
   text-shadow: 0 0 8px rgba(200, 170, 110, 0.25);
+}
+
+.holo-label-orbitron {
+  font-family: "Orbitron", monospace;
+}
+
+.holo-label-inline {
+  font-family: "Orbitron", monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--holo-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.holo-value-inline {
+  font-family: "Forum", "Rajdhani", serif;
+  font-size: 14px;
+  color: var(--holo-text-primary);
+}
+
+.holo-heading {
+  font-family: "Orbitron", monospace;
+  color: var(--holo-text-primary);
+  text-shadow: 0 0 12px rgba(200, 170, 110, 0.2);
+}
+
+.holo-body-text {
+  font-family: "Forum", "Rajdhani", serif;
+  color: var(--holo-text-muted);
 }
 
 .holo-input {

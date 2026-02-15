@@ -1,17 +1,10 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useGalaxyStore } from '@/store/galaxyStore';
 import { useRole } from '@/hooks/useRole';
 import { FleetLogisticsModal } from '@/components/panels/FleetLogisticsModal';
-import type { Faction, SearchResult } from '@/types';
-
-const FACTION_STAT_CONFIG: { key: Faction; label: string; color: string }[] = [
-  { key: 'galactic_republic', label: 'Republic', color: '#C8AA6E' },
-  { key: 'sith_empire', label: 'Sith Empire', color: '#DC143C' },
-  { key: 'hutt_cartel', label: 'Hutt Cartel', color: '#8B9A46' },
-  { key: 'neutral', label: 'Neutral', color: '#9E9E9E' },
-  { key: 'contested', label: 'Contested', color: '#FFA726' },
-];
+import { FACTION_STAT_CONFIG } from '@/constants/factions';
+import type { SearchResult } from '@/types';
 
 type SectionKey =
   | 'navigation'
@@ -25,33 +18,31 @@ type SectionKey =
 
 export function ControlsPanel() {
   const { isAdmin } = useRole();
-  const {
-    showFleets,
-    showAnomalies,
-    showLabels,
-    toggleFleets,
-    toggleAnomalies,
-    toggleLabels,
-    currentYear,
-    setCurrentYear,
-    viewMode,
-    searchQuery,
-    setSearchQuery,
-    factionFilters,
-    toggleFactionFilter,
-    getSearchResults,
-    getFactionStats,
-    setSelectedSystem,
-    setSelectedPlanet,
-    setSelectedFleet,
-    setInfoPanelData,
-    systems,
-    placementMode,
-    setPlacementMode,
-    fleets,
-    fleetPlacementMode,
-    setFleetPlacementMode,
-  } = useGalaxyStore();
+  const showFleets = useGalaxyStore((s) => s.showFleets);
+  const showAnomalies = useGalaxyStore((s) => s.showAnomalies);
+  const showLabels = useGalaxyStore((s) => s.showLabels);
+  const toggleFleets = useGalaxyStore((s) => s.toggleFleets);
+  const toggleAnomalies = useGalaxyStore((s) => s.toggleAnomalies);
+  const toggleLabels = useGalaxyStore((s) => s.toggleLabels);
+  const currentYear = useGalaxyStore((s) => s.currentYear);
+  const setCurrentYear = useGalaxyStore((s) => s.setCurrentYear);
+  const viewMode = useGalaxyStore((s) => s.viewMode);
+  const searchQuery = useGalaxyStore((s) => s.searchQuery);
+  const setSearchQuery = useGalaxyStore((s) => s.setSearchQuery);
+  const factionFilters = useGalaxyStore((s) => s.factionFilters);
+  const toggleFactionFilter = useGalaxyStore((s) => s.toggleFactionFilter);
+  const getSearchResults = useGalaxyStore((s) => s.getSearchResults);
+  const getFactionStats = useGalaxyStore((s) => s.getFactionStats);
+  const setSelectedSystem = useGalaxyStore((s) => s.setSelectedSystem);
+  const setSelectedPlanet = useGalaxyStore((s) => s.setSelectedPlanet);
+  const setSelectedFleet = useGalaxyStore((s) => s.setSelectedFleet);
+  const setInfoPanelData = useGalaxyStore((s) => s.setInfoPanelData);
+  const systems = useGalaxyStore((s) => s.systems);
+  const placementMode = useGalaxyStore((s) => s.placementMode);
+  const setPlacementMode = useGalaxyStore((s) => s.setPlacementMode);
+  const fleets = useGalaxyStore((s) => s.fleets);
+  const fleetPlacementMode = useGalaxyStore((s) => s.fleetPlacementMode);
+  const setFleetPlacementMode = useGalaxyStore((s) => s.setFleetPlacementMode);
 
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -71,7 +62,8 @@ export function ControlsPanel() {
   });
   const searchRef = useRef<HTMLInputElement>(null);
   const searchResults = getSearchResults();
-  const factionStats = getFactionStats();
+  const factionStats = useMemo(() => getFactionStats(), [getFactionStats]);
+
   useEffect(() => {
     setYearDraft(String(currentYear));
   }, [currentYear]);
@@ -100,6 +92,7 @@ export function ControlsPanel() {
     setCurrentYear(parsed);
     setYearDraft(String(parsed));
   }, [yearDraft, currentYear, setCurrentYear]);
+
   const handleSelectResult = (result: SearchResult) => {
     if (result.type === 'system') {
       const system = systems.find(s => s.id === result.id);
@@ -129,6 +122,7 @@ export function ControlsPanel() {
     setSearchQuery('');
     setIsSearchFocused(false);
   };
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
@@ -166,7 +160,6 @@ export function ControlsPanel() {
           )}
         </div>
 
-
         {!collapsedSections.navigation && isSearchFocused && searchResults.length > 0 && (
           <div className="absolute top-full left-0 right-0 mt-2 z-50">
             <div className="holo-panel overflow-hidden">
@@ -176,17 +169,17 @@ export function ControlsPanel() {
                   onClick={() => handleSelectResult(result)}
                   className="w-full px-4 py-3 text-left hover:bg-amber-500/5 transition-colors flex items-center gap-3 border-b border-amber-500/10 last:border-0"
                 >
-                  <span className={`text-[9px] font-semibold px-2 py-0.5 holo-badge ${
+                  <span className={`text-[9px] font-semibold px-2 py-0.5 holo-badge holo-label-orbitron ${
                     result.type === 'system'
                       ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
                       : result.type === 'fleet'
                       ? 'bg-red-500/15 text-red-400 border border-red-500/30'
                       : 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30'
-                  }`} style={{ fontFamily: 'Orbitron, monospace' }}>
+                  }`}>
                     {result.type === 'system' ? 'LOC' : result.type === 'fleet' ? 'FLT' : 'PLN'}
                   </span>
                   <div className="flex flex-col">
-                    <span className="text-gray-100 text-[13px] font-medium" style={{ fontFamily: '"Forum", Rajdhani, serif' }}>{result.name}</span>
+                    <span className="text-gray-100 text-[13px] font-medium holo-body-text">{result.name}</span>
                     {result.parentName && (
                       <span className="text-gray-500 text-[11px]">in {result.parentName}</span>
                     )}
@@ -197,7 +190,6 @@ export function ControlsPanel() {
           </div>
         )}
       </div>
-
 
       <div className="holo-panel" style={{ marginTop: '0' }}>
         <label
@@ -210,7 +202,7 @@ export function ControlsPanel() {
         </label>
         {!collapsedSections.currentView && (
           <>
-            <h2 className="text-lg font-semibold mt-2" style={{ fontFamily: 'Orbitron, monospace', color: 'var(--holo-text-primary)' }}>
+            <h2 className="text-lg font-semibold mt-2 holo-heading">
               {viewMode === 'topdown' ? 'Galaxy Map' : (viewMode === 'system' ? 'Planet View' : 'Fleet View')}
             </h2>
             {viewMode !== 'topdown' && (
@@ -233,7 +225,6 @@ export function ControlsPanel() {
         )}
       </div>
 
-
       <div className="holo-panel" style={{ marginTop: '0' }}>
         <div>
           <label
@@ -245,7 +236,7 @@ export function ControlsPanel() {
             <span aria-hidden="true" style={{ color: 'var(--holo-amber)', opacity: 0.7 }}>{sectionArrow('timeline')}</span>
           </label>
           {!collapsedSections.timeline && (
-            <p className="text-[13px] mt-1" style={{ color: 'var(--holo-text-muted)', fontFamily: '"Forum", Rajdhani, serif' }}>Old Republic Era</p>
+            <p className="text-[13px] mt-1 holo-body-text">Old Republic Era</p>
           )}
         </div>
         {!collapsedSections.timeline && (
@@ -268,22 +259,17 @@ export function ControlsPanel() {
                   }}
                 />
               ) : (
-                <span style={{
-                  fontFamily: 'Orbitron, monospace',
-                  fontSize: '14px',
-                  color: 'var(--holo-amber)',
-                }}>
+                <span className="holo-label-orbitron" style={{ fontSize: '14px', color: 'var(--holo-amber)' }}>
                   {currentYear}
                 </span>
               )}
-              <span style={{ fontFamily: 'Orbitron, monospace', fontSize: '10px', color: 'var(--holo-text-muted)' }}>BBY</span>
+              <span className="holo-label-orbitron" style={{ fontSize: '10px', color: 'var(--holo-text-muted)' }}>BBY</span>
             </div>
             <div className="mt-1">
             </div>
           </>
         )}
       </div>
-
 
       <div className="holo-panel" style={{ marginTop: '0' }}>
         <label
@@ -310,36 +296,27 @@ export function ControlsPanel() {
                     borderRadius: '8px',
                   }}
                 >
-
                   <div
                     className="w-2 h-2 flex-shrink-0 rounded-full"
-                    style={{
-                      backgroundColor: color,
-                      boxShadow: `0 0 8px ${color}60`,
-                    }}
+                    style={{ backgroundColor: color, boxShadow: `0 0 8px ${color}60` }}
                   />
-
-                  <span
-                    className="flex-1 text-[11px] font-medium"
-                    style={{ fontFamily: '"Forum", Rajdhani, serif', color }}
-                  >
+                  <span className="flex-1 text-[11px] font-medium holo-body-text" style={{ color }}>
                     {label}
                   </span>
-
                   <div className="flex gap-3 text-right">
                     <div className="text-center">
-                      <div style={{ fontFamily: 'Orbitron, monospace', fontSize: '11px', color: 'var(--holo-text-primary)' }}>
+                      <div className="holo-label-orbitron" style={{ fontSize: '11px', color: 'var(--holo-text-primary)' }}>
                         {stats.planets}
                       </div>
-                      <div style={{ fontFamily: 'Orbitron, monospace', fontSize: '7px', color: 'var(--holo-text-muted)' }}>
+                      <div className="holo-label-orbitron" style={{ fontSize: '7px', color: 'var(--holo-text-muted)' }}>
                         PLN
                       </div>
                     </div>
                     <div className="text-center">
-                      <div style={{ fontFamily: 'Orbitron, monospace', fontSize: '11px', color: 'var(--holo-text-primary)' }}>
+                      <div className="holo-label-orbitron" style={{ fontSize: '11px', color: 'var(--holo-text-primary)' }}>
                         {stats.fleetShips}
                       </div>
-                      <div style={{ fontFamily: 'Orbitron, monospace', fontSize: '7px', color: 'var(--holo-text-muted)' }}>
+                      <div className="holo-label-orbitron" style={{ fontSize: '7px', color: 'var(--holo-text-muted)' }}>
                         SHIPS
                       </div>
                     </div>
@@ -350,7 +327,6 @@ export function ControlsPanel() {
           </div>
         )}
       </div>
-
 
       {isAdmin && viewMode === 'topdown' && (
         <div className="holo-panel" style={{ marginTop: '0' }}>
@@ -365,10 +341,9 @@ export function ControlsPanel() {
 
           {!collapsedSections.customPlanets && (
             <>
-
               {placementMode && (
                 <div className="mt-3 p-3 border" style={{ borderColor: 'rgba(0, 240, 255, 0.2)', background: 'rgba(0, 240, 255, 0.04)', borderRadius: '10px' }}>
-                  <p className="text-[12px] font-medium animate-pulse" style={{ color: 'var(--holo-cyan)', fontFamily: 'Orbitron, monospace', fontSize: '10px' }}>
+                  <p className="text-[12px] font-medium animate-pulse holo-label-orbitron" style={{ color: 'var(--holo-cyan)', fontSize: '10px' }}>
                     Click on the map to place your planet
                   </p>
                   <button
@@ -380,7 +355,6 @@ export function ControlsPanel() {
                   </button>
                 </div>
               )}
-
 
               {showCreateForm && !placementMode ? (
                 <div className="mt-3 space-y-3">
@@ -394,7 +368,7 @@ export function ControlsPanel() {
                     autoFocus
                   />
                   <div className="flex items-center gap-3">
-                    <label className="text-[11px] uppercase tracking-wide" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Orbitron, monospace', fontSize: '9px' }}>Color</label>
+                    <label className="text-[11px] uppercase tracking-wide holo-label-orbitron" style={{ color: 'var(--holo-text-muted)', fontSize: '9px' }}>Color</label>
                     <input
                       type="color"
                       value={newPlanetColor}
@@ -446,7 +420,6 @@ export function ControlsPanel() {
                 </button>
               )}
 
-
               {systems.filter(s => s.isCustom).length > 0 && (
                 <p className="text-[11px] mt-2" style={{ color: 'var(--holo-text-muted)' }}>
                   {systems.filter(s => s.isCustom).length} custom planet{systems.filter(s => s.isCustom).length !== 1 ? 's' : ''} placed
@@ -456,7 +429,6 @@ export function ControlsPanel() {
           )}
         </div>
       )}
-
 
       {isAdmin && viewMode === 'topdown' && (
         <div className="holo-panel" style={{ marginTop: '0' }}>
@@ -471,10 +443,9 @@ export function ControlsPanel() {
 
           {!collapsedSections.customFleets && (
             <>
-
               {fleetPlacementMode && (
                 <div className="mt-3 p-3 border" style={{ borderColor: 'rgba(0, 240, 255, 0.2)', background: 'rgba(0, 240, 255, 0.04)', borderRadius: '10px' }}>
-                  <p className="text-[12px] font-medium animate-pulse" style={{ color: 'var(--holo-cyan)', fontFamily: 'Orbitron, monospace', fontSize: '10px' }}>
+                  <p className="text-[12px] font-medium animate-pulse holo-label-orbitron" style={{ color: 'var(--holo-cyan)', fontSize: '10px' }}>
                     Click on the map to place your fleet
                   </p>
                   <button
@@ -486,7 +457,6 @@ export function ControlsPanel() {
                   </button>
                 </div>
               )}
-
 
               {!fleetPlacementMode && (
                 <button
@@ -517,7 +487,6 @@ export function ControlsPanel() {
                 document.body,
               )}
 
-
               {fleets.filter(f => f.isCustom).length > 0 && (
                 <p className="text-[11px] mt-2" style={{ color: 'var(--holo-text-muted)' }}>
                   {fleets.filter(f => f.isCustom).length} custom fleet{fleets.filter(f => f.isCustom).length !== 1 ? 's' : ''} placed
@@ -527,7 +496,6 @@ export function ControlsPanel() {
           )}
         </div>
       )}
-
 
       <div className="holo-panel space-y-4" style={{ marginTop: '0' }}>
         <label
@@ -541,38 +509,12 @@ export function ControlsPanel() {
 
         {!collapsedSections.filters && (
           <>
-
             <div className="grid grid-cols-2 gap-2">
-              <FilterBox
-                active={factionFilters.galactic_republic}
-                onClick={() => toggleFactionFilter('galactic_republic')}
-                label="Republic"
-                color="yellow"
-              />
-              <FilterBox
-                active={factionFilters.sith_empire}
-                onClick={() => toggleFactionFilter('sith_empire')}
-                label="Empire"
-                color="red"
-              />
-              <FilterBox
-                active={factionFilters.hutt_cartel}
-                onClick={() => toggleFactionFilter('hutt_cartel')}
-                label="Hutts"
-                color="olive"
-              />
-              <FilterBox
-                active={factionFilters.neutral}
-                onClick={() => toggleFactionFilter('neutral')}
-                label="Neutral"
-                color="gray"
-              />
-              <FilterBox
-                active={factionFilters.contested}
-                onClick={() => toggleFactionFilter('contested')}
-                label="Contested"
-                color="orange"
-              />
+              <FilterBox active={factionFilters.galactic_republic} onClick={() => toggleFactionFilter('galactic_republic')} label="Republic" color="yellow" />
+              <FilterBox active={factionFilters.sith_empire} onClick={() => toggleFactionFilter('sith_empire')} label="Empire" color="red" />
+              <FilterBox active={factionFilters.hutt_cartel} onClick={() => toggleFactionFilter('hutt_cartel')} label="Hutts" color="olive" />
+              <FilterBox active={factionFilters.neutral} onClick={() => toggleFactionFilter('neutral')} label="Neutral" color="gray" />
+              <FilterBox active={factionFilters.contested} onClick={() => toggleFactionFilter('contested')} label="Contested" color="orange" />
             </div>
 
             <div className="holo-divider" />
@@ -586,29 +528,11 @@ export function ControlsPanel() {
               <span aria-hidden="true" style={{ color: 'var(--holo-amber)', opacity: 0.7 }}>{sectionArrow('layers')}</span>
             </label>
 
-
             {!collapsedSections.layers && (
               <div className="grid grid-cols-2 gap-2">
-                <FilterBox
-                  active={showFleets}
-                  onClick={toggleFleets}
-                  label="Fleets"
-                  color="red"
-                />
-
-                <FilterBox
-                  active={showAnomalies}
-                  onClick={toggleAnomalies}
-                  label="Anomalies"
-                  color="purple"
-                />
-
-                <FilterBox
-                  active={showLabels}
-                  onClick={toggleLabels}
-                  label="Labels"
-                  color="yellow"
-                />
+                <FilterBox active={showFleets} onClick={toggleFleets} label="Fleets" color="red" />
+                <FilterBox active={showAnomalies} onClick={toggleAnomalies} label="Anomalies" color="purple" />
+                <FilterBox active={showLabels} onClick={toggleLabels} label="Labels" color="yellow" />
               </div>
             )}
           </>
@@ -618,6 +542,17 @@ export function ControlsPanel() {
   );
 }
 
+const FILTER_COLOR_MAP: Record<string, string> = {
+  blue: '#64B5F6',
+  yellow: '#C8AA6E',
+  red: '#DC143C',
+  orange: '#FFA726',
+  gray: '#9E9E9E',
+  purple: '#AB47BC',
+  cyan: '#00F0FF',
+  olive: '#8B9A46',
+};
+
 interface FilterBoxProps {
   active: boolean;
   onClick: () => void;
@@ -626,7 +561,7 @@ interface FilterBoxProps {
 }
 
 function FilterBox({ active, onClick, label, color = 'blue' }: FilterBoxProps) {
-  const activeColor = colorMap[color];
+  const activeColor = FILTER_COLOR_MAP[color];
 
   return (
     <button
@@ -639,7 +574,6 @@ function FilterBox({ active, onClick, label, color = 'blue' }: FilterBoxProps) {
         boxShadow: active ? `0 0 16px ${activeColor}12` : 'none',
       }}
     >
-
       <div
         className={`w-1.5 h-1.5 mb-2 rounded-full transition-all duration-300 ${active ? 'scale-110' : 'scale-75 opacity-40'}`}
         style={{
@@ -647,20 +581,15 @@ function FilterBox({ active, onClick, label, color = 'blue' }: FilterBoxProps) {
           boxShadow: active ? `0 0 10px ${activeColor}` : 'none',
         }}
       />
-
-
       <span
-        className="text-[10px] font-medium tracking-wider uppercase"
+        className="text-[10px] font-medium tracking-wider uppercase holo-label-orbitron"
         style={{
-          fontFamily: 'Orbitron, monospace',
           color: active ? activeColor : 'rgba(200, 170, 110, 0.3)',
           textShadow: active ? `0 0 8px ${activeColor}30` : 'none',
         }}
       >
         {label}
       </span>
-
-
       {active && (
         <div
           className="absolute inset-0 opacity-10 pointer-events-none"
@@ -670,13 +599,3 @@ function FilterBox({ active, onClick, label, color = 'blue' }: FilterBoxProps) {
     </button>
   );
 }
-const colorMap: Record<string, string> = {
-  blue: '#64B5F6',
-  yellow: '#C8AA6E',
-  red: '#DC143C',
-  orange: '#FFA726',
-  gray: '#9E9E9E',
-  purple: '#AB47BC',
-  cyan: '#00F0FF',
-  olive: '#8B9A46',
-};

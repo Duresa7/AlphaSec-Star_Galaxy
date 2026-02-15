@@ -295,3 +295,5 @@ create index if not exists idx_audit_logs_created_at on public.audit_logs (creat
 create index if not exists idx_audit_logs_user_id on public.audit_logs (user_id);
 create index if not exists idx_custom_systems_created_by on public.custom_systems (created_by);
 create index if not exists idx_custom_fleets_created_by on public.custom_fleets (created_by);
+create index if not exists idx_profiles_role on public.profiles (role);
+create index if not exists idx_custom_fleets_faction on public.custom_fleets (faction);

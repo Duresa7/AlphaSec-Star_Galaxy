@@ -236,9 +236,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const deleteAccount = useCallback(async () => {
     if (!supabaseConfigured) return { error: 'Supabase is not configured' };
-    const token = session?.access_token;
-    if (!token) return { error: 'Not authenticated' };
-    const result = await deleteAccountRequest(token);
+    if (!session?.access_token) return { error: 'Not authenticated' };
+    const result = await deleteAccountRequest();
     if (!result.error) {
       setSession(null);
       setProfile(null);
