@@ -104,6 +104,7 @@ const TopDownMarker = memo(function TopDownMarker({ system }: TopDownMarkerProps
         <Html
           position={[0, 0, -markerSize * 1.5]}
           center
+          zIndexRange={[0, 0]}
           style={{ pointerEvents: 'none', userSelect: 'none' }}
         >
           <div

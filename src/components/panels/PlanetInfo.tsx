@@ -95,8 +95,8 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
 
       <div className="holo-divider" />
 
-      <div className={`text-sm font-medium ${FACTION_TEXT_CLASSES[planet.faction]} flex items-center gap-2`} style={{ fontFamily: '"Forum", Rajdhani, serif' }}>
-        <span className="w-2 h-2 bg-current rounded-full" style={{ boxShadow: '0 0 6px currentColor' }}></span>
+      <div className={`text-[14px] font-medium ${FACTION_TEXT_CLASSES[planet.faction]} flex items-center gap-2`} style={{ fontFamily: '"Spline Sans", Manrope, sans-serif' }}>
+        <span className="w-2 h-2 bg-current rounded-full"></span>
         {FACTION_LABELS[planet.faction]} Territory
       </div>
 
@@ -190,7 +190,7 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
                 style={{
                   width: `${pct}%`,
                   backgroundColor: FACTION_BAR_COLORS[faction] || '#808080',
-                  boxShadow: `inset 0 0 8px rgba(0,0,0,0.3), 0 0 4px ${FACTION_BAR_COLORS[faction]}40`,
+                  boxShadow: 'inset 0 0 4px rgba(0,0,0,0.2)',
                 }}
               />
             ))}

@@ -26,7 +26,7 @@ export function EditableInfoRow({
   onCancel: () => void;
 }) {
   return (
-    <div className="flex justify-between items-center text-sm">
+    <div className="flex justify-between items-center text-[14px]">
       <span className="holo-label-inline">{label}</span>
       {!editable ? (
         <span className="holo-value-inline">
@@ -63,7 +63,7 @@ export function EditableInfoRow({
 
 export function InfoRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between text-sm">
+    <div className="flex justify-between text-[14px]">
       <span className="holo-label-inline">{label}</span>
       <span className="holo-value-inline">{value}</span>
     </div>

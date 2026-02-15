@@ -18,7 +18,7 @@ export function SystemInfo({ system, editable }: { system: StarSystem; editable:
     <div className="space-y-4">
 
       <div className="pb-3">
-        <h2 className="text-xl font-semibold mb-2 holo-heading">{system.name}</h2>
+        <h2 className="text-xl font-semibold mb-2 holo-heading holo-heading-accent">{system.name}</h2>
         <div className="flex items-center gap-2">
           <span className={`holo-badge ${
             system.faction === 'sith_empire' ? 'bg-red-500/20 text-red-300 border border-red-500/30' :
@@ -64,7 +64,7 @@ export function SystemInfo({ system, editable }: { system: StarSystem; editable:
         </div>
       )}
 
-      <p className="text-sm leading-relaxed holo-body-text">{system.description}</p>
+      <p className="text-[14px] leading-relaxed holo-body-text">{system.description}</p>
 
       {system.planets.length > 0 && (
         <div>
@@ -79,8 +79,8 @@ export function SystemInfo({ system, editable }: { system: StarSystem; editable:
                   setInfoPanelData({ type: 'planet', data: planet });
                 }}
               >
-                <span className="text-sm group-hover:text-cyan-300 transition-colors" style={{ color: 'var(--holo-text-primary)' }}>{planet.name}</span>
-                <span className="text-xs capitalize" style={{ color: 'var(--holo-text-muted)' }}>{planet.type.replace('_', ' ')}</span>
+                <span className="text-[14px] group-hover:text-amber-200 transition-colors" style={{ color: 'var(--holo-text-primary)' }}>{planet.name}</span>
+                <span className="text-[12px] capitalize" style={{ color: 'var(--holo-text-muted)' }}>{planet.type.replace('_', ' ')}</span>
               </div>
             ))}
           </div>
@@ -104,7 +104,7 @@ export function SystemInfo({ system, editable }: { system: StarSystem; editable:
       )}
 
       {system.planets.length > 0 && (
-        <div className="text-xs text-center animate-pulse holo-label-orbitron" style={{ color: 'var(--holo-text-muted)', fontSize: '9px' }}>
+        <div className="text-xs text-center animate-pulse holo-label-orbitron" style={{ color: 'var(--holo-text-muted)', fontSize: '11px' }}>
           Select a planet to open details
         </div>
       )}
@@ -121,8 +121,8 @@ export function SystemInfo({ system, editable }: { system: StarSystem; editable:
             borderColor: 'rgba(220, 20, 60, 0.25)',
             background: 'rgba(220, 20, 60, 0.06)',
             color: '#DC143C',
-            fontFamily: 'Orbitron, monospace',
-            fontSize: '10px',
+            fontFamily: 'Oxanium, Orbitron, monospace',
+            fontSize: '12px',
             borderRadius: '8px',
           }}
         >
