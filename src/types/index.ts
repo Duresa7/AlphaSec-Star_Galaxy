@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 export type ViewMode = 'topdown' | 'system' | 'fleet';
 export type Faction = 'sith_empire' | 'galactic_republic' | 'neutral' | 'contested' | 'hutt_cartel';
+export type ShipModelType = 'sith' | 'republic' | 'venator';
 export type FactionFilters = Record<Faction, boolean>;
 export type PlanetType =
   | 'terrestrial'
@@ -72,6 +73,7 @@ export interface Fleet {
   faction: Faction;
   position: THREE.Vector3;
   shipCount: number;
+  modelType: ShipModelType;
   markerSize?: number;
   flagship?: string;
   commander?: string;
@@ -82,6 +84,7 @@ export interface FleetShipEntry {
   catalogId: string;
   name: string;
   shipClass: string;
+  modelType: ShipModelType;
   quantity: number;
 }
 export type InfoPanelData =
@@ -193,8 +196,11 @@ export interface GalaxyStore {
   draggingCustomPlanet: boolean;
   setDraggingCustomPlanet: (dragging: boolean) => void;
   fleetPlacementMode: boolean;
-  pendingCustomFleet: { name: string; faction: Faction; shipCount: number } | null;
-  setFleetPlacementMode: (mode: boolean, pending?: { name: string; faction: Faction; shipCount: number } | null) => void;
+  pendingCustomFleet: { name: string; faction: Faction; shipCount: number; modelType: ShipModelType } | null;
+  setFleetPlacementMode: (
+    mode: boolean,
+    pending?: { name: string; faction: Faction; shipCount: number; modelType: ShipModelType } | null,
+  ) => void;
   addCustomFleet: (fleet: Fleet) => void;
   removeCustomFleet: (id: string) => void;
   previewCustomFleetPosition: (id: string, position: THREE.Vector3) => void;

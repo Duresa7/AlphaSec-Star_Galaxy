@@ -504,7 +504,12 @@ export function ControlsPanel() {
               {showFleetModal && createPortal(
                 <FleetLogisticsModal
                   onConfirm={(data) => {
-                    setFleetPlacementMode(true, { name: data.name, faction: data.faction, shipCount: data.shipCount });
+                    setFleetPlacementMode(true, {
+                      name: data.name,
+                      faction: data.faction,
+                      shipCount: data.shipCount,
+                      modelType: data.modelType,
+                    });
                     setShowFleetModal(false);
                   }}
                   onCancel={() => setShowFleetModal(false)}
