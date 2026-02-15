@@ -61,7 +61,7 @@ function FleetMarker({ fleet }: FleetMarkerProps) {
   } = useGalaxyStore();
 
   const color = FACTION_COLORS[fleet.faction];
-  const shipType = fleet.faction === 'sith_empire' ? 'sith' : 'republic';
+  const shipType = fleet.modelType;
   const markerSize = fleet.markerSize ?? DEFAULT_TOPDOWN_FLEET_MARKER_SIZE;
   const markerScale = markerSize / DEFAULT_TOPDOWN_FLEET_MARKER_SIZE;
   const diamondGeo = useDiamondShape(markerSize);

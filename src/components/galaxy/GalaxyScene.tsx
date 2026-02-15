@@ -149,6 +149,7 @@ function TopDownView() {
         position: new THREE.Vector3(point.x, 0, point.z),
         faction: pendingCustomFleet.faction,
         shipCount: pendingCustomFleet.shipCount,
+        modelType: pendingCustomFleet.modelType,
         isCustom: true,
       });
     }
