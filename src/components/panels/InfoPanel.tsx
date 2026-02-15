@@ -219,7 +219,7 @@ function SystemInfo({ system, editable }: { system: StarSystem; editable: boolea
       )}
 
 
-      <p className="text-sm leading-relaxed" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Rajdhani, sans-serif' }}>{system.description}</p>
+      <p className="text-sm leading-relaxed" style={{ color: 'var(--holo-text-muted)', fontFamily: '"Forum", Rajdhani, serif' }}>{system.description}</p>
 
 
       {system.planets.length > 0 && (
@@ -277,12 +277,12 @@ function SystemInfo({ system, editable }: { system: StarSystem; editable: boolea
           }}
           className="w-full mt-2 px-4 py-2 border text-[12px] font-medium hover:bg-red-500/20 transition-colors"
           style={{
-            borderColor: 'rgba(220, 20, 60, 0.3)',
-            background: 'rgba(220, 20, 60, 0.08)',
+            borderColor: 'rgba(220, 20, 60, 0.25)',
+            background: 'rgba(220, 20, 60, 0.06)',
             color: '#DC143C',
             fontFamily: 'Orbitron, monospace',
             fontSize: '10px',
-            clipPath: 'polygon(6px 0%, calc(100% - 6px) 0%, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0% calc(100% - 6px), 0% 6px)',
+            borderRadius: '8px',
           }}
         >
           Delete Custom Planet
@@ -381,8 +381,8 @@ function PlanetInfo({ planet, editable }: { planet: Planet; editable: boolean })
       <div className="holo-divider" />
 
 
-      <div className={`text-sm font-medium ${FACTION_COLORS[planet.faction]} flex items-center gap-2`} style={{ fontFamily: 'Rajdhani, sans-serif' }}>
-        <span className="w-2 h-2 bg-current" style={{ clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)', boxShadow: '0 0 5px currentColor' }}></span>
+      <div className={`text-sm font-medium ${FACTION_COLORS[planet.faction]} flex items-center gap-2`} style={{ fontFamily: '"Forum", Rajdhani, serif' }}>
+        <span className="w-2 h-2 bg-current rounded-full" style={{ boxShadow: '0 0 6px currentColor' }}></span>
         {FACTION_LABELS[planet.faction]} Territory
       </div>
 
@@ -472,7 +472,7 @@ function PlanetInfo({ planet, editable }: { planet: Planet; editable: boolean })
       <div>
         <label className="holo-label" style={{ marginBottom: '8px' }}>Faction Control</label>
 
-        <div className="flex h-3 mt-2 overflow-hidden" style={{ clipPath: 'polygon(2px 0%, calc(100% - 2px) 0%, 100% 2px, 100% calc(100% - 2px), calc(100% - 2px) 100%, 2px 100%, 0% calc(100% - 2px), 0% 2px)' }}>
+        <div className="flex h-3 mt-2 overflow-hidden" style={{ borderRadius: '4px' }}>
           {(Object.entries(factionControl) as [Faction, number][])
             .filter(([, v]) => v > 0)
             .map(([faction, pct]) => (
@@ -495,7 +495,7 @@ function PlanetInfo({ planet, editable }: { planet: Planet; editable: boolean })
               <div key={faction} className="flex items-center gap-2">
                 <span
                   className="w-2 h-2 flex-shrink-0"
-                  style={{ backgroundColor: FACTION_BAR_COLORS[faction], clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)' }}
+                  style={{ backgroundColor: FACTION_BAR_COLORS[faction], borderRadius: '50%' }}
                 />
                 <span className="text-[10px] flex-1 truncate" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Orbitron, monospace' }}>
                   {FACTION_LABELS[faction]}
@@ -546,7 +546,7 @@ function PlanetInfo({ planet, editable }: { planet: Planet; editable: boolean })
               autoFocus
               rows={3}
               className="holo-input w-full text-sm"
-              style={{ padding: '6px 8px', fontSize: '13px', fontFamily: 'Rajdhani, sans-serif', resize: 'vertical' }}
+              style={{ padding: '6px 8px', fontSize: '13px', fontFamily: '"Forum", Rajdhani, serif', resize: 'vertical' }}
             />
             <div className="flex gap-2 mt-1">
               <button
@@ -572,7 +572,7 @@ function PlanetInfo({ planet, editable }: { planet: Planet; editable: boolean })
               setEditingDescription(true);
             } : undefined}
             className={`text-sm leading-relaxed${editable ? ' cursor-pointer hover:underline' : ''}`}
-            style={{ color: 'var(--holo-text-muted)', fontFamily: 'Rajdhani, sans-serif', textDecorationColor: 'var(--holo-cyan)' }}
+            style={{ color: 'var(--holo-text-muted)', fontFamily: '"Forum", Rajdhani, serif', textDecorationColor: 'var(--holo-cyan)' }}
             title={editable ? 'Click to edit' : undefined}
           >
             {planet.description || 'No description'}
@@ -665,7 +665,7 @@ function PlanetInfo({ planet, editable }: { planet: Planet; editable: boolean })
                 ))}
               </div>
             ) : (
-              <span className="text-[11px]" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Rajdhani, sans-serif' }}>
+              <span className="text-[11px]" style={{ color: 'var(--holo-text-muted)', fontFamily: '"Forum", Rajdhani, serif' }}>
                 {editable ? 'Click to add locations' : 'No known locations'}
               </span>
             )}
@@ -747,11 +747,10 @@ function FleetInfo({ fleet, editable }: { fleet: Fleet; editable: boolean }) {
       <div className="pb-3">
         <div className="flex items-center gap-2 mb-2">
           <div
-            className="w-3 h-3 animate-pulse"
+            className="w-2.5 h-2.5 rounded-full animate-pulse"
             style={{
-              clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
               backgroundColor: fleet.faction === 'sith_empire' ? '#DC143C' : fleet.faction === 'galactic_republic' ? '#C8AA6E' : fleet.faction === 'hutt_cartel' ? '#8B9A46' : '#808080',
-              boxShadow: fleet.faction === 'sith_empire' ? '0 0 8px rgba(220,20,60,0.5)' : fleet.faction === 'hutt_cartel' ? '0 0 8px rgba(139,154,70,0.5)' : '0 0 8px rgba(200,170,110,0.5)',
+              boxShadow: fleet.faction === 'sith_empire' ? '0 0 10px rgba(220,20,60,0.5)' : fleet.faction === 'hutt_cartel' ? '0 0 10px rgba(139,154,70,0.5)' : '0 0 10px rgba(200,170,110,0.5)',
             }}
           />
           <h2 className="text-xl font-semibold" style={{ fontFamily: 'Orbitron, monospace', color: 'var(--holo-text-primary)' }}>{fleet.name}</h2>
@@ -811,11 +810,11 @@ function FleetInfo({ fleet, editable }: { fleet: Fleet; editable: boolean }) {
               key={i}
               className="flex-1 h-3 transition-all duration-300"
               style={{
-                background: i < filledSegments ? segmentColor : 'rgba(200, 170, 110, 0.08)',
-                border: `1px solid ${i < filledSegments ? segmentColor : 'rgba(200, 170, 110, 0.15)'}`,
-                boxShadow: i < filledSegments ? `0 0 6px ${segmentColor}40` : 'none',
-                clipPath: 'polygon(2px 0%, calc(100% - 2px) 0%, 100% 2px, 100% calc(100% - 2px), calc(100% - 2px) 100%, 2px 100%, 0% calc(100% - 2px), 0% 2px)',
-                opacity: i < filledSegments ? 1 : 0.4,
+                background: i < filledSegments ? segmentColor : 'rgba(200, 170, 110, 0.06)',
+                border: `1px solid ${i < filledSegments ? segmentColor : 'rgba(200, 170, 110, 0.1)'}`,
+                boxShadow: i < filledSegments ? `0 0 8px ${segmentColor}30` : 'none',
+                borderRadius: '3px',
+                opacity: i < filledSegments ? 1 : 0.35,
               }}
             />
           ))}
@@ -835,12 +834,12 @@ function FleetInfo({ fleet, editable }: { fleet: Fleet; editable: boolean }) {
           }}
           className="w-full mt-2 px-4 py-2 border text-[12px] font-medium hover:bg-red-500/20 transition-colors"
           style={{
-            borderColor: 'rgba(220, 20, 60, 0.3)',
-            background: 'rgba(220, 20, 60, 0.08)',
+            borderColor: 'rgba(220, 20, 60, 0.25)',
+            background: 'rgba(220, 20, 60, 0.06)',
             color: '#DC143C',
             fontFamily: 'Orbitron, monospace',
             fontSize: '10px',
-            clipPath: 'polygon(6px 0%, calc(100% - 6px) 0%, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0% calc(100% - 6px), 0% 6px)',
+            borderRadius: '8px',
           }}
         >
           Delete Custom Fleet
@@ -876,7 +875,7 @@ function AnomalyInfo({ anomaly }: { anomaly: Anomaly }) {
       </div>
 
 
-      <p className="text-sm leading-relaxed" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Rajdhani, sans-serif' }}>{anomaly.description}</p>
+      <p className="text-sm leading-relaxed" style={{ color: 'var(--holo-text-muted)', fontFamily: '"Forum", Rajdhani, serif' }}>{anomaly.description}</p>
 
 
       {(anomaly.type === 'black_hole' || anomaly.type === 'nebula') && (
@@ -922,7 +921,7 @@ function EditableInfoRow({
     <div className="flex justify-between items-center text-sm">
       <span style={{ color: 'var(--holo-text-muted)', fontFamily: 'Orbitron, monospace', fontSize: '10px' }}>{label}</span>
       {!editable ? (
-        <span style={{ color: 'var(--holo-text-primary)', fontFamily: 'Rajdhani, sans-serif' }}>
+        <span style={{ color: 'var(--holo-text-primary)', fontFamily: '"Forum", Rajdhani, serif' }}>
           {value || placeholder}
         </span>
       ) : editing ? (
@@ -944,7 +943,7 @@ function EditableInfoRow({
         <span
           onClick={onStartEdit}
           className="cursor-pointer hover:underline"
-          style={{ color: 'var(--holo-text-primary)', fontFamily: 'Rajdhani, sans-serif', textDecorationColor: 'var(--holo-cyan)' }}
+          style={{ color: 'var(--holo-text-primary)', fontFamily: '"Forum", Rajdhani, serif', textDecorationColor: 'var(--holo-cyan)' }}
           title="Click to edit"
         >
           {value || placeholder}
@@ -958,7 +957,7 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between text-sm">
       <span style={{ color: 'var(--holo-text-muted)', fontFamily: 'Orbitron, monospace', fontSize: '10px' }}>{label}</span>
-      <span style={{ color: 'var(--holo-text-primary)', fontFamily: 'Rajdhani, sans-serif' }}>{value}</span>
+      <span style={{ color: 'var(--holo-text-primary)', fontFamily: '"Forum", Rajdhani, serif' }}>{value}</span>
     </div>
   );
 }

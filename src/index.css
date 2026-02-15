@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Manrope:wght@400;500;600;700;800&family=Oxanium:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&family=Spline+Sans:wght@300;400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Forum&family=Manrope:wght@400;500;600;700;800&family=Oxanium:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&family=Spline+Sans:wght@300;400;500;600&display=swap");
 @import "tailwindcss";
 
 :root {
@@ -16,7 +16,7 @@
 }
 
 body {
-  font-family: "Rajdhani", "Outfit", sans-serif;
+  font-family: "Forum", "Rajdhani", serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #000;
@@ -35,7 +35,7 @@ body {
 
 ::-webkit-scrollbar-thumb {
   background: rgba(200, 170, 110, 0.25);
-  border-radius: 0;
+  border-radius: 2px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -167,51 +167,38 @@ body {
 }
 
 .holo-clip {
-  clip-path: polygon(
-    12px 0%,
-    calc(100% - 12px) 0%,
-    100% 12px,
-    100% calc(100% - 12px),
-    calc(100% - 12px) 100%,
-    12px 100%,
-    0% calc(100% - 12px),
-    0% 12px
-  );
+  border-radius: 12px;
 }
 
 .holo-panel {
   position: relative;
-  background: var(--holo-panel-bg);
-  border: 1px solid var(--holo-panel-border);
+  background: rgba(8, 8, 14, 0.82);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(200, 170, 110, 0.12);
+  border-radius: 14px;
   padding: 16px;
   overflow: hidden;
-  clip-path: polygon(
-    10px 0%,
-    calc(100% - 10px) 0%,
-    100% 10px,
-    100% calc(100% - 10px),
-    calc(100% - 10px) 100%,
-    10px 100%,
-    0% calc(100% - 10px),
-    0% 10px
-  );
   box-shadow:
-    0 0 15px rgba(200, 170, 110, 0.06),
-    0 4px 20px rgba(0, 0, 0, 0.7),
-    inset 0 1px 0 rgba(200, 170, 110, 0.08);
-  animation: holoFlicker 8s infinite;
+    0 0 1px rgba(200, 170, 110, 0.15),
+    0 8px 32px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(200, 170, 110, 0.06);
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .holo-panel::before {
   content: "";
   position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(200, 170, 110, 0.03) 2px,
-    rgba(200, 170, 110, 0.03) 4px
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(200, 170, 110, 0.3) 30%,
+    rgba(200, 170, 110, 0.3) 70%,
+    transparent 100%
   );
   pointer-events: none;
   z-index: 1;
@@ -223,15 +210,15 @@ body {
   top: 0;
   left: 0;
   right: 0;
-  height: 40px;
+  height: 60px;
   background: linear-gradient(
     180deg,
-    rgba(200, 170, 110, 0.06) 0%,
+    rgba(200, 170, 110, 0.04) 0%,
     transparent 100%
   );
-  animation: holoScanline 6s linear infinite;
   pointer-events: none;
   z-index: 1;
+  border-radius: 14px 14px 0 0;
 }
 
 .holo-panel > * {
@@ -247,40 +234,31 @@ body {
   color: var(--holo-amber);
   text-transform: uppercase;
   letter-spacing: 0.15em;
-  text-shadow: 0 0 6px rgba(200, 170, 110, 0.4);
+  text-shadow: 0 0 8px rgba(200, 170, 110, 0.25);
 }
 
 .holo-input {
-  background: rgba(5, 5, 8, 0.7);
-  border: 1px solid rgba(200, 170, 110, 0.2);
+  background: rgba(5, 5, 8, 0.6);
+  border: 1px solid rgba(200, 170, 110, 0.15);
+  border-radius: 8px;
   color: var(--holo-text-primary);
-  font-family: "Rajdhani", sans-serif;
+  font-family: "Forum", "Rajdhani", serif;
   font-size: 14px;
-  transition: all 0.2s ease;
-  clip-path: polygon(
-    6px 0%,
-    calc(100% - 6px) 0%,
-    100% 6px,
-    100% calc(100% - 6px),
-    calc(100% - 6px) 100%,
-    6px 100%,
-    0% calc(100% - 6px),
-    0% 6px
-  );
+  transition: all 0.25s ease;
 }
 
 .holo-input::placeholder {
   color: rgba(200, 170, 110, 0.3);
-  font-family: "Rajdhani", sans-serif;
+  font-family: "Forum", "Rajdhani", serif;
 }
 
 .holo-input:focus {
-  background: rgba(5, 5, 8, 0.9);
-  border-color: var(--holo-amber);
+  background: rgba(5, 5, 8, 0.85);
+  border-color: rgba(200, 170, 110, 0.4);
   outline: none;
   box-shadow:
-    0 0 12px rgba(200, 170, 110, 0.15),
-    inset 0 0 8px rgba(200, 170, 110, 0.05);
+    0 0 0 3px rgba(200, 170, 110, 0.08),
+    0 0 16px rgba(200, 170, 110, 0.1);
 }
 
 .holo-number-input::-webkit-inner-spin-button,
@@ -298,56 +276,50 @@ body {
   justify-content: center;
   gap: 6px;
   padding: 10px 16px;
-  background: rgba(200, 170, 110, 0.08);
-  border: 1px solid rgba(200, 170, 110, 0.25);
+  background: rgba(200, 170, 110, 0.06);
+  border: 1px solid rgba(200, 170, 110, 0.18);
+  border-radius: 8px;
   color: var(--holo-amber);
   font-family: "Orbitron", monospace;
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  transition: all 0.2s ease;
-  clip-path: polygon(
-    6px 0%,
-    calc(100% - 6px) 0%,
-    100% 6px,
-    100% calc(100% - 6px),
-    calc(100% - 6px) 100%,
-    6px 100%,
-    0% calc(100% - 6px),
-    0% 6px
-  );
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
 }
 
 .holo-button:hover {
-  background: rgba(200, 170, 110, 0.18);
-  border-color: rgba(200, 170, 110, 0.5);
+  background: rgba(200, 170, 110, 0.14);
+  border-color: rgba(200, 170, 110, 0.4);
   color: var(--holo-amber-bright);
-  box-shadow: 0 0 15px rgba(200, 170, 110, 0.15);
+  box-shadow:
+    0 0 20px rgba(200, 170, 110, 0.1),
+    0 0 0 1px rgba(200, 170, 110, 0.1);
+  transform: translateY(-1px);
+}
+
+.holo-button:active {
+  transform: translateY(0);
+  box-shadow: 0 0 8px rgba(200, 170, 110, 0.08);
 }
 
 .holo-button:disabled {
   opacity: 0.3;
   cursor: not-allowed;
+  transform: none;
 }
 
 .holo-tooltip {
   background: rgba(5, 5, 8, 0.95);
-  border: 1px solid rgba(200, 170, 110, 0.3);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(200, 170, 110, 0.2);
+  border-radius: 8px;
   padding: 8px 12px;
   box-shadow:
-    0 0 10px rgba(200, 170, 110, 0.1),
-    0 4px 12px rgba(0, 0, 0, 0.6);
-  clip-path: polygon(
-    6px 0%,
-    calc(100% - 6px) 0%,
-    100% 6px,
-    100% calc(100% - 6px),
-    calc(100% - 6px) 100%,
-    6px 100%,
-    0% calc(100% - 6px),
-    0% 6px
-  );
+    0 0 1px rgba(200, 170, 110, 0.15),
+    0 8px 20px rgba(0, 0, 0, 0.5);
 }
 
 .holo-badge {
@@ -357,16 +329,7 @@ body {
   padding: 3px 10px;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  clip-path: polygon(
-    4px 0%,
-    calc(100% - 4px) 0%,
-    100% 4px,
-    100% calc(100% - 4px),
-    calc(100% - 4px) 100%,
-    4px 100%,
-    0% calc(100% - 4px),
-    0% 4px
-  );
+  border-radius: 5px;
 }
 
 .holo-info-row {
@@ -374,34 +337,21 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: 10px 12px;
-  background: rgba(200, 170, 110, 0.04);
-  border: 1px solid rgba(200, 170, 110, 0.1);
-  clip-path: polygon(
-    5px 0%,
-    calc(100% - 5px) 0%,
-    100% 5px,
-    100% calc(100% - 5px),
-    calc(100% - 5px) 100%,
-    5px 100%,
-    0% calc(100% - 5px),
-    0% 5px
-  );
+  background: rgba(200, 170, 110, 0.03);
+  border: 1px solid rgba(200, 170, 110, 0.08);
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+
+.holo-info-row:hover {
+  background: rgba(200, 170, 110, 0.06);
 }
 
 .holo-info-grid {
-  background: rgba(200, 170, 110, 0.04);
-  border: 1px solid rgba(200, 170, 110, 0.1);
+  background: rgba(200, 170, 110, 0.03);
+  border: 1px solid rgba(200, 170, 110, 0.08);
+  border-radius: 10px;
   padding: 12px;
-  clip-path: polygon(
-    6px 0%,
-    calc(100% - 6px) 0%,
-    100% 6px,
-    100% calc(100% - 6px),
-    calc(100% - 6px) 100%,
-    6px 100%,
-    0% calc(100% - 6px),
-    0% 6px
-  );
 }
 
 .holo-close-button {
@@ -410,36 +360,29 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(200, 170, 110, 0.08);
-  border: 1px solid rgba(200, 170, 110, 0.2);
+  background: rgba(200, 170, 110, 0.06);
+  border: 1px solid rgba(200, 170, 110, 0.15);
+  border-radius: 50%;
   color: var(--holo-amber);
-  transition: all 0.15s ease;
-  clip-path: polygon(
-    4px 0%,
-    calc(100% - 4px) 0%,
-    100% 4px,
-    100% calc(100% - 4px),
-    calc(100% - 4px) 100%,
-    4px 100%,
-    0% calc(100% - 4px),
-    0% 4px
-  );
+  transition: all 0.2s ease;
 }
 
 .holo-close-button:hover {
-  background: rgba(200, 170, 110, 0.2);
+  background: rgba(200, 170, 110, 0.15);
   color: var(--holo-amber-bright);
-  box-shadow: 0 0 10px rgba(200, 170, 110, 0.2);
+  box-shadow: 0 0 12px rgba(200, 170, 110, 0.15);
+  transform: rotate(90deg);
 }
 
 .holo-divider {
   height: 1px;
   background: linear-gradient(
     90deg,
-    rgba(200, 170, 110, 0) 0%,
-    rgba(200, 170, 110, 0.4) 20%,
-    rgba(200, 170, 110, 0.4) 80%,
-    rgba(200, 170, 110, 0) 100%
+    transparent 0%,
+    rgba(200, 170, 110, 0.2) 15%,
+    rgba(200, 170, 110, 0.25) 50%,
+    rgba(200, 170, 110, 0.2) 85%,
+    transparent 100%
   );
   margin: 12px 0;
 }
@@ -448,26 +391,33 @@ body {
   -webkit-appearance: none;
   width: 100%;
   height: 3px;
-  background: rgba(200, 170, 110, 0.15);
+  background: rgba(200, 170, 110, 0.12);
+  border-radius: 2px;
   outline: none;
 }
 
 .holo-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   background: var(--holo-amber);
+  border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 0 8px rgba(200, 170, 110, 0.5);
-  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  box-shadow: 0 0 10px rgba(200, 170, 110, 0.4);
+  transition: box-shadow 0.2s ease;
+}
+
+.holo-slider::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 16px rgba(200, 170, 110, 0.6);
 }
 
 .holo-slider::-moz-range-thumb {
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   background: var(--holo-amber);
+  border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 0 8px rgba(200, 170, 110, 0.5);
+  box-shadow: 0 0 10px rgba(200, 170, 110, 0.4);
   border: none;
 }
 
@@ -2688,36 +2638,32 @@ body {
   max-height: 96vh;
   display: flex;
   flex-direction: column;
-  background: var(--holo-panel-bg);
-  border: 1px solid var(--holo-panel-border);
+  background: rgba(8, 8, 14, 0.92);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  border: 1px solid rgba(200, 170, 110, 0.12);
+  border-radius: 16px;
   overflow: hidden;
-  clip-path: polygon(
-    14px 0%,
-    calc(100% - 14px) 0%,
-    100% 14px,
-    100% calc(100% - 14px),
-    calc(100% - 14px) 100%,
-    14px 100%,
-    0% calc(100% - 14px),
-    0% 14px
-  );
   box-shadow:
-    0 0 40px rgba(200, 170, 110, 0.08),
-    0 8px 60px rgba(0, 0, 0, 0.8),
-    inset 0 1px 0 rgba(200, 170, 110, 0.1);
+    0 0 1px rgba(200, 170, 110, 0.2),
+    0 16px 64px rgba(0, 0, 0, 0.7),
+    inset 0 1px 0 rgba(200, 170, 110, 0.08);
   animation: slideInRight 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .fleet-modal-container::before {
   content: "";
   position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
     transparent,
-    transparent 2px,
-    rgba(200, 170, 110, 0.02) 2px,
-    rgba(200, 170, 110, 0.02) 4px
+    rgba(200, 170, 110, 0.3) 30%,
+    rgba(200, 170, 110, 0.3) 70%,
+    transparent
   );
   pointer-events: none;
   z-index: 0;
@@ -2765,20 +2711,11 @@ body {
   align-items: center;
   justify-content: center;
   background: rgba(200, 170, 110, 0.06);
-  border: 1px solid rgba(200, 170, 110, 0.2);
+  border: 1px solid rgba(200, 170, 110, 0.15);
+  border-radius: 50%;
   color: var(--holo-amber);
   cursor: pointer;
-  transition: all 0.15s ease;
-  clip-path: polygon(
-    4px 0%,
-    calc(100% - 4px) 0%,
-    100% 4px,
-    100% calc(100% - 4px),
-    calc(100% - 4px) 100%,
-    4px 100%,
-    0% calc(100% - 4px),
-    0% 4px
-  );
+  transition: all 0.2s ease;
 }
 
 .fleet-modal-close:hover {
@@ -2815,18 +2752,10 @@ body {
   display: flex;
   flex-direction: column;
   background: rgba(200, 170, 110, 0.03);
-  border: 1px solid rgba(200, 170, 110, 0.12);
-  transition: all 0.2s ease;
-  clip-path: polygon(
-    8px 0%,
-    calc(100% - 8px) 0%,
-    100% 8px,
-    100% calc(100% - 8px),
-    calc(100% - 8px) 100%,
-    8px 100%,
-    0% calc(100% - 8px),
-    0% 8px
-  );
+  border: 1px solid rgba(200, 170, 110, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: all 0.25s ease;
 }
 
 .fleet-ship-card:hover {
@@ -2860,16 +2789,7 @@ body {
   background: rgba(0, 240, 255, 0.15);
   color: var(--holo-cyan);
   border: 1px solid rgba(0, 240, 255, 0.3);
-  clip-path: polygon(
-    4px 0%,
-    calc(100% - 4px) 0%,
-    100% 4px,
-    100% calc(100% - 4px),
-    calc(100% - 4px) 100%,
-    4px 100%,
-    0% calc(100% - 4px),
-    0% 4px
-  );
+  border-radius: 5px;
 }
 
 .fleet-ship-card-info {
@@ -2878,7 +2798,7 @@ body {
 
 .fleet-ship-card-name {
   margin: 0 0 6px;
-  font-family: "Rajdhani", sans-serif;
+  font-family: "Forum", "Rajdhani", serif;
   font-size: 16px;
   font-weight: 700;
   color: var(--holo-text-primary);
@@ -2886,7 +2806,7 @@ body {
 
 .fleet-ship-card-desc {
   margin: 0 0 12px;
-  font-family: "Rajdhani", sans-serif;
+  font-family: "Forum", "Rajdhani", serif;
   font-size: 12px;
   line-height: 1.4;
   color: var(--holo-text-muted);
@@ -2903,19 +2823,10 @@ body {
   text-transform: uppercase;
   color: var(--holo-cyan);
   background: rgba(0, 240, 255, 0.06);
-  border: 1px solid rgba(0, 240, 255, 0.25);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 0 0 10px 10px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  clip-path: polygon(
-    4px 0%,
-    calc(100% - 4px) 0%,
-    100% 4px,
-    100% calc(100% - 4px),
-    calc(100% - 4px) 100%,
-    4px 100%,
-    0% calc(100% - 4px),
-    0% 4px
-  );
+  transition: all 0.25s ease;
 }
 
 .fleet-ship-add-btn:hover {
@@ -2984,7 +2895,7 @@ body {
 
 .fleet-config-faction-desc {
   margin: 8px 0 0;
-  font-family: "Rajdhani", sans-serif;
+  font-family: "Forum", "Rajdhani", serif;
   font-size: 11px;
   line-height: 1.4;
   color: var(--holo-cyan);
@@ -3027,20 +2938,11 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px dashed rgba(200, 170, 110, 0.15);
+  border: 2px dashed rgba(200, 170, 110, 0.12);
+  border-radius: 10px;
   color: var(--holo-text-muted);
-  font-family: "Rajdhani", sans-serif;
+  font-family: "Forum", "Rajdhani", serif;
   font-size: 13px;
-  clip-path: polygon(
-    8px 0%,
-    calc(100% - 8px) 0%,
-    100% 8px,
-    100% calc(100% - 8px),
-    calc(100% - 8px) 100%,
-    8px 100%,
-    0% calc(100% - 8px),
-    0% 8px
-  );
 }
 
 .fleet-hangar-list {
@@ -3055,17 +2957,8 @@ body {
   justify-content: space-between;
   padding: 8px 10px;
   background: rgba(200, 170, 110, 0.04);
-  border: 1px solid rgba(200, 170, 110, 0.12);
-  clip-path: polygon(
-    4px 0%,
-    calc(100% - 4px) 0%,
-    100% 4px,
-    100% calc(100% - 4px),
-    calc(100% - 4px) 100%,
-    4px 100%,
-    0% calc(100% - 4px),
-    0% 4px
-  );
+  border: 1px solid rgba(200, 170, 110, 0.1);
+  border-radius: 8px;
 }
 
 .fleet-hangar-entry-info {
@@ -3075,7 +2968,7 @@ body {
 }
 
 .fleet-hangar-entry-name {
-  font-family: "Rajdhani", sans-serif;
+  font-family: "Forum", "Rajdhani", serif;
   font-size: 13px;
   font-weight: 600;
   color: var(--holo-text-primary);
@@ -3109,20 +3002,11 @@ body {
   align-items: center;
   justify-content: center;
   background: rgba(220, 20, 60, 0.08);
-  border: 1px solid rgba(220, 20, 60, 0.25);
+  border: 1px solid rgba(220, 20, 60, 0.2);
+  border-radius: 50%;
   color: var(--holo-crimson);
   cursor: pointer;
-  transition: all 0.15s ease;
-  clip-path: polygon(
-    3px 0%,
-    calc(100% - 3px) 0%,
-    100% 3px,
-    100% calc(100% - 3px),
-    calc(100% - 3px) 100%,
-    3px 100%,
-    0% calc(100% - 3px),
-    0% 3px
-  );
+  transition: all 0.2s ease;
 }
 
 .fleet-hangar-remove-btn:hover {
@@ -3149,18 +3033,9 @@ body {
   color: #050508;
   background: linear-gradient(135deg, var(--holo-cyan), #00c4d4);
   border: 1px solid var(--holo-cyan);
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  clip-path: polygon(
-    6px 0%,
-    calc(100% - 6px) 0%,
-    100% 6px,
-    100% calc(100% - 6px),
-    calc(100% - 6px) 100%,
-    6px 100%,
-    0% calc(100% - 6px),
-    0% 6px
-  );
+  transition: all 0.25s ease;
 }
 
 .fleet-confirm-btn:hover:not(:disabled) {
