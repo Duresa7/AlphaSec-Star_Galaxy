@@ -140,7 +140,7 @@ export function ControlsPanel() {
   }, []);
 
   return (
-    <div className="holo-scroll-invisible absolute left-5 top-5 space-y-5 max-h-[calc(100vh-3rem)] overflow-y-auto w-[280px] animate-slide-in-left pb-4">
+    <div className="holo-scroll-invisible absolute left-5 top-5 space-y-3 max-h-[calc(100vh-3rem)] overflow-y-auto w-[280px] animate-slide-in-left pb-4">
 
       <div ref={searchRef} className="relative z-50">
         <div className="holo-panel">
@@ -186,7 +186,7 @@ export function ControlsPanel() {
                     {result.type === 'system' ? 'LOC' : result.type === 'fleet' ? 'FLT' : 'PLN'}
                   </span>
                   <div className="flex flex-col">
-                    <span className="text-gray-100 text-[13px] font-medium" style={{ fontFamily: 'Rajdhani, sans-serif' }}>{result.name}</span>
+                    <span className="text-gray-100 text-[13px] font-medium" style={{ fontFamily: '"Forum", Rajdhani, serif' }}>{result.name}</span>
                     {result.parentName && (
                       <span className="text-gray-500 text-[11px]">in {result.parentName}</span>
                     )}
@@ -199,7 +199,7 @@ export function ControlsPanel() {
       </div>
 
 
-      <div className="holo-panel" style={{ marginTop: '16px' }}>
+      <div className="holo-panel" style={{ marginTop: '0' }}>
         <label
           className="holo-label flex items-center justify-between gap-2"
           style={{ cursor: 'pointer', userSelect: 'none' }}
@@ -234,7 +234,7 @@ export function ControlsPanel() {
       </div>
 
 
-      <div className="holo-panel" style={{ marginTop: '16px' }}>
+      <div className="holo-panel" style={{ marginTop: '0' }}>
         <div>
           <label
             className="holo-label flex items-center justify-between gap-2"
@@ -245,7 +245,7 @@ export function ControlsPanel() {
             <span aria-hidden="true" style={{ color: 'var(--holo-amber)', opacity: 0.7 }}>{sectionArrow('timeline')}</span>
           </label>
           {!collapsedSections.timeline && (
-            <p className="text-[13px] mt-1" style={{ color: 'var(--holo-text-muted)', fontFamily: 'Rajdhani, sans-serif' }}>Old Republic Era</p>
+            <p className="text-[13px] mt-1" style={{ color: 'var(--holo-text-muted)', fontFamily: '"Forum", Rajdhani, serif' }}>Old Republic Era</p>
           )}
         </div>
         {!collapsedSections.timeline && (
@@ -285,7 +285,7 @@ export function ControlsPanel() {
       </div>
 
 
-      <div className="holo-panel" style={{ marginTop: '16px' }}>
+      <div className="holo-panel" style={{ marginTop: '0' }}>
         <label
           className="holo-label flex items-center justify-between gap-2"
           style={{ marginBottom: collapsedSections.galaxyOverview ? '0' : '10px', cursor: 'pointer', userSelect: 'none' }}
@@ -303,26 +303,25 @@ export function ControlsPanel() {
               return (
                 <div
                   key={key}
-                  className="flex items-center gap-3 py-2 px-2"
+                  className="flex items-center gap-3 py-2 px-3"
                   style={{
                     background: 'rgba(200, 170, 110, 0.03)',
                     border: '1px solid rgba(200, 170, 110, 0.08)',
-                    clipPath: 'polygon(4px 0%, calc(100% - 4px) 0%, 100% 4px, 100% calc(100% - 4px), calc(100% - 4px) 100%, 4px 100%, 0% calc(100% - 4px), 0% 4px)',
+                    borderRadius: '8px',
                   }}
                 >
 
                   <div
-                    className="w-2.5 h-2.5 flex-shrink-0"
+                    className="w-2 h-2 flex-shrink-0 rounded-full"
                     style={{
                       backgroundColor: color,
-                      clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
-                      boxShadow: `0 0 6px ${color}60`,
+                      boxShadow: `0 0 8px ${color}60`,
                     }}
                   />
 
                   <span
                     className="flex-1 text-[11px] font-medium"
-                    style={{ fontFamily: 'Rajdhani, sans-serif', color }}
+                    style={{ fontFamily: '"Forum", Rajdhani, serif', color }}
                   >
                     {label}
                   </span>
@@ -354,7 +353,7 @@ export function ControlsPanel() {
 
 
       {isAdmin && viewMode === 'topdown' && (
-        <div className="holo-panel" style={{ marginTop: '16px' }}>
+        <div className="holo-panel" style={{ marginTop: '0' }}>
           <label
             className="holo-label flex items-center justify-between gap-2"
             style={{ cursor: 'pointer', userSelect: 'none' }}
@@ -368,7 +367,7 @@ export function ControlsPanel() {
             <>
 
               {placementMode && (
-                <div className="mt-3 p-3 border" style={{ borderColor: 'rgba(0, 240, 255, 0.3)', background: 'rgba(0, 240, 255, 0.05)', clipPath: 'polygon(6px 0%, calc(100% - 6px) 0%, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0% calc(100% - 6px), 0% 6px)' }}>
+                <div className="mt-3 p-3 border" style={{ borderColor: 'rgba(0, 240, 255, 0.2)', background: 'rgba(0, 240, 255, 0.04)', borderRadius: '10px' }}>
                   <p className="text-[12px] font-medium animate-pulse" style={{ color: 'var(--holo-cyan)', fontFamily: 'Orbitron, monospace', fontSize: '10px' }}>
                     Click on the map to place your planet
                   </p>
@@ -404,8 +403,8 @@ export function ControlsPanel() {
                       style={{ borderColor: 'rgba(200, 170, 110, 0.2)' }}
                     />
                     <div
-                      className="w-4 h-4"
-                      style={{ backgroundColor: newPlanetColor, boxShadow: `0 0 8px ${newPlanetColor}60`, clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)' }}
+                      className="w-4 h-4 rounded-full"
+                      style={{ backgroundColor: newPlanetColor, boxShadow: `0 0 10px ${newPlanetColor}60` }}
                     />
                   </div>
                   <div className="flex gap-2">
@@ -460,7 +459,7 @@ export function ControlsPanel() {
 
 
       {isAdmin && viewMode === 'topdown' && (
-        <div className="holo-panel" style={{ marginTop: '16px' }}>
+        <div className="holo-panel" style={{ marginTop: '0' }}>
           <label
             className="holo-label flex items-center justify-between gap-2"
             style={{ cursor: 'pointer', userSelect: 'none' }}
@@ -474,7 +473,7 @@ export function ControlsPanel() {
             <>
 
               {fleetPlacementMode && (
-                <div className="mt-3 p-3 border" style={{ borderColor: 'rgba(0, 240, 255, 0.3)', background: 'rgba(0, 240, 255, 0.05)', clipPath: 'polygon(6px 0%, calc(100% - 6px) 0%, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0% calc(100% - 6px), 0% 6px)' }}>
+                <div className="mt-3 p-3 border" style={{ borderColor: 'rgba(0, 240, 255, 0.2)', background: 'rgba(0, 240, 255, 0.04)', borderRadius: '10px' }}>
                   <p className="text-[12px] font-medium animate-pulse" style={{ color: 'var(--holo-cyan)', fontFamily: 'Orbitron, monospace', fontSize: '10px' }}>
                     Click on the map to place your fleet
                   </p>
@@ -505,7 +504,12 @@ export function ControlsPanel() {
               {showFleetModal && createPortal(
                 <FleetLogisticsModal
                   onConfirm={(data) => {
-                    setFleetPlacementMode(true, { name: data.name, faction: data.faction, shipCount: data.shipCount });
+                    setFleetPlacementMode(true, {
+                      name: data.name,
+                      faction: data.faction,
+                      shipCount: data.shipCount,
+                      modelType: data.modelType,
+                    });
                     setShowFleetModal(false);
                   }}
                   onCancel={() => setShowFleetModal(false)}
@@ -525,7 +529,7 @@ export function ControlsPanel() {
       )}
 
 
-      <div className="holo-panel space-y-4" style={{ marginTop: '16px' }}>
+      <div className="holo-panel space-y-4" style={{ marginTop: '0' }}>
         <label
           className="holo-label flex items-center justify-between gap-2"
           style={{ cursor: 'pointer', userSelect: 'none' }}
@@ -627,21 +631,20 @@ function FilterBox({ active, onClick, label, color = 'blue' }: FilterBoxProps) {
   return (
     <button
       onClick={onClick}
-      className="relative flex flex-col items-center justify-center p-3 border transition-all duration-200"
+      className="relative flex flex-col items-center justify-center p-3 border transition-all duration-250 cursor-pointer overflow-hidden"
       style={{
-        background: active ? `rgba(200, 170, 110, 0.08)` : 'rgba(5, 5, 8, 0.5)',
-        borderColor: active ? `${activeColor}60` : 'rgba(200, 170, 110, 0.1)',
-        boxShadow: active ? `0 0 0 1px ${activeColor}30, 0 0 12px ${activeColor}15` : 'none',
-        clipPath: 'polygon(6px 0%, calc(100% - 6px) 0%, 100% 6px, 100% calc(100% - 6px), calc(100% - 6px) 100%, 6px 100%, 0% calc(100% - 6px), 0% 6px)',
+        background: active ? `rgba(200, 170, 110, 0.06)` : 'rgba(5, 5, 8, 0.4)',
+        borderColor: active ? `${activeColor}50` : 'rgba(200, 170, 110, 0.08)',
+        borderRadius: '10px',
+        boxShadow: active ? `0 0 16px ${activeColor}12` : 'none',
       }}
     >
 
       <div
-        className={`w-2 h-2 mb-2 transition-all duration-300 ${active ? 'scale-110' : 'scale-90 opacity-50'}`}
+        className={`w-1.5 h-1.5 mb-2 rounded-full transition-all duration-300 ${active ? 'scale-110' : 'scale-75 opacity-40'}`}
         style={{
           backgroundColor: active ? activeColor : '#666',
-          boxShadow: active ? `0 0 8px ${activeColor}` : 'none',
-          clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
+          boxShadow: active ? `0 0 10px ${activeColor}` : 'none',
         }}
       />
 
@@ -650,8 +653,8 @@ function FilterBox({ active, onClick, label, color = 'blue' }: FilterBoxProps) {
         className="text-[10px] font-medium tracking-wider uppercase"
         style={{
           fontFamily: 'Orbitron, monospace',
-          color: active ? activeColor : 'rgba(200, 170, 110, 0.35)',
-          textShadow: active ? `0 0 6px ${activeColor}40` : 'none',
+          color: active ? activeColor : 'rgba(200, 170, 110, 0.3)',
+          textShadow: active ? `0 0 8px ${activeColor}30` : 'none',
         }}
       >
         {label}
@@ -660,7 +663,7 @@ function FilterBox({ active, onClick, label, color = 'blue' }: FilterBoxProps) {
 
       {active && (
         <div
-          className="absolute inset-0 opacity-15 pointer-events-none"
+          className="absolute inset-0 opacity-10 pointer-events-none"
           style={{ background: `radial-gradient(circle at center, ${activeColor}, transparent 70%)` }}
         />
       )}

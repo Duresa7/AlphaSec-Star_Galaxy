@@ -8,53 +8,42 @@ export function LoadingScreen() {
   return (
     <div className="absolute inset-0 z-50 flex items-center justify-center" style={{ background: 'var(--holo-void)' }}>
 
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(200, 170, 110, 0.03) 2px, rgba(200, 170, 110, 0.03) 4px)',
-        }}
-      />
-
-      <div className="text-center relative z-10" style={{ animation: 'holoFlicker 4s infinite' }}>
+      <div className="text-center relative z-10">
 
         <div className="relative w-24 h-24 mx-auto mb-8">
 
           <div
-            className="absolute inset-0"
+            className="absolute inset-0 rounded-full"
             style={{
-              border: '2px solid rgba(200, 170, 110, 0.3)',
-              clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
+              border: '2px solid rgba(200, 170, 110, 0.2)',
               animation: 'diamondSpin 4s linear infinite',
             }}
           />
 
           <div
-            className="absolute"
+            className="absolute rounded-full"
             style={{
               inset: '8px',
-              border: '2px solid rgba(0, 240, 255, 0.3)',
-              clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
+              border: '2px solid rgba(0, 240, 255, 0.2)',
               animation: 'diamondSpin 3s linear infinite reverse',
             }}
           />
 
           <div
-            className="absolute"
+            className="absolute rounded-full"
             style={{
               inset: '16px',
-              border: '2px solid rgba(200, 170, 110, 0.5)',
-              clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
+              border: '2px solid rgba(200, 170, 110, 0.35)',
               animation: 'diamondSpin 2s linear infinite',
             }}
           />
 
           <div className="absolute inset-0 flex items-center justify-center">
             <div
-              className="w-3 h-3 animate-pulse"
+              className="w-3 h-3 rounded-full animate-pulse"
               style={{
                 backgroundColor: 'var(--holo-amber)',
-                clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
-                boxShadow: '0 0 12px rgba(200, 170, 110, 0.6)',
+                boxShadow: '0 0 16px rgba(200, 170, 110, 0.6)',
               }}
             />
           </div>
@@ -66,20 +55,20 @@ export function LoadingScreen() {
           style={{
             fontFamily: 'Orbitron, monospace',
             color: 'var(--holo-amber)',
-            textShadow: '0 0 15px rgba(200, 170, 110, 0.5), 0 0 30px rgba(200, 170, 110, 0.2)',
+            textShadow: '0 0 20px rgba(200, 170, 110, 0.4)',
           }}
         >
           GALAXY MAP
         </h1>
 
 
-        <div className="w-48 h-px mx-auto mb-4" style={{ background: 'rgba(200, 170, 110, 0.15)' }}>
+        <div className="w-48 h-px mx-auto mb-4 rounded-full overflow-hidden" style={{ background: 'rgba(200, 170, 110, 0.12)' }}>
           <div
-            className="h-full"
+            className="h-full rounded-full"
             style={{
               background: 'var(--holo-amber)',
               animation: 'holoBootLine 2s ease-in-out infinite',
-              boxShadow: '0 0 6px rgba(200, 170, 110, 0.5)',
+              boxShadow: '0 0 8px rgba(200, 170, 110, 0.5)',
             }}
           />
         </div>
@@ -90,7 +79,7 @@ export function LoadingScreen() {
             fontFamily: 'Orbitron, monospace',
             fontSize: '10px',
             color: 'var(--holo-cyan)',
-            textShadow: '0 0 8px rgba(0, 240, 255, 0.4)',
+            textShadow: '0 0 10px rgba(0, 240, 255, 0.35)',
             letterSpacing: '0.2em',
             animation: 'holoPulse 2s ease-in-out infinite',
           }}
@@ -100,7 +89,7 @@ export function LoadingScreen() {
         <p
           className="text-xs mt-2"
           style={{
-            fontFamily: 'Rajdhani, sans-serif',
+            fontFamily: '"Forum", Rajdhani, serif',
             color: 'var(--holo-text-muted)',
           }}
         >

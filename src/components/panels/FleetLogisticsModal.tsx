@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { ShipModel } from '@/components/three/ModelLoader';
 import { shipCatalog } from '@/data/shipCatalog';
 import type { ShipCatalogEntry } from '@/data/shipCatalog';
-import type { Faction, FleetShipEntry } from '@/types';
+import type { Faction, FleetShipEntry, ShipModelType } from '@/types';
 
 const FACTION_OPTIONS: { value: Faction; label: string; description: string }[] = [
   {
@@ -36,7 +36,7 @@ const FACTION_OPTIONS: { value: Faction; label: string; description: string }[] 
 ];
 
 interface ShipCardPreviewProps {
-  modelType: 'sith' | 'republic';
+  modelType: ShipModelType;
 }
 
 function ShipCardPreview({ modelType }: ShipCardPreviewProps) {
@@ -71,7 +71,7 @@ function ShipCardPreview({ modelType }: ShipCardPreviewProps) {
 }
 
 interface FleetLogisticsModalProps {
-  onConfirm: (data: { name: string; faction: Faction; shipCount: number }) => void;
+  onConfirm: (data: { name: string; faction: Faction; shipCount: number; modelType: ShipModelType }) => void;
   onCancel: () => void;
 }
 
@@ -100,7 +100,7 @@ export function FleetLogisticsModal({ onConfirm, onCancel }: FleetLogisticsModal
       }
       return [
         ...prev,
-        { catalogId: ship.id, name: ship.name, shipClass: ship.shipClass, quantity: 1 },
+        { catalogId: ship.id, name: ship.name, shipClass: ship.shipClass, modelType: ship.modelType, quantity: 1 },
       ];
     });
   };
@@ -120,7 +120,17 @@ export function FleetLogisticsModal({ onConfirm, onCancel }: FleetLogisticsModal
 
   const handleConfirm = () => {
     if (!fleetName.trim() || totalUnits === 0) return;
-    onConfirm({ name: fleetName.trim(), faction, shipCount: totalUnits });
+    const primaryShip = hangar.reduce<FleetShipEntry | null>((selected, entry) => {
+      if (!selected || entry.quantity > selected.quantity) return entry;
+      return selected;
+    }, null);
+    if (!primaryShip) return;
+    onConfirm({
+      name: fleetName.trim(),
+      faction,
+      shipCount: totalUnits,
+      modelType: primaryShip.modelType,
+    });
   };
 
   return (
