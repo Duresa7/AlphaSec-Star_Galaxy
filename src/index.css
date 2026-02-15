@@ -3,15 +3,15 @@
 
 :root {
   --holo-void: #050508;
-  --holo-amber: #C8AA6E;
-  --holo-amber-bright: #FFE08A;
-  --holo-cyan: #00F0FF;
-  --holo-crimson: #DC143C;
-  --holo-steel: #2A2D35;
-  --holo-steel-light: #3A3D48;
+  --holo-amber: #c8aa6e;
+  --holo-amber-bright: #ffe08a;
+  --holo-cyan: #00f0ff;
+  --holo-crimson: #dc143c;
+  --holo-steel: #2a2d35;
+  --holo-steel-light: #3a3d48;
   --holo-panel-bg: rgba(5, 5, 8, 0.92);
   --holo-panel-border: rgba(200, 170, 110, 0.25);
-  --holo-text-primary: #E8DCC8;
+  --holo-text-primary: #e8dcc8;
   --holo-text-muted: rgba(200, 170, 110, 0.5);
 }
 
@@ -53,53 +53,107 @@ body {
 }
 
 @keyframes slideInRight {
-  from { opacity: 0; transform: translateX(20px); }
-  to { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 @keyframes slideInLeft {
-  from { opacity: 0; transform: translateX(-20px); }
-  to { opacity: 1; transform: translateX(0); }
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes warpPulse {
-  0% { opacity: 0; transform: scale(0.6); }
-  40% { opacity: 0.7; }
-  100% { opacity: 0; transform: scale(1.25); }
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  40% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.25);
+  }
 }
 
 @keyframes holoScanline {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(100%); }
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
 }
 
 @keyframes holoFlicker {
-  0%, 100% { opacity: 1; }
-  92% { opacity: 1; }
-  93% { opacity: 0.7; }
-  94% { opacity: 1; }
-  96% { opacity: 0.85; }
-  97% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  92% {
+    opacity: 1;
+  }
+  93% {
+    opacity: 0.7;
+  }
+  94% {
+    opacity: 1;
+  }
+  96% {
+    opacity: 0.85;
+  }
+  97% {
+    opacity: 1;
+  }
 }
 
 @keyframes holoPulse {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 @keyframes holoBootLine {
-  from { width: 0; }
-  to { width: 100%; }
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
 }
 
 @keyframes diamondSpin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .animate-slide-in-right {
@@ -114,10 +168,14 @@ body {
 
 .holo-clip {
   clip-path: polygon(
-    12px 0%, calc(100% - 12px) 0%,
-    100% 12px, 100% calc(100% - 12px),
-    calc(100% - 12px) 100%, 12px 100%,
-    0% calc(100% - 12px), 0% 12px
+    12px 0%,
+    calc(100% - 12px) 0%,
+    100% 12px,
+    100% calc(100% - 12px),
+    calc(100% - 12px) 100%,
+    12px 100%,
+    0% calc(100% - 12px),
+    0% 12px
   );
 }
 
@@ -128,10 +186,14 @@ body {
   padding: 16px;
   overflow: hidden;
   clip-path: polygon(
-    10px 0%, calc(100% - 10px) 0%,
-    100% 10px, 100% calc(100% - 10px),
-    calc(100% - 10px) 100%, 10px 100%,
-    0% calc(100% - 10px), 0% 10px
+    10px 0%,
+    calc(100% - 10px) 0%,
+    100% 10px,
+    100% calc(100% - 10px),
+    calc(100% - 10px) 100%,
+    10px 100%,
+    0% calc(100% - 10px),
+    0% 10px
   );
   box-shadow:
     0 0 15px rgba(200, 170, 110, 0.06),
@@ -196,10 +258,14 @@ body {
   font-size: 14px;
   transition: all 0.2s ease;
   clip-path: polygon(
-    6px 0%, calc(100% - 6px) 0%,
-    100% 6px, 100% calc(100% - 6px),
-    calc(100% - 6px) 100%, 6px 100%,
-    0% calc(100% - 6px), 0% 6px
+    6px 0%,
+    calc(100% - 6px) 0%,
+    100% 6px,
+    100% calc(100% - 6px),
+    calc(100% - 6px) 100%,
+    6px 100%,
+    0% calc(100% - 6px),
+    0% 6px
   );
 }
 
@@ -212,7 +278,9 @@ body {
   background: rgba(5, 5, 8, 0.9);
   border-color: var(--holo-amber);
   outline: none;
-  box-shadow: 0 0 12px rgba(200, 170, 110, 0.15), inset 0 0 8px rgba(200, 170, 110, 0.05);
+  box-shadow:
+    0 0 12px rgba(200, 170, 110, 0.15),
+    inset 0 0 8px rgba(200, 170, 110, 0.05);
 }
 
 .holo-number-input::-webkit-inner-spin-button,
@@ -240,10 +308,14 @@ body {
   text-transform: uppercase;
   transition: all 0.2s ease;
   clip-path: polygon(
-    6px 0%, calc(100% - 6px) 0%,
-    100% 6px, 100% calc(100% - 6px),
-    calc(100% - 6px) 100%, 6px 100%,
-    0% calc(100% - 6px), 0% 6px
+    6px 0%,
+    calc(100% - 6px) 0%,
+    100% 6px,
+    100% calc(100% - 6px),
+    calc(100% - 6px) 100%,
+    6px 100%,
+    0% calc(100% - 6px),
+    0% 6px
   );
 }
 
@@ -263,12 +335,18 @@ body {
   background: rgba(5, 5, 8, 0.95);
   border: 1px solid rgba(200, 170, 110, 0.3);
   padding: 8px 12px;
-  box-shadow: 0 0 10px rgba(200, 170, 110, 0.1), 0 4px 12px rgba(0, 0, 0, 0.6);
+  box-shadow:
+    0 0 10px rgba(200, 170, 110, 0.1),
+    0 4px 12px rgba(0, 0, 0, 0.6);
   clip-path: polygon(
-    6px 0%, calc(100% - 6px) 0%,
-    100% 6px, 100% calc(100% - 6px),
-    calc(100% - 6px) 100%, 6px 100%,
-    0% calc(100% - 6px), 0% 6px
+    6px 0%,
+    calc(100% - 6px) 0%,
+    100% 6px,
+    100% calc(100% - 6px),
+    calc(100% - 6px) 100%,
+    6px 100%,
+    0% calc(100% - 6px),
+    0% 6px
   );
 }
 
@@ -280,10 +358,14 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.1em;
   clip-path: polygon(
-    4px 0%, calc(100% - 4px) 0%,
-    100% 4px, 100% calc(100% - 4px),
-    calc(100% - 4px) 100%, 4px 100%,
-    0% calc(100% - 4px), 0% 4px
+    4px 0%,
+    calc(100% - 4px) 0%,
+    100% 4px,
+    100% calc(100% - 4px),
+    calc(100% - 4px) 100%,
+    4px 100%,
+    0% calc(100% - 4px),
+    0% 4px
   );
 }
 
@@ -295,10 +377,14 @@ body {
   background: rgba(200, 170, 110, 0.04);
   border: 1px solid rgba(200, 170, 110, 0.1);
   clip-path: polygon(
-    5px 0%, calc(100% - 5px) 0%,
-    100% 5px, 100% calc(100% - 5px),
-    calc(100% - 5px) 100%, 5px 100%,
-    0% calc(100% - 5px), 0% 5px
+    5px 0%,
+    calc(100% - 5px) 0%,
+    100% 5px,
+    100% calc(100% - 5px),
+    calc(100% - 5px) 100%,
+    5px 100%,
+    0% calc(100% - 5px),
+    0% 5px
   );
 }
 
@@ -307,10 +393,14 @@ body {
   border: 1px solid rgba(200, 170, 110, 0.1);
   padding: 12px;
   clip-path: polygon(
-    6px 0%, calc(100% - 6px) 0%,
-    100% 6px, 100% calc(100% - 6px),
-    calc(100% - 6px) 100%, 6px 100%,
-    0% calc(100% - 6px), 0% 6px
+    6px 0%,
+    calc(100% - 6px) 0%,
+    100% 6px,
+    100% calc(100% - 6px),
+    calc(100% - 6px) 100%,
+    6px 100%,
+    0% calc(100% - 6px),
+    0% 6px
   );
 }
 
@@ -325,10 +415,14 @@ body {
   color: var(--holo-amber);
   transition: all 0.15s ease;
   clip-path: polygon(
-    4px 0%, calc(100% - 4px) 0%,
-    100% 4px, 100% calc(100% - 4px),
-    calc(100% - 4px) 100%, 4px 100%,
-    0% calc(100% - 4px), 0% 4px
+    4px 0%,
+    calc(100% - 4px) 0%,
+    100% 4px,
+    100% calc(100% - 4px),
+    calc(100% - 4px) 100%,
+    4px 100%,
+    0% calc(100% - 4px),
+    0% 4px
   );
 }
 
@@ -410,7 +504,8 @@ body {
       rgba(255, 255, 255, 0.24) 0%,
       rgba(255, 255, 255, 0.54) 100%
     ),
-    var(--portfolio-hero-bg-image, url("/homepage-bg.jpg")) center / cover no-repeat;
+    var(--portfolio-hero-bg-image, url("/homepage-bg.jpg")) center / cover
+      no-repeat;
   transform: scale(1.02);
   filter: saturate(0.92) contrast(1.04);
 }
@@ -420,8 +515,16 @@ body {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 60% 40%, rgba(255, 255, 255, 0) 26%, rgba(255, 255, 255, 0.35) 100%),
-    linear-gradient(150deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.42));
+    radial-gradient(
+      circle at 60% 40%,
+      rgba(255, 255, 255, 0) 26%,
+      rgba(255, 255, 255, 0.35) 100%
+    ),
+    linear-gradient(
+      150deg,
+      rgba(255, 255, 255, 0.08),
+      rgba(255, 255, 255, 0.42)
+    );
 }
 
 .portfolio-hero__grid {
@@ -443,7 +546,11 @@ body {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.3)),
+    radial-gradient(
+      circle at 50% 50%,
+      rgba(255, 255, 255, 0.04),
+      rgba(255, 255, 255, 0.3)
+    ),
     linear-gradient(130deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.18));
 }
 
@@ -456,7 +563,8 @@ body {
       rgba(255, 255, 255, 0.04) 58%,
       rgba(8, 8, 8, 0.22) 100%
     ),
-    var(--portfolio-hero-bg-image, url("/homepage-bg.jpg")) center / cover no-repeat;
+    var(--portfolio-hero-bg-image, url("/homepage-bg.jpg")) center / cover
+      no-repeat;
   filter: grayscale(0.98) contrast(1.3) brightness(0.82);
   opacity: 0.95;
 }
@@ -643,7 +751,8 @@ body {
 }
 
 .portfolio-hero__content--base .portfolio-hero__nav-link--icon:hover::after,
-.portfolio-hero__content--base .portfolio-hero__nav-link--icon:focus-visible::after {
+.portfolio-hero__content--base
+  .portfolio-hero__nav-link--icon:focus-visible::after {
   opacity: 1;
   transform: translate(-50%, 0);
 }
@@ -783,10 +892,14 @@ body {
 
 @keyframes portfolioHeroGridDrift {
   0% {
-    background-position: 0 0, 0 0;
+    background-position:
+      0 0,
+      0 0;
   }
   100% {
-    background-position: 24px -18px, -16px 22px;
+    background-position:
+      24px -18px,
+      -16px 22px;
   }
 }
 
@@ -901,8 +1014,13 @@ body {
 
 .route-auth-loading__layer--base {
   background:
-    linear-gradient(140deg, rgba(230, 233, 237, 0.72), rgba(219, 223, 229, 0.9)),
-    var(--portfolio-hero-bg-image, url("/homepage-bg.jpg")) center / cover no-repeat;
+    linear-gradient(
+      140deg,
+      rgba(230, 233, 237, 0.72),
+      rgba(219, 223, 229, 0.9)
+    ),
+    var(--portfolio-hero-bg-image, url("/homepage-bg.jpg")) center / cover
+      no-repeat;
   transform: scale(1.03);
   filter: saturate(0.9) contrast(1.04);
 }
@@ -921,8 +1039,16 @@ body {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at 14% 18%, rgba(232, 235, 239, 0.58), transparent 44%),
-    radial-gradient(circle at 82% 10%, rgba(196, 200, 207, 0.26), transparent 46%),
+    radial-gradient(
+      circle at 14% 18%,
+      rgba(232, 235, 239, 0.58),
+      transparent 44%
+    ),
+    radial-gradient(
+      circle at 82% 10%,
+      rgba(196, 200, 207, 0.26),
+      transparent 46%
+    ),
     linear-gradient(180deg, rgba(224, 227, 232, 0.5), rgba(220, 224, 230, 0.88));
 }
 
@@ -934,7 +1060,11 @@ body {
   padding: clamp(22px, 3vw, 34px);
   border: 1px solid rgba(20, 22, 26, 0.26);
   background:
-    radial-gradient(circle at 88% 12%, rgba(190, 194, 201, 0.28), transparent 44%),
+    radial-gradient(
+      circle at 88% 12%,
+      rgba(190, 194, 201, 0.28),
+      transparent 44%
+    ),
     linear-gradient(150deg, rgba(234, 237, 242, 0.92), rgba(217, 221, 228, 0.8));
   backdrop-filter: blur(8px) saturate(1.02);
   box-shadow:
@@ -980,7 +1110,12 @@ body {
   width: 36%;
   height: 100%;
   border-radius: inherit;
-  background: linear-gradient(90deg, rgba(157, 161, 168, 0.42), rgba(34, 37, 42, 0.92), rgba(157, 161, 168, 0.42));
+  background: linear-gradient(
+    90deg,
+    rgba(157, 161, 168, 0.42),
+    rgba(34, 37, 42, 0.92),
+    rgba(157, 161, 168, 0.42)
+  );
   box-shadow: 0 0 14px rgba(121, 127, 137, 0.38);
   animation: routeAuthLoadingBar 1100ms ease-in-out infinite;
 }
@@ -993,15 +1128,23 @@ body {
   pointer-events: none;
   border: 1px solid rgba(255, 255, 255, 0.52);
   mask-image: linear-gradient(150deg, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.2));
-  -webkit-mask-image: linear-gradient(150deg, rgba(0, 0, 0, 1), rgba(0, 0, 0, 0.2));
+  -webkit-mask-image: linear-gradient(
+    150deg,
+    rgba(0, 0, 0, 1),
+    rgba(0, 0, 0, 0.2)
+  );
 }
 
 @keyframes routeAuthGridFloat {
   0% {
-    background-position: 0 0, 0 0;
+    background-position:
+      0 0,
+      0 0;
   }
   100% {
-    background-position: 20px -16px, -14px 18px;
+    background-position:
+      20px -16px,
+      -14px 18px;
   }
 }
 
@@ -1039,8 +1182,13 @@ body {
 
 .resume-page__layer--base {
   background:
-    linear-gradient(140deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.74)),
-    var(--portfolio-hero-bg-image, url("/homepage-bg.jpg")) center / cover no-repeat;
+    linear-gradient(
+      140deg,
+      rgba(255, 255, 255, 0.5),
+      rgba(255, 255, 255, 0.74)
+    ),
+    var(--portfolio-hero-bg-image, url("/homepage-bg.jpg")) center / cover
+      no-repeat;
   transform: scale(1.04);
   filter: saturate(0.9) contrast(1.04);
 }
@@ -1055,8 +1203,16 @@ body {
 
 .resume-page__layer--veil {
   background:
-    radial-gradient(circle at 16% 12%, rgba(255, 255, 255, 0.44), transparent 42%),
-    radial-gradient(circle at 86% 16%, rgba(131, 181, 255, 0.24), transparent 46%),
+    radial-gradient(
+      circle at 16% 12%,
+      rgba(255, 255, 255, 0.44),
+      transparent 42%
+    ),
+    radial-gradient(
+      circle at 86% 16%,
+      rgba(131, 181, 255, 0.24),
+      transparent 46%
+    ),
     linear-gradient(180deg, rgba(249, 251, 255, 0.6), rgba(248, 249, 252, 0.8));
 }
 
@@ -1124,8 +1280,16 @@ body {
   border: 1px solid rgba(12, 12, 12, 0.24);
   padding: clamp(22px, 3.5vw, 36px);
   background:
-    radial-gradient(circle at 88% 14%, rgba(167, 204, 255, 0.26), transparent 42%),
-    linear-gradient(150deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.64));
+    radial-gradient(
+      circle at 88% 14%,
+      rgba(167, 204, 255, 0.26),
+      transparent 42%
+    ),
+    linear-gradient(
+      150deg,
+      rgba(255, 255, 255, 0.86),
+      rgba(255, 255, 255, 0.64)
+    );
   box-shadow:
     0 22px 42px rgba(0, 0, 0, 0.16),
     inset 0 1px 0 rgba(255, 255, 255, 0.58);
@@ -1176,7 +1340,11 @@ body {
 .resume-page__section {
   border-radius: 20px;
   border: 1px solid rgba(12, 12, 12, 0.2);
-  background: linear-gradient(150deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.62));
+  background: linear-gradient(
+    150deg,
+    rgba(255, 255, 255, 0.82),
+    rgba(255, 255, 255, 0.62)
+  );
   box-shadow:
     0 16px 30px rgba(0, 0, 0, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.6);
@@ -1310,8 +1478,16 @@ body {
   padding: clamp(24px, 4vw, 36px);
   border: 1px solid rgba(12, 12, 12, 0.22);
   background:
-    radial-gradient(circle at 88% 14%, rgba(190, 204, 255, 0.18), transparent 42%),
-    linear-gradient(150deg, rgba(255, 255, 255, 0.94), rgba(245, 247, 251, 0.92));
+    radial-gradient(
+      circle at 88% 14%,
+      rgba(190, 204, 255, 0.18),
+      transparent 42%
+    ),
+    linear-gradient(
+      150deg,
+      rgba(255, 255, 255, 0.94),
+      rgba(245, 247, 251, 0.92)
+    );
   box-shadow:
     0 28px 56px rgba(0, 0, 0, 0.22),
     inset 0 1px 0 rgba(255, 255, 255, 0.7);
@@ -1333,7 +1509,9 @@ body {
   justify-content: center;
   color: #555;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+  transition:
+    background 0.2s,
+    color 0.2s;
 }
 
 .auth-modal__close:hover {
@@ -1411,7 +1589,9 @@ body {
   font-family: "Manrope", "Spline Sans", sans-serif;
   color: #111;
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
 }
 
 .auth-modal__input::placeholder {
@@ -1441,7 +1621,9 @@ body {
 .auth-modal__strength-fill {
   height: 100%;
   border-radius: inherit;
-  transition: width 0.3s ease, background 0.3s ease;
+  transition:
+    width 0.3s ease,
+    background 0.3s ease;
 }
 
 .auth-modal__strength-label {
@@ -1465,7 +1647,9 @@ body {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: background 0.2s, transform 0.15s;
+  transition:
+    background 0.2s,
+    transform 0.15s;
 }
 
 .auth-modal__submit:hover:not(:disabled) {
@@ -1517,7 +1701,10 @@ body {
   cursor: pointer;
   pointer-events: auto;
   box-shadow: 0 10px 22px rgba(0, 0, 0, 0.14);
-  transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    background 0.2s,
+    box-shadow 0.2s;
 }
 
 .portfolio-hero__auth-pill:hover {
@@ -1539,7 +1726,10 @@ body {
   cursor: pointer;
   pointer-events: auto;
   box-shadow: 0 10px 22px rgba(0, 0, 0, 0.14);
-  transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    background 0.2s,
+    box-shadow 0.2s;
   text-decoration: none;
 }
 
@@ -1567,8 +1757,13 @@ body {
 
 .admin-page__layer--base {
   background:
-    linear-gradient(140deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.74)),
-    var(--portfolio-hero-bg-image, url("/homepage-bg.jpg")) center / cover no-repeat;
+    linear-gradient(
+      140deg,
+      rgba(255, 255, 255, 0.5),
+      rgba(255, 255, 255, 0.74)
+    ),
+    var(--portfolio-hero-bg-image, url("/homepage-bg.jpg")) center / cover
+      no-repeat;
   transform: scale(1.04);
   filter: saturate(0.9) contrast(1.04);
 }
@@ -1583,8 +1778,16 @@ body {
 
 .admin-page__layer--veil {
   background:
-    radial-gradient(circle at 16% 12%, rgba(255, 255, 255, 0.44), transparent 42%),
-    radial-gradient(circle at 86% 16%, rgba(131, 181, 255, 0.24), transparent 46%),
+    radial-gradient(
+      circle at 16% 12%,
+      rgba(255, 255, 255, 0.44),
+      transparent 42%
+    ),
+    radial-gradient(
+      circle at 86% 16%,
+      rgba(131, 181, 255, 0.24),
+      transparent 46%
+    ),
     linear-gradient(180deg, rgba(249, 251, 255, 0.6), rgba(248, 249, 252, 0.8));
 }
 
@@ -1620,7 +1823,9 @@ body {
   text-decoration: none;
   color: #111;
   background: rgba(255, 255, 255, 0.68);
-  transition: transform 0.2s, background 0.2s;
+  transition:
+    transform 0.2s,
+    background 0.2s;
 }
 
 .admin-page__back-link:hover {
@@ -1656,8 +1861,16 @@ body {
   border: 1px solid rgba(12, 12, 12, 0.24);
   padding: clamp(22px, 3.5vw, 36px);
   background:
-    radial-gradient(circle at 88% 14%, rgba(167, 204, 255, 0.26), transparent 42%),
-    linear-gradient(150deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.64));
+    radial-gradient(
+      circle at 88% 14%,
+      rgba(167, 204, 255, 0.26),
+      transparent 42%
+    ),
+    linear-gradient(
+      150deg,
+      rgba(255, 255, 255, 0.86),
+      rgba(255, 255, 255, 0.64)
+    );
   box-shadow:
     0 22px 42px rgba(0, 0, 0, 0.16),
     inset 0 1px 0 rgba(255, 255, 255, 0.58);
@@ -1699,7 +1912,11 @@ body {
 .admin-page__section {
   border-radius: 20px;
   border: 1px solid rgba(12, 12, 12, 0.2);
-  background: linear-gradient(150deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.62));
+  background: linear-gradient(
+    150deg,
+    rgba(255, 255, 255, 0.82),
+    rgba(255, 255, 255, 0.62)
+  );
   box-shadow:
     0 16px 30px rgba(0, 0, 0, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.6);
@@ -1915,8 +2132,13 @@ body {
 
 .settings-page__layer--base {
   background:
-    linear-gradient(140deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.74)),
-    var(--portfolio-hero-bg-image, url("/homepage-bg.jpg")) center / cover no-repeat;
+    linear-gradient(
+      140deg,
+      rgba(255, 255, 255, 0.5),
+      rgba(255, 255, 255, 0.74)
+    ),
+    var(--portfolio-hero-bg-image, url("/homepage-bg.jpg")) center / cover
+      no-repeat;
   transform: scale(1.04);
   filter: saturate(0.9) contrast(1.04);
 }
@@ -1931,8 +2153,16 @@ body {
 
 .settings-page__layer--veil {
   background:
-    radial-gradient(circle at 16% 12%, rgba(255, 255, 255, 0.44), transparent 42%),
-    radial-gradient(circle at 86% 16%, rgba(131, 181, 255, 0.24), transparent 46%),
+    radial-gradient(
+      circle at 16% 12%,
+      rgba(255, 255, 255, 0.44),
+      transparent 42%
+    ),
+    radial-gradient(
+      circle at 86% 16%,
+      rgba(131, 181, 255, 0.24),
+      transparent 46%
+    ),
     linear-gradient(180deg, rgba(249, 251, 255, 0.6), rgba(248, 249, 252, 0.8));
 }
 
@@ -1968,7 +2198,9 @@ body {
   text-decoration: none;
   color: #111;
   background: rgba(255, 255, 255, 0.68);
-  transition: transform 0.2s, background 0.2s;
+  transition:
+    transform 0.2s,
+    background 0.2s;
 }
 
 .settings-page__back-link:hover {
@@ -1997,8 +2229,16 @@ body {
   border: 1px solid rgba(12, 12, 12, 0.24);
   padding: clamp(22px, 3.5vw, 36px);
   background:
-    radial-gradient(circle at 88% 14%, rgba(167, 204, 255, 0.26), transparent 42%),
-    linear-gradient(150deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.64));
+    radial-gradient(
+      circle at 88% 14%,
+      rgba(167, 204, 255, 0.26),
+      transparent 42%
+    ),
+    linear-gradient(
+      150deg,
+      rgba(255, 255, 255, 0.86),
+      rgba(255, 255, 255, 0.64)
+    );
   box-shadow:
     0 22px 42px rgba(0, 0, 0, 0.16),
     inset 0 1px 0 rgba(255, 255, 255, 0.58);
@@ -2040,7 +2280,11 @@ body {
 .settings-page__section {
   border-radius: 20px;
   border: 1px solid rgba(12, 12, 12, 0.2);
-  background: linear-gradient(150deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.62));
+  background: linear-gradient(
+    150deg,
+    rgba(255, 255, 255, 0.82),
+    rgba(255, 255, 255, 0.62)
+  );
   box-shadow:
     0 16px 30px rgba(0, 0, 0, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.6);
@@ -2049,7 +2293,11 @@ body {
 
 .settings-page__section--danger {
   border-color: rgba(220, 53, 69, 0.35);
-  background: linear-gradient(150deg, rgba(255, 245, 245, 0.82), rgba(255, 240, 240, 0.62));
+  background: linear-gradient(
+    150deg,
+    rgba(255, 245, 245, 0.82),
+    rgba(255, 240, 240, 0.62)
+  );
 }
 
 .settings-page__section-title {
@@ -2110,7 +2358,9 @@ body {
   font-family: "Manrope", "Spline Sans", sans-serif;
   color: #111;
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
   box-sizing: border-box;
 }
 
@@ -2146,7 +2396,9 @@ body {
 .settings-page__strength-fill {
   height: 100%;
   border-radius: 999px;
-  transition: width 0.3s ease, background 0.3s ease;
+  transition:
+    width 0.3s ease,
+    background 0.3s ease;
 }
 
 .settings-page__strength-label {
@@ -2173,7 +2425,10 @@ body {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+  transition:
+    transform 0.2s,
+    background 0.2s,
+    box-shadow 0.2s;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
 }
 
@@ -2325,7 +2580,11 @@ body {
 .legal-page {
   border-radius: 24px;
   border: 1px solid rgba(12, 12, 12, 0.2);
-  background: linear-gradient(150deg, rgba(255, 255, 255, 0.88), rgba(255, 255, 255, 0.68));
+  background: linear-gradient(
+    150deg,
+    rgba(255, 255, 255, 0.88),
+    rgba(255, 255, 255, 0.68)
+  );
   box-shadow:
     0 22px 42px rgba(0, 0, 0, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.58);
@@ -2405,4 +2664,551 @@ body {
 
 .legal-page__section a:hover {
   color: #1a4a9e;
+}
+
+/* ========================================
+   Fleet Logistics Interface Modal
+   ======================================== */
+
+.fleet-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 16777280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(2, 2, 6, 0.88);
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.25s ease-out;
+}
+
+.fleet-modal-container {
+  position: relative;
+  width: min(96vw, 1280px);
+  max-height: 96vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--holo-panel-bg);
+  border: 1px solid var(--holo-panel-border);
+  overflow: hidden;
+  clip-path: polygon(
+    14px 0%,
+    calc(100% - 14px) 0%,
+    100% 14px,
+    100% calc(100% - 14px),
+    calc(100% - 14px) 100%,
+    14px 100%,
+    0% calc(100% - 14px),
+    0% 14px
+  );
+  box-shadow:
+    0 0 40px rgba(200, 170, 110, 0.08),
+    0 8px 60px rgba(0, 0, 0, 0.8),
+    inset 0 1px 0 rgba(200, 170, 110, 0.1);
+  animation: slideInRight 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fleet-modal-container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(200, 170, 110, 0.02) 2px,
+    rgba(200, 170, 110, 0.02) 4px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Header */
+.fleet-modal-header {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid rgba(200, 170, 110, 0.18);
+  background: rgba(200, 170, 110, 0.04);
+}
+
+.fleet-modal-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fleet-modal-header-icon {
+  width: 22px;
+  height: 22px;
+  color: var(--holo-cyan);
+  filter: drop-shadow(0 0 4px rgba(0, 240, 255, 0.4));
+}
+
+.fleet-modal-title {
+  margin: 0;
+  font-family: "Orbitron", monospace;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--holo-text-primary);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.fleet-modal-close {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(200, 170, 110, 0.06);
+  border: 1px solid rgba(200, 170, 110, 0.2);
+  color: var(--holo-amber);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  clip-path: polygon(
+    4px 0%,
+    calc(100% - 4px) 0%,
+    100% 4px,
+    100% calc(100% - 4px),
+    calc(100% - 4px) 100%,
+    4px 100%,
+    0% calc(100% - 4px),
+    0% 4px
+  );
+}
+
+.fleet-modal-close:hover {
+  background: rgba(200, 170, 110, 0.18);
+  color: var(--holo-amber-bright);
+  box-shadow: 0 0 10px rgba(200, 170, 110, 0.2);
+}
+
+/* Body */
+.fleet-modal-body {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Left — Catalog */
+.fleet-modal-catalog {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  border-right: 1px solid rgba(200, 170, 110, 0.12);
+}
+
+.fleet-ship-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+/* Ship Card */
+.fleet-ship-card {
+  display: flex;
+  flex-direction: column;
+  background: rgba(200, 170, 110, 0.03);
+  border: 1px solid rgba(200, 170, 110, 0.12);
+  transition: all 0.2s ease;
+  clip-path: polygon(
+    8px 0%,
+    calc(100% - 8px) 0%,
+    100% 8px,
+    100% calc(100% - 8px),
+    calc(100% - 8px) 100%,
+    8px 100%,
+    0% calc(100% - 8px),
+    0% 8px
+  );
+}
+
+.fleet-ship-card:hover {
+  border-color: rgba(200, 170, 110, 0.3);
+  background: rgba(200, 170, 110, 0.06);
+  box-shadow: 0 0 20px rgba(200, 170, 110, 0.06);
+}
+
+.fleet-ship-card-preview {
+  position: relative;
+  width: 100%;
+  height: 160px;
+  background: linear-gradient(
+    145deg,
+    rgba(10, 12, 20, 0.9) 0%,
+    rgba(18, 20, 32, 0.8) 100%
+  );
+  overflow: hidden;
+}
+
+.fleet-ship-class-badge {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  font-family: "Orbitron", monospace;
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  background: rgba(0, 240, 255, 0.15);
+  color: var(--holo-cyan);
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  clip-path: polygon(
+    4px 0%,
+    calc(100% - 4px) 0%,
+    100% 4px,
+    100% calc(100% - 4px),
+    calc(100% - 4px) 100%,
+    4px 100%,
+    0% calc(100% - 4px),
+    0% 4px
+  );
+}
+
+.fleet-ship-card-info {
+  padding: 14px;
+}
+
+.fleet-ship-card-name {
+  margin: 0 0 6px;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--holo-text-primary);
+}
+
+.fleet-ship-card-desc {
+  margin: 0 0 12px;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--holo-text-muted);
+}
+
+.fleet-ship-add-btn {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  font-family: "Orbitron", monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--holo-cyan);
+  background: rgba(0, 240, 255, 0.06);
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  clip-path: polygon(
+    4px 0%,
+    calc(100% - 4px) 0%,
+    100% 4px,
+    100% calc(100% - 4px),
+    calc(100% - 4px) 100%,
+    4px 100%,
+    0% calc(100% - 4px),
+    0% 4px
+  );
+}
+
+.fleet-ship-add-btn:hover {
+  background: rgba(0, 240, 255, 0.14);
+  border-color: rgba(0, 240, 255, 0.5);
+  color: #fff;
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.15);
+}
+
+/* Right — Config */
+.fleet-modal-config {
+  width: 280px;
+  min-width: 280px;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.fleet-config-section {
+  margin-bottom: 16px;
+}
+
+.fleet-config-label {
+  display: block;
+  font-family: "Orbitron", monospace;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--holo-amber);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  margin-bottom: 8px;
+  text-shadow: 0 0 4px rgba(200, 170, 110, 0.3);
+}
+
+.fleet-config-input {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+
+.fleet-config-select-wrap {
+  position: relative;
+}
+
+.fleet-config-select {
+  width: 100%;
+  padding: 8px 28px 8px 12px;
+  font-size: 12px;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  box-sizing: border-box;
+  background-image:
+    linear-gradient(45deg, transparent 50%, rgba(200, 170, 110, 0.9) 50%),
+    linear-gradient(135deg, rgba(200, 170, 110, 0.9) 50%, transparent 50%);
+  background-position:
+    calc(100% - 12px) calc(50% - 2px),
+    calc(100% - 8px) calc(50% - 2px);
+  background-size:
+    4px 4px,
+    4px 4px;
+  background-repeat: no-repeat;
+}
+
+.fleet-config-faction-desc {
+  margin: 8px 0 0;
+  font-family: "Rajdhani", sans-serif;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--holo-cyan);
+  font-style: italic;
+}
+
+.fleet-config-units-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.fleet-config-units-count {
+  font-family: "Orbitron", monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--holo-cyan);
+  text-shadow: 0 0 6px rgba(0, 240, 255, 0.3);
+}
+
+/* Hangar */
+.fleet-hangar {
+  flex: 1;
+  min-height: 120px;
+  margin-bottom: 16px;
+}
+
+.fleet-hangar-empty {
+  height: 100%;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fleet-hangar-empty-border {
+  width: 100%;
+  height: 100%;
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed rgba(200, 170, 110, 0.15);
+  color: var(--holo-text-muted);
+  font-family: "Rajdhani", sans-serif;
+  font-size: 13px;
+  clip-path: polygon(
+    8px 0%,
+    calc(100% - 8px) 0%,
+    100% 8px,
+    100% calc(100% - 8px),
+    calc(100% - 8px) 100%,
+    8px 100%,
+    0% calc(100% - 8px),
+    0% 8px
+  );
+}
+
+.fleet-hangar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fleet-hangar-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: rgba(200, 170, 110, 0.04);
+  border: 1px solid rgba(200, 170, 110, 0.12);
+  clip-path: polygon(
+    4px 0%,
+    calc(100% - 4px) 0%,
+    100% 4px,
+    100% calc(100% - 4px),
+    calc(100% - 4px) 100%,
+    4px 100%,
+    0% calc(100% - 4px),
+    0% 4px
+  );
+}
+
+.fleet-hangar-entry-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.fleet-hangar-entry-name {
+  font-family: "Rajdhani", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--holo-text-primary);
+}
+
+.fleet-hangar-entry-class {
+  font-family: "Orbitron", monospace;
+  font-size: 8px;
+  color: var(--holo-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.fleet-hangar-entry-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fleet-hangar-entry-qty {
+  font-family: "Orbitron", monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--holo-cyan);
+}
+
+.fleet-hangar-remove-btn {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(220, 20, 60, 0.08);
+  border: 1px solid rgba(220, 20, 60, 0.25);
+  color: var(--holo-crimson);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  clip-path: polygon(
+    3px 0%,
+    calc(100% - 3px) 0%,
+    100% 3px,
+    100% calc(100% - 3px),
+    calc(100% - 3px) 100%,
+    3px 100%,
+    0% calc(100% - 3px),
+    0% 3px
+  );
+}
+
+.fleet-hangar-remove-btn:hover {
+  background: rgba(220, 20, 60, 0.2);
+  border-color: rgba(220, 20, 60, 0.5);
+  color: #fff;
+}
+
+/* Actions */
+.fleet-modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fleet-confirm-btn {
+  width: 100%;
+  padding: 10px 16px;
+  font-family: "Orbitron", monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #050508;
+  background: linear-gradient(135deg, var(--holo-cyan), #00c4d4);
+  border: 1px solid var(--holo-cyan);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  clip-path: polygon(
+    6px 0%,
+    calc(100% - 6px) 0%,
+    100% 6px,
+    100% calc(100% - 6px),
+    calc(100% - 6px) 100%,
+    6px 100%,
+    0% calc(100% - 6px),
+    0% 6px
+  );
+}
+
+.fleet-confirm-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #00ffff, #00e4f4);
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
+}
+
+.fleet-confirm-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.fleet-cancel-btn {
+  width: 100%;
+  padding: 8px 16px;
+  font-family: "Orbitron", monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--holo-text-muted);
+  background: transparent;
+  border: 1px solid rgba(200, 170, 110, 0.12);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.fleet-cancel-btn:hover {
+  color: var(--holo-text-primary);
+  border-color: rgba(200, 170, 110, 0.3);
+  background: rgba(200, 170, 110, 0.04);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .fleet-modal-body {
+    flex-direction: column;
+  }
+  .fleet-modal-catalog {
+    border-right: none;
+    border-bottom: 1px solid rgba(200, 170, 110, 0.12);
+    max-height: 50vh;
+  }
+  .fleet-modal-config {
+    width: 100%;
+    min-width: unset;
+  }
+  .fleet-ship-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
 }
