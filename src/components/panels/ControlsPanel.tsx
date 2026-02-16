@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useGalaxyStore } from '@/store/galaxyStore';
 import { useRole } from '@/hooks/useRole';
@@ -71,7 +71,7 @@ export function ControlsPanel() {
   });
   const searchRef = useRef<HTMLInputElement>(null);
   const searchResults = getSearchResults();
-  const factionStats = useMemo(() => getFactionStats(), [getFactionStats]);
+  const factionStats = getFactionStats();
 
   useEffect(() => {
     setYearDraft(String(currentYear));
