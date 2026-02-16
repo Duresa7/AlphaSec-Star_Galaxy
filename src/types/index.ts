@@ -189,12 +189,12 @@ export interface GalaxyStore {
   toggleFactionFilter: (faction: Faction) => void;
   getFilteredSystems: () => StarSystem[];
   getSearchResults: () => SearchResult[];
-  getFactionStats: () => Record<Faction, { planets: number; fleetShips: number }>;
+  getFactionStats: () => Record<Faction, { planets: number; fleets: number; shipUnits: number }>;
   initializeData: () => Promise<void>;
   updatePlanetStats: (systemId: string, planetId: string, stats: PlanetStatsUpdate) => void;
   placementMode: boolean;
-  pendingCustomPlanet: { name: string; color: string } | null;
-  setPlacementMode: (mode: boolean, pending?: { name: string; color: string } | null) => void;
+  pendingCustomPlanet: { name: string; color: string; faction: Faction } | null;
+  setPlacementMode: (mode: boolean, pending?: { name: string; color: string; faction: Faction } | null) => void;
   addCustomSystem: (system: StarSystem) => void;
   removeCustomSystem: (id: string) => void;
   previewCustomSystemPosition: (id: string, position: THREE.Vector3) => void;
