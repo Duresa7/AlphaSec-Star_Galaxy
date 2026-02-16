@@ -5,6 +5,16 @@ import * as THREE from 'three';
 import { useGalaxyStore } from '@/store/galaxyStore';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { shouldRecenterTopdown } from '@/components/three/cameraTransition';
+
+/** Duration (ms) for camera transition and reset animations */
+const ANIMATION_DURATION_MS = 1500;
+
+/** Interpolation factor per frame for camera lerp (lower = smoother/slower) */
+const LERP_FACTOR = 0.03;
+
+/** Near-zero polar angle used to lock top-down view to vertical */
+const TOPDOWN_POLAR_LOCK = 0.001;
+
 const CAMERA_CONFIG = {
   topdown: {
     distance: 100,
@@ -39,12 +49,16 @@ export function CameraController() {
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const { camera } = useThree();
 
-  const { viewMode, selectedSystemId, selectedPlanetId, selectedFleetId, systems, fleets, draggingCustomPlanet, draggingCustomFleet } = useGalaxyStore();
+  const {
+    viewMode, selectedSystemId, selectedPlanetId, selectedFleetId,
+    systems, fleets, draggingCustomPlanet, draggingCustomFleet,
+  } = useGalaxyStore();
   const previousViewModeRef = useRef<'topdown' | 'system' | 'fleet' | null>(null);
   const targetPosition = useRef(new THREE.Vector3(0, 60, 120));
   const targetLookAt = useRef(new THREE.Vector3(0, 0, 0));
   const isAnimating = useRef(false);
   const animationEndTime = useRef<number | null>(null);
+
   useEffect(() => {
     const config = CAMERA_CONFIG[viewMode] || CAMERA_CONFIG.system;
     const previousViewMode = previousViewModeRef.current;
@@ -56,7 +70,7 @@ export function CameraController() {
     }
 
     isAnimating.current = true;
-    animationEndTime.current = performance.now() + 1500;
+    animationEndTime.current = performance.now() + ANIMATION_DURATION_MS;
 
     if (viewMode === 'topdown') {
       targetPosition.current.set(0, config.height, 0);
@@ -89,7 +103,7 @@ export function CameraController() {
       controlsRef.current.rotateSpeed = config.rotateSpeed;
       if (viewMode === 'topdown') {
         controlsRef.current.minPolarAngle = 0;
-        controlsRef.current.maxPolarAngle = 0.001;
+        controlsRef.current.maxPolarAngle = TOPDOWN_POLAR_LOCK;
       } else {
         controlsRef.current.minPolarAngle = 0;
         controlsRef.current.maxPolarAngle = Math.PI;
@@ -107,13 +121,12 @@ export function CameraController() {
         targetPosition.current.set(0, CAMERA_CONFIG.topdown.height, 0);
         targetLookAt.current.set(0, 0, 0);
         isAnimating.current = true;
-        animationEndTime.current = performance.now() + 1500;
+        animationEndTime.current = performance.now() + ANIMATION_DURATION_MS;
       }
 
       if (isAnimating.current) {
-        const lerpFactor = 0.03;
-        controlsRef.current.target.lerp(targetLookAt.current, lerpFactor);
-        camera.position.lerp(targetPosition.current, lerpFactor);
+        controlsRef.current.target.lerp(targetLookAt.current, LERP_FACTOR);
+        camera.position.lerp(targetPosition.current, LERP_FACTOR);
 
         // End animation after duration elapses (for reset animations)
         if (animationEndTime.current !== null && performance.now() >= animationEndTime.current) {
@@ -127,6 +140,7 @@ export function CameraController() {
       controlsRef.current.update();
     }
   });
+
   const config = CAMERA_CONFIG[viewMode] || CAMERA_CONFIG.system;
 
   return (
@@ -143,8 +157,8 @@ export function CameraController() {
       enableRotate={viewMode !== 'topdown'}
       rotateSpeed={viewMode === 'topdown' ? 0 : config.rotateSpeed}
       zoomSpeed={0.9}
-      minPolarAngle={viewMode === 'topdown' ? 0 : 0}
-      maxPolarAngle={viewMode === 'topdown' ? 0.001 : Math.PI}
+      minPolarAngle={0}
+      maxPolarAngle={viewMode === 'topdown' ? TOPDOWN_POLAR_LOCK : Math.PI}
       minAzimuthAngle={viewMode === 'topdown' ? 0 : -Infinity}
       maxAzimuthAngle={viewMode === 'topdown' ? 0 : Infinity}
       mouseButtons={{
