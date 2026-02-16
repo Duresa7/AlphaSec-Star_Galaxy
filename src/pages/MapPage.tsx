@@ -69,14 +69,11 @@ export function MapPage() {
 
   return (
     <div className="w-full h-full relative overflow-hidden">
-
       <GalaxyScene />
-
 
       <ControlsPanel />
       <InfoPanel />
       <LoadingScreen />
-
 
       {isAdmin && hasPendingChanges && (
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 animate-slide-in-right">
@@ -103,7 +100,6 @@ export function MapPage() {
         </div>
       )}
 
-
       {viewMode === 'topdown' && (
         <div className="absolute bottom-20 right-6 z-40">
           <button
@@ -123,7 +119,6 @@ export function MapPage() {
         </div>
       )}
 
-
       <div className="absolute bottom-6 right-6 z-40 flex items-center gap-3">
         {isAdmin && (
           <Link to="/admin" className="holo-button" style={{ padding: '8px 14px' }}>
@@ -141,7 +136,6 @@ export function MapPage() {
           <span>AlphaSec</span>
         </Link>
       </div>
-
 
       <div className="absolute top-5 right-5 z-40">
         {session && (
@@ -189,7 +183,6 @@ export function MapPage() {
           </div>
         )}
       </div>
-
 
       <div className="absolute top-5 left-1/2 -translate-x-1/2 text-center pointer-events-none z-0">
         <div className="holo-title-bar">
