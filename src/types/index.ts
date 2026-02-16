@@ -222,4 +222,7 @@ export interface GalaxyStore {
   hasPendingChanges: boolean;
   saveAllChanges: () => Promise<void>;
   discardAllChanges: () => Promise<void>;
+  resetCameraFlag: boolean;
+  requestCameraReset: () => void;
+  clearResetCameraFlag: () => void;
 }
