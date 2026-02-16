@@ -48,6 +48,20 @@ let _fleetsSnapshot: Fleet[] = [];
 let _yearSnapshot: number = 3956;
 let _pendingPlanetAudits: Map<string, { systemId: string; planetName: string; fields: Set<string> }> = new Map();
 const AUTH_LOOKUP_TIMEOUT_MS = 8_000;
+const FACTION_KEYS: Faction[] = ['galactic_republic', 'sith_empire', 'neutral', 'contested', 'hutt_cartel'];
+const FACTION_SET = new Set<Faction>(FACTION_KEYS);
+const _unknownFactionWarnings = {
+  planet: new Set<string>(),
+  fleet: new Set<string>(),
+};
+
+const isKnownFaction = (value: string): value is Faction => FACTION_SET.has(value as Faction);
+
+const warnUnknownFaction = (kind: 'planet' | 'fleet', faction: string) => {
+  if (!import.meta.env.DEV || _unknownFactionWarnings[kind].has(faction)) return;
+  _unknownFactionWarnings[kind].add(faction);
+  console.warn(`[galaxyStore] Ignoring ${kind} with unknown faction "${faction}" in getFactionStats().`);
+};
 
 const shouldClearPanelForSystem = (panel: InfoPanelData | null, systemId: string): boolean => {
   if (!panel) return false;
@@ -317,22 +331,27 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
   },
   getFactionStats: () => {
     const state = get();
-    const factions: Faction[] = ['galactic_republic', 'sith_empire', 'neutral', 'contested', 'hutt_cartel'];
-    const stats = {} as Record<Faction, { planets: number; fleetShips: number }>;
-    for (const f of factions) {
-      stats[f] = { planets: 0, fleetShips: 0 };
+    const stats = {} as Record<Faction, { planets: number; fleets: number; shipUnits: number }>;
+    for (const faction of FACTION_KEYS) {
+      stats[faction] = { planets: 0, fleets: 0, shipUnits: 0 };
     }
     for (const system of state.systems) {
       for (const planet of system.planets) {
-        if (stats[planet.faction]) {
-          stats[planet.faction].planets++;
+        if (!isKnownFaction(planet.faction)) {
+          warnUnknownFaction('planet', planet.faction);
+          continue;
         }
+        stats[planet.faction].planets++;
       }
     }
     for (const fleet of state.fleets) {
-      if (stats[fleet.faction]) {
-        stats[fleet.faction].fleetShips += fleet.shipCount;
+      if (!isKnownFaction(fleet.faction)) {
+        warnUnknownFaction('fleet', fleet.faction);
+        continue;
       }
+      if (!Number.isFinite(fleet.shipCount)) continue;
+      stats[fleet.faction].fleets++;
+      stats[fleet.faction].shipUnits += fleet.shipCount;
     }
     return stats;
   },

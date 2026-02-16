@@ -4,7 +4,15 @@ import { useGalaxyStore } from '@/store/galaxyStore';
 import { useRole } from '@/hooks/useRole';
 import { FleetLogisticsModal } from '@/components/panels/FleetLogisticsModal';
 import { FACTION_STAT_CONFIG } from '@/constants/factions';
-import type { SearchResult } from '@/types';
+import type { Faction, SearchResult } from '@/types';
+
+const PLANET_FACTION_OPTIONS: { value: Faction; label: string }[] = [
+  { value: 'galactic_republic', label: 'Galactic Republic' },
+  { value: 'sith_empire', label: 'Sith Empire' },
+  { value: 'hutt_cartel', label: 'Hutt Cartel' },
+  { value: 'neutral', label: 'Neutral' },
+  { value: 'contested', label: 'Contested' },
+];
 
 type SectionKey =
   | 'navigation'
@@ -48,6 +56,7 @@ export function ControlsPanel() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newPlanetName, setNewPlanetName] = useState('');
   const [newPlanetColor, setNewPlanetColor] = useState('#4DD0E1');
+  const [newPlanetFaction, setNewPlanetFaction] = useState<Faction>('neutral');
   const [showFleetModal, setShowFleetModal] = useState(false);
   const [yearDraft, setYearDraft] = useState(String(currentYear));
   const [collapsedSections, setCollapsedSections] = useState<Record<SectionKey, boolean>>({
@@ -316,7 +325,7 @@ export function ControlsPanel() {
           <div className="space-y-2">
             {FACTION_STAT_CONFIG.map(({ key, label, color }) => {
               const stats = factionStats[key];
-              if (!stats || (stats.planets === 0 && stats.fleetShips === 0)) return null;
+              if (!stats || (stats.planets === 0 && stats.fleets === 0 && stats.shipUnits === 0)) return null;
               return (
                 <div
                   key={key}
@@ -345,7 +354,15 @@ export function ControlsPanel() {
                     </div>
                     <div className="text-center">
                       <div className="holo-label-orbitron" style={{ fontSize: '13px', color: 'var(--holo-text-primary)' }}>
-                        {stats.fleetShips}
+                        {stats.fleets}
+                      </div>
+                      <div className="holo-label-orbitron" style={{ fontSize: '9px', color: 'var(--holo-text-muted)' }}>
+                        FLTS
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="holo-label-orbitron" style={{ fontSize: '13px', color: 'var(--holo-text-primary)' }}>
+                        {stats.shipUnits}
                       </div>
                       <div className="holo-label-orbitron" style={{ fontSize: '9px', color: 'var(--holo-text-muted)' }}>
                         SHIPS
@@ -402,6 +419,25 @@ export function ControlsPanel() {
                     maxLength={30}
                     autoFocus
                   />
+                  <div className="space-y-1">
+                    <label
+                      className="text-[11px] uppercase tracking-wide"
+                      style={{ color: 'var(--holo-text-muted)', fontFamily: 'Orbitron, monospace', fontSize: '9px' }}
+                    >
+                      Faction
+                    </label>
+                    <select
+                      value={newPlanetFaction}
+                      onChange={(e) => setNewPlanetFaction(e.target.value as Faction)}
+                      className="holo-input w-full px-3 py-2 text-[13px]"
+                    >
+                      {PLANET_FACTION_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                   <div className="flex items-center gap-3">
                     <label className="text-[11px] uppercase tracking-wide holo-label-orbitron" style={{ color: 'var(--holo-text-muted)' }}>Color</label>
                     <input
@@ -420,7 +456,11 @@ export function ControlsPanel() {
                     <button
                       onClick={() => {
                         if (newPlanetName.trim()) {
-                          setPlacementMode(true, { name: newPlanetName.trim(), color: newPlanetColor });
+                          setPlacementMode(true, {
+                            name: newPlanetName.trim(),
+                            color: newPlanetColor,
+                            faction: newPlanetFaction,
+                          });
                           setShowCreateForm(false);
                         }
                       }}
@@ -434,6 +474,7 @@ export function ControlsPanel() {
                       onClick={() => {
                         setShowCreateForm(false);
                         setNewPlanetName('');
+                        setNewPlanetFaction('neutral');
                       }}
                       className="text-[12px] hover:text-white transition-colors px-3"
                       style={{ color: 'var(--holo-text-muted)' }}
