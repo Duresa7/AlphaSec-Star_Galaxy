@@ -225,4 +225,7 @@ export interface GalaxyStore {
   resetCameraFlag: boolean;
   requestCameraReset: () => void;
   clearResetCameraFlag: () => void;
+  zoomDelta: number;
+  requestZoom: (delta: number) => void;
+  clearZoomDelta: () => void;
 }

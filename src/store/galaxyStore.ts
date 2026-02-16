@@ -690,4 +690,7 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
   resetCameraFlag: false,
   requestCameraReset: () => set({ resetCameraFlag: true }),
   clearResetCameraFlag: () => set({ resetCameraFlag: false }),
+  zoomDelta: 0,
+  requestZoom: (delta: number) => set({ zoomDelta: delta }),
+  clearZoomDelta: () => set({ zoomDelta: 0 }),
 }));
