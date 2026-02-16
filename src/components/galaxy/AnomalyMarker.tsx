@@ -166,6 +166,7 @@ function AnomalyMarker({ anomaly }: AnomalyMarkerProps) {
           position={[0, anomaly.radius + 2, 0]}
           center
           distanceFactor={30}
+          zIndexRange={[0, 0]}
           style={{ pointerEvents: 'none', userSelect: 'none' }}
         >
           <div className="text-center whitespace-nowrap holo-tooltip" style={{ minWidth: '100px' }}>

@@ -16,12 +16,14 @@
 }
 
 body {
-  font-family: "Forum", "Rajdhani", serif;
+  font-family: "Spline Sans", "Manrope", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #000;
   color: var(--holo-text-primary);
   overflow: hidden;
+  font-size: 15px;
+  line-height: 1.55;
 }
 
 ::-webkit-scrollbar {
@@ -156,34 +158,82 @@ body {
   }
 }
 
+@keyframes holoBorderFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes holoGlowPulse {
+  0%, 100% {
+    box-shadow:
+      0 0 1px rgba(200, 170, 110, 0.15),
+      0 8px 32px rgba(0, 0, 0, 0.6),
+      inset 0 1px 0 rgba(200, 170, 110, 0.06);
+  }
+  50% {
+    box-shadow:
+      0 0 2px rgba(200, 170, 110, 0.25),
+      0 8px 32px rgba(0, 0, 0, 0.6),
+      0 0 20px rgba(200, 170, 110, 0.04),
+      inset 0 1px 0 rgba(200, 170, 110, 0.1);
+  }
+}
+
+@keyframes cornerPulse {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes dataStreamScroll {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
+}
+
+@keyframes subtleScanline {
+  0% {
+    top: -2px;
+  }
+  100% {
+    top: 100%;
+  }
+}
+
 .animate-slide-in-right {
   animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 .animate-slide-in-left {
   animation: slideInLeft 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
-.animate-fade-in {
-  animation: fadeIn 0.5s ease-out forwards;
-}
-
-.holo-clip {
-  border-radius: 12px;
-}
-
 .holo-panel {
   position: relative;
-  background: rgba(8, 8, 14, 0.82);
+  background: rgba(10, 10, 16, 0.92);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(200, 170, 110, 0.12);
-  border-radius: 14px;
-  padding: 16px;
+  border-radius: 12px;
+  padding: 18px;
   overflow: hidden;
-  box-shadow:
-    0 0 1px rgba(200, 170, 110, 0.15),
-    0 8px 32px rgba(0, 0, 0, 0.6),
-    inset 0 1px 0 rgba(200, 170, 110, 0.06);
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+  transition: border-color 0.3s ease;
+}
+
+.holo-panel:hover {
+  border-color: rgba(200, 170, 110, 0.2);
 }
 
 .holo-panel::before {
@@ -196,8 +246,8 @@ body {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(200, 170, 110, 0.3) 30%,
-    rgba(200, 170, 110, 0.3) 70%,
+    rgba(200, 170, 110, 0.25) 30%,
+    rgba(200, 170, 110, 0.25) 70%,
     transparent 100%
   );
   pointer-events: none;
@@ -210,15 +260,15 @@ body {
   top: 0;
   left: 0;
   right: 0;
-  height: 60px;
+  height: 50px;
   background: linear-gradient(
     180deg,
-    rgba(200, 170, 110, 0.04) 0%,
+    rgba(200, 170, 110, 0.03) 0%,
     transparent 100%
   );
   pointer-events: none;
   z-index: 1;
-  border-radius: 14px 14px 0 0;
+  border-radius: 12px 12px 0 0;
 }
 
 .holo-panel > * {
@@ -228,13 +278,48 @@ body {
 
 .holo-label {
   display: block;
-  font-family: "Orbitron", monospace;
-  font-size: 10px;
+  font-family: "Oxanium", "Orbitron", monospace;
+  font-size: 12px;
   font-weight: 600;
   color: var(--holo-amber);
   text-transform: uppercase;
-  letter-spacing: 0.15em;
-  text-shadow: 0 0 8px rgba(200, 170, 110, 0.25);
+  letter-spacing: 0.14em;
+  transition: color 0.2s ease;
+}
+
+.holo-label:hover {
+  color: var(--holo-amber-bright);
+}
+
+.holo-label-orbitron {
+  font-family: "Orbitron", monospace;
+}
+
+.holo-label-inline {
+  font-family: "Oxanium", "Orbitron", monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--holo-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.holo-value-inline {
+  font-family: "Spline Sans", "Manrope", sans-serif;
+  font-size: 15px;
+  color: var(--holo-text-primary);
+}
+
+.holo-heading {
+  font-family: "Oxanium", "Orbitron", monospace;
+  color: var(--holo-text-primary);
+}
+
+.holo-body-text {
+  font-family: "Spline Sans", "Manrope", sans-serif;
+  color: rgba(200, 170, 110, 0.65);
+  font-size: 14px;
+  line-height: 1.6;
 }
 
 .holo-input {
@@ -242,23 +327,20 @@ body {
   border: 1px solid rgba(200, 170, 110, 0.15);
   border-radius: 8px;
   color: var(--holo-text-primary);
-  font-family: "Forum", "Rajdhani", serif;
+  font-family: "Spline Sans", "Manrope", sans-serif;
   font-size: 14px;
   transition: all 0.25s ease;
 }
 
 .holo-input::placeholder {
   color: rgba(200, 170, 110, 0.3);
-  font-family: "Forum", "Rajdhani", serif;
+  font-family: "Spline Sans", "Manrope", sans-serif;
 }
 
 .holo-input:focus {
-  background: rgba(5, 5, 8, 0.85);
-  border-color: rgba(200, 170, 110, 0.4);
+  background: rgba(5, 5, 8, 0.9);
+  border-color: rgba(200, 170, 110, 0.35);
   outline: none;
-  box-shadow:
-    0 0 0 3px rgba(200, 170, 110, 0.08),
-    0 0 16px rgba(200, 170, 110, 0.1);
 }
 
 .holo-number-input::-webkit-inner-spin-button,
@@ -274,77 +356,79 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 7px;
   padding: 10px 16px;
   background: rgba(200, 170, 110, 0.06);
   border: 1px solid rgba(200, 170, 110, 0.18);
   border-radius: 8px;
   color: var(--holo-amber);
-  font-family: "Orbitron", monospace;
-  font-size: 11px;
+  font-family: "Oxanium", "Orbitron", monospace;
+  font-size: 12px;
   font-weight: 500;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+  transition: all 0.25s ease;
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
 }
 
 .holo-button:hover {
-  background: rgba(200, 170, 110, 0.14);
-  border-color: rgba(200, 170, 110, 0.4);
+  background: rgba(200, 170, 110, 0.12);
+  border-color: rgba(200, 170, 110, 0.35);
   color: var(--holo-amber-bright);
-  box-shadow:
-    0 0 20px rgba(200, 170, 110, 0.1),
-    0 0 0 1px rgba(200, 170, 110, 0.1);
-  transform: translateY(-1px);
 }
 
 .holo-button:active {
-  transform: translateY(0);
-  box-shadow: 0 0 8px rgba(200, 170, 110, 0.08);
+  background: rgba(200, 170, 110, 0.16);
 }
 
 .holo-button:disabled {
   opacity: 0.3;
   cursor: not-allowed;
-  transform: none;
 }
 
 .holo-tooltip {
   background: rgba(5, 5, 8, 0.95);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(200, 170, 110, 0.2);
+  border: 1px solid rgba(200, 170, 110, 0.15);
   border-radius: 8px;
-  padding: 8px 12px;
-  box-shadow:
-    0 0 1px rgba(200, 170, 110, 0.15),
-    0 8px 20px rgba(0, 0, 0, 0.5);
+  padding: 10px 14px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  font-size: 13px;
 }
 
 .holo-badge {
-  font-family: "Orbitron", monospace;
-  font-size: 9px;
+  font-family: "Oxanium", "Orbitron", monospace;
+  font-size: 10px;
   font-weight: 600;
-  padding: 3px 10px;
+  padding: 4px 10px;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   border-radius: 5px;
+  transition: all 0.2s ease;
+}
+
+.holo-badge:hover {
+  filter: brightness(1.1);
 }
 
 .holo-info-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 12px;
+  padding: 10px 14px;
   background: rgba(200, 170, 110, 0.03);
   border: 1px solid rgba(200, 170, 110, 0.08);
   border-radius: 8px;
-  transition: background 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .holo-info-row:hover {
-  background: rgba(200, 170, 110, 0.06);
+  background: rgba(200, 170, 110, 0.07);
+  border-color: rgba(200, 170, 110, 0.15);
 }
 
 .holo-info-grid {
@@ -355,22 +439,25 @@ body {
 }
 
 .holo-close-button {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(200, 170, 110, 0.06);
-  border: 1px solid rgba(200, 170, 110, 0.15);
+  background: rgba(8, 8, 14, 0.85);
+  border: 1px solid rgba(200, 170, 110, 0.2);
   border-radius: 50%;
   color: var(--holo-amber);
-  transition: all 0.2s ease;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .holo-close-button:hover {
-  background: rgba(200, 170, 110, 0.15);
-  color: var(--holo-amber-bright);
-  box-shadow: 0 0 12px rgba(200, 170, 110, 0.15);
+  background: rgba(220, 20, 60, 0.12);
+  border-color: rgba(220, 20, 60, 0.35);
+  color: #ff4466;
   transform: rotate(90deg);
 }
 
@@ -379,12 +466,168 @@ body {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(200, 170, 110, 0.2) 15%,
-    rgba(200, 170, 110, 0.25) 50%,
-    rgba(200, 170, 110, 0.2) 85%,
+    rgba(200, 170, 110, 0.15) 20%,
+    rgba(200, 170, 110, 0.2) 50%,
+    rgba(200, 170, 110, 0.15) 80%,
     transparent 100%
   );
-  margin: 12px 0;
+  margin: 14px 0;
+  position: relative;
+}
+
+.holo-divider::after {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 3px;
+  background: var(--holo-amber);
+  border-radius: 1px;
+  opacity: 0.3;
+}
+
+/* Corner bracket decorations for panels */
+.holo-corner-brackets {
+  position: relative;
+}
+
+.holo-corner-brackets::before,
+.holo-corner-brackets::after {
+  content: "";
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.holo-corner-brackets::before {
+  top: 6px;
+  left: 6px;
+  border-top: 1px solid rgba(200, 170, 110, 0.2);
+  border-left: 1px solid rgba(200, 170, 110, 0.2);
+}
+
+.holo-corner-brackets::after {
+  bottom: 6px;
+  right: 6px;
+  border-bottom: 1px solid rgba(200, 170, 110, 0.2);
+  border-right: 1px solid rgba(200, 170, 110, 0.2);
+}
+
+/* Scanline overlay for panels */
+.holo-scanline {
+  position: relative;
+}
+
+.holo-scanline > .holo-scanline-bar {
+  position: absolute;
+  top: -2px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(200, 170, 110, 0.1), transparent);
+  animation: subtleScanline 10s linear infinite;
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Section header with line accent */
+.holo-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  padding-bottom: 2px;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.3s ease;
+}
+
+.holo-section-header:hover {
+  border-bottom-color: rgba(200, 170, 110, 0.1);
+}
+
+/* Search container with icon */
+.holo-search-wrapper {
+  position: relative;
+}
+
+.holo-search-wrapper .holo-search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  color: rgba(200, 170, 110, 0.35);
+  pointer-events: none;
+  transition: color 0.25s ease;
+}
+
+.holo-search-wrapper:focus-within .holo-search-icon {
+  color: var(--holo-amber);
+}
+
+.holo-search-wrapper .holo-input {
+  padding-left: 34px;
+}
+
+/* Status indicator dot – uses box-shadow instead of ::after so overflow:hidden won't clip */
+.holo-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Heading with underline accent */
+.holo-heading-accent {
+  position: relative;
+  display: inline-block;
+}
+
+.holo-heading-accent::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 36px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--holo-amber), transparent);
+  border-radius: 1px;
+}
+
+/* Title bar for top of map */
+.holo-title-bar {
+  position: relative;
+  padding: 10px 28px 12px;
+  background: rgba(8, 8, 14, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(200, 170, 110, 0.1);
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.holo-title-bar::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(200, 170, 110, 0.2) 30%,
+    rgba(200, 170, 110, 0.25) 50%,
+    rgba(200, 170, 110, 0.2) 70%,
+    transparent 100%
+  );
 }
 
 .holo-slider {
@@ -403,12 +646,11 @@ body {
   background: var(--holo-amber);
   border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 0 10px rgba(200, 170, 110, 0.4);
-  transition: box-shadow 0.2s ease;
+  transition: background 0.2s ease;
 }
 
 .holo-slider::-webkit-slider-thumb:hover {
-  box-shadow: 0 0 16px rgba(200, 170, 110, 0.6);
+  background: var(--holo-amber-bright);
 }
 
 .holo-slider::-moz-range-thumb {
@@ -417,7 +659,6 @@ body {
   background: var(--holo-amber);
   border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 0 10px rgba(200, 170, 110, 0.4);
   border: none;
 }
 

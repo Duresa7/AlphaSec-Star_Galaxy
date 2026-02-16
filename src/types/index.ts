@@ -120,6 +120,7 @@ export type AuditAction =
   | 'fleet_moved'
   | 'fleet_deleted'
   | 'fleet_resized'
+  | 'fleet_updated'
   | 'planet_stats_updated'
   | 'role_changed'
   | 'timeline_changed'
@@ -150,6 +151,12 @@ export interface PlanetStatsUpdate {
   notable?: string[] | null;
   nativeInhabitants?: string | null;
   customColor?: string | null;
+}
+export interface FleetStatsUpdate {
+  name?: string;
+  shipCount?: number;
+  faction?: Faction;
+  modelType?: ShipModelType;
 }
 export interface GalaxyStore {
   viewMode: ViewMode;
@@ -206,6 +213,7 @@ export interface GalaxyStore {
   previewCustomFleetPosition: (id: string, position: THREE.Vector3) => void;
   updateCustomFleetPosition: (id: string, position: THREE.Vector3, previousPosition?: THREE.Vector3) => void;
   updateFleetMarkerSize: (id: string, markerSize: number) => void;
+  updateFleetStats: (id: string, updates: FleetStatsUpdate) => void;
   draggingCustomFleet: boolean;
   setDraggingCustomFleet: (dragging: boolean) => void;
   dirtySystemIds: Set<string>;

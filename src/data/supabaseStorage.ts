@@ -382,20 +382,14 @@ export async function updateDisplayName(userId: string, displayName: string): Pr
   return { error: null };
 }
 
-export async function deleteAccount(accessToken: string): Promise<{ error: string | null }> {
+export async function deleteAccount(): Promise<{ error: string | null }> {
   if (!supabaseConfigured) return { error: 'Supabase not configured' };
-  const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-account`;
   try {
-    const res = await fetch(url, {
+    const { error } = await supabase.functions.invoke('delete-account', {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
     });
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}));
-      return { error: (body as Record<string, string>).error || `Delete failed (${res.status})` };
+    if (error) {
+      return { error: error.message || 'Delete failed' };
     }
     return { error: null };
   } catch (err) {

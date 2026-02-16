@@ -8,42 +8,66 @@ export function LoadingScreen() {
   return (
     <div className="absolute inset-0 z-50 flex items-center justify-center" style={{ background: 'var(--holo-void)' }}>
 
+      {/* Ambient grid background */}
+      <div
+        className="absolute inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage:
+            'linear-gradient(rgba(200, 170, 110, 0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(200, 170, 110, 0.3) 1px, transparent 1px)',
+          backgroundSize: '60px 60px',
+        }}
+      />
+
       <div className="text-center relative z-10">
 
-        <div className="relative w-24 h-24 mx-auto mb-8">
+        <div className="relative w-28 h-28 mx-auto mb-8">
 
+          {/* Outer ring */}
           <div
             className="absolute inset-0 rounded-full"
             style={{
-              border: '2px solid rgba(200, 170, 110, 0.2)',
-              animation: 'diamondSpin 4s linear infinite',
+              border: '1px solid rgba(200, 170, 110, 0.15)',
+              animation: 'diamondSpin 6s linear infinite',
             }}
           />
 
+          {/* Second ring */}
           <div
             className="absolute rounded-full"
             style={{
-              inset: '8px',
-              border: '2px solid rgba(0, 240, 255, 0.2)',
+              inset: '6px',
+              border: '1px solid rgba(200, 170, 110, 0.1)',
+              animation: 'diamondSpin 4s linear infinite reverse',
+            }}
+          />
+
+          {/* Third ring */}
+          <div
+            className="absolute rounded-full"
+            style={{
+              inset: '14px',
+              border: '2px solid rgba(200, 170, 110, 0.2)',
+              animation: 'diamondSpin 2.5s linear infinite',
+            }}
+          />
+
+          {/* Inner ring */}
+          <div
+            className="absolute rounded-full"
+            style={{
+              inset: '22px',
+              border: '1px solid rgba(200, 170, 110, 0.1)',
               animation: 'diamondSpin 3s linear infinite reverse',
             }}
           />
 
-          <div
-            className="absolute rounded-full"
-            style={{
-              inset: '16px',
-              border: '2px solid rgba(200, 170, 110, 0.35)',
-              animation: 'diamondSpin 2s linear infinite',
-            }}
-          />
-
+          {/* Center dot */}
           <div className="absolute inset-0 flex items-center justify-center">
             <div
-              className="w-3 h-3 rounded-full animate-pulse"
+              className="w-3 h-3 rounded-full"
               style={{
                 backgroundColor: 'var(--holo-amber)',
-                boxShadow: '0 0 16px rgba(200, 170, 110, 0.6)',
+                animation: 'holoPulse 2s ease-in-out infinite',
               }}
             />
           </div>
@@ -51,24 +75,29 @@ export function LoadingScreen() {
 
 
         <h1
-          className="text-2xl font-bold tracking-widest mb-3"
+          className="text-2xl font-bold tracking-[0.3em] mb-2"
           style={{
             fontFamily: 'Orbitron, monospace',
             color: 'var(--holo-amber)',
-            textShadow: '0 0 20px rgba(200, 170, 110, 0.4)',
           }}
         >
           GALAXY MAP
         </h1>
 
+        {/* Decorative line */}
+        <div className="flex items-center justify-center gap-2 mb-4">
+          <div className="h-px w-16" style={{ background: 'linear-gradient(90deg, transparent, rgba(200, 170, 110, 0.3))' }} />
+          <div className="w-1 h-1 rounded-full" style={{ backgroundColor: 'var(--holo-amber)', opacity: 0.5 }} />
+          <div className="h-px w-16" style={{ background: 'linear-gradient(90deg, rgba(200, 170, 110, 0.3), transparent)' }} />
+        </div>
 
-        <div className="w-48 h-px mx-auto mb-4 rounded-full overflow-hidden" style={{ background: 'rgba(200, 170, 110, 0.12)' }}>
+        {/* Progress bar */}
+        <div className="w-52 h-[2px] mx-auto mb-4 rounded-full overflow-hidden" style={{ background: 'rgba(200, 170, 110, 0.1)' }}>
           <div
             className="h-full rounded-full"
             style={{
               background: 'var(--holo-amber)',
-              animation: 'holoBootLine 2s ease-in-out infinite',
-              boxShadow: '0 0 8px rgba(200, 170, 110, 0.5)',
+              animation: 'holoBootLine 2.5s ease-in-out infinite',
             }}
           />
         </div>
@@ -76,11 +105,11 @@ export function LoadingScreen() {
         <p
           className="text-sm mb-1"
           style={{
-            fontFamily: 'Orbitron, monospace',
-            fontSize: '10px',
-            color: 'var(--holo-cyan)',
-            textShadow: '0 0 10px rgba(0, 240, 255, 0.35)',
+            fontFamily: 'Oxanium, Orbitron, monospace',
+            fontSize: '12px',
+            color: 'var(--holo-amber)',
             letterSpacing: '0.2em',
+            opacity: 0.7,
             animation: 'holoPulse 2s ease-in-out infinite',
           }}
         >
@@ -89,7 +118,8 @@ export function LoadingScreen() {
         <p
           className="text-xs mt-2"
           style={{
-            fontFamily: '"Forum", Rajdhani, serif',
+            fontFamily: '"Spline Sans", Manrope, sans-serif',
+            fontSize: '13px',
             color: 'var(--holo-text-muted)',
           }}
         >
@@ -98,14 +128,14 @@ export function LoadingScreen() {
         <p
           className="text-xs mt-3"
           style={{
-            fontFamily: 'Orbitron, monospace',
-            fontSize: '9px',
+            fontFamily: 'Oxanium, Orbitron, monospace',
+            fontSize: '11px',
             color: 'var(--holo-amber)',
-            opacity: 0.6,
-            letterSpacing: '0.15em',
+            opacity: 0.4,
+            letterSpacing: '0.12em',
           }}
         >
-          Old Republic Era ~ 3956 BBY
+          Old Republic Era &middot; 3956 BBY
         </p>
       </div>
     </div>
