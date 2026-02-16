@@ -15,6 +15,9 @@ const LERP_FACTOR = 0.03;
 /** Near-zero polar angle used to lock top-down view to vertical */
 const TOPDOWN_POLAR_LOCK = 0.001;
 
+/** How much each +/- button click zooms (multiplied by current distance) */
+const BUTTON_ZOOM_STEP = 0.15;
+
 const CAMERA_CONFIG = {
   topdown: {
     distance: 100,
@@ -122,6 +125,24 @@ export function CameraController() {
         targetLookAt.current.set(0, 0, 0);
         isAnimating.current = true;
         animationEndTime.current = performance.now() + ANIMATION_DURATION_MS;
+      }
+
+      // Handle button zoom requests (+/- buttons)
+      if (store.zoomDelta !== 0 && !isAnimating.current) {
+        const delta = store.zoomDelta;
+        store.clearZoomDelta();
+        const direction = new THREE.Vector3()
+          .subVectors(camera.position, controlsRef.current.target)
+          .normalize();
+        const currentDist = camera.position.distanceTo(controlsRef.current.target);
+        const config = CAMERA_CONFIG[viewMode] || CAMERA_CONFIG.system;
+        const step = currentDist * BUTTON_ZOOM_STEP * delta;
+        const newDist = THREE.MathUtils.clamp(
+          currentDist + step,
+          config.minDistance,
+          config.maxDistance,
+        );
+        camera.position.copy(controlsRef.current.target).addScaledVector(direction, newDist);
       }
 
       if (isAnimating.current) {

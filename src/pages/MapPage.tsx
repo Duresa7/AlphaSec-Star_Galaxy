@@ -10,7 +10,7 @@ import { useRole } from '@/hooks/useRole';
 import { supabase, supabaseConfigured } from '@/lib/supabase';
 
 export function MapPage() {
-  const { viewMode, initializeData, hasPendingChanges, saveAllChanges, discardAllChanges, requestCameraReset } = useGalaxyStore();
+  const { viewMode, initializeData, hasPendingChanges, saveAllChanges, discardAllChanges, requestCameraReset, requestZoom } = useGalaxyStore();
   const { session, profile, signOut } = useAuth();
   const { isAdmin } = useRole();
   const [saving, setSaving] = useState(false);
@@ -101,7 +101,27 @@ export function MapPage() {
       )}
 
       {viewMode === 'topdown' && (
-        <div className="absolute bottom-20 right-6 z-40">
+        <div className="absolute bottom-20 right-6 z-40 flex flex-col gap-2">
+          <button
+            onClick={() => requestZoom(-1)}
+            className="holo-button"
+            style={{ padding: '8px 14px' }}
+            title="Zoom in"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v12M6 12h12" />
+            </svg>
+          </button>
+          <button
+            onClick={() => requestZoom(1)}
+            className="holo-button"
+            style={{ padding: '8px 14px' }}
+            title="Zoom out"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 12h12" />
+            </svg>
+          </button>
           <button
             onClick={() => requestCameraReset()}
             className="holo-button"
@@ -114,7 +134,6 @@ export function MapPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 14h-4v4" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 14a9 9 0 01-17.36 2.35" />
             </svg>
-            <span>Reset View</span>
           </button>
         </div>
       )}
