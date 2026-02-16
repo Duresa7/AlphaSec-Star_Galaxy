@@ -123,53 +123,89 @@ export function MapPage() {
       </div>
 
 
-      <div className="absolute top-6 right-6 z-40 flex items-center gap-3">
+      <div className="absolute top-5 right-5 z-40">
         {session && (
-          <>
-            <span
-              className="text-[11px] font-semibold tracking-wider uppercase"
-              style={{ fontFamily: 'Orbitron, monospace', color: 'var(--holo-amber)', textShadow: '0 0 6px rgba(200, 170, 110, 0.4)' }}
-            >
-              {displayName}
-            </span>
+          <div
+            className="flex items-center"
+            style={{
+              background: 'rgba(12, 12, 18, 0.88)',
+              backdropFilter: 'blur(24px)',
+              WebkitBackdropFilter: 'blur(24px)',
+              border: '1px solid rgba(200, 170, 110, 0.15)',
+              borderRadius: '12px',
+              padding: '6px',
+              gap: '4px',
+            }}
+          >
+            <div className="flex items-center gap-3 px-5 py-2.5">
+              <span
+                className="text-[13px] font-semibold tracking-[0.1em] uppercase"
+                style={{ fontFamily: 'Oxanium, Orbitron, monospace', color: 'var(--holo-amber)' }}
+              >
+                {displayName}
+              </span>
+            </div>
             <button
               onClick={() => signOut()}
-              className="holo-button"
-              style={{ padding: '6px 12px', fontSize: '10px' }}
+              className="flex items-center gap-2 transition-all duration-200"
+              style={{
+                fontFamily: 'Oxanium, Orbitron, monospace',
+                fontSize: '12px',
+                fontWeight: 600,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                color: 'var(--holo-text-muted)',
+                background: 'rgba(200, 170, 110, 0.06)',
+                border: '1px solid rgba(200, 170, 110, 0.1)',
+                borderRadius: '8px',
+                padding: '8px 16px',
+                cursor: 'pointer',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--holo-amber)'; e.currentTarget.style.background = 'rgba(200, 170, 110, 0.12)'; e.currentTarget.style.borderColor = 'rgba(200, 170, 110, 0.25)'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--holo-text-muted)'; e.currentTarget.style.background = 'rgba(200, 170, 110, 0.06)'; e.currentTarget.style.borderColor = 'rgba(200, 170, 110, 0.1)'; }}
             >
               Sign Out
             </button>
-          </>
+          </div>
         )}
       </div>
 
 
-      <div className="absolute top-6 left-1/2 -translate-x-1/2 text-center pointer-events-none z-0 mix-blend-screen opacity-90">
-
-        <h1
-          className="text-2xl font-black tracking-[0.35em] uppercase mb-1.5"
-          style={{
-            fontFamily: 'Orbitron, monospace',
-            color: 'var(--holo-amber)',
-            textShadow: '0 0 20px rgba(200, 170, 110, 0.35)',
-          }}
-        >
-          AlphaSec
-        </h1>
-
-        <div className="flex items-center justify-center gap-3">
-          <div className="h-px w-10" style={{ background: 'linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.4))' }} />
-          <p
-            className="text-[10px] font-bold tracking-[0.4em] uppercase"
+      <div className="absolute top-5 left-1/2 -translate-x-1/2 text-center pointer-events-none z-0">
+        <div className="holo-title-bar">
+          <h1
+            className="text-xl font-black tracking-[0.3em] uppercase mb-1"
             style={{
               fontFamily: 'Orbitron, monospace',
-              color: 'var(--holo-cyan)',
-              textShadow: '0 0 10px rgba(0, 240, 255, 0.4)',
+              color: 'var(--holo-amber)',
             }}
           >
-            {viewLabel}
-          </p>
-          <div className="h-px w-10" style={{ background: 'linear-gradient(90deg, rgba(0, 240, 255, 0.4), transparent)' }} />
+            AlphaSec
+          </h1>
+
+          <div className="flex items-center justify-center gap-3">
+            <div className="h-px w-12" style={{ background: 'linear-gradient(90deg, transparent, rgba(200, 170, 110, 0.3))' }} />
+            <div className="flex items-center gap-2">
+              <div
+                className="w-1.5 h-1.5 rounded-full"
+                style={{ backgroundColor: 'var(--holo-amber)', opacity: 0.5 }}
+              />
+              <p
+                className="text-[12px] font-bold tracking-[0.3em] uppercase"
+                style={{
+                  fontFamily: 'Oxanium, Orbitron, monospace',
+                  color: 'var(--holo-text-muted)',
+                }}
+              >
+                {viewLabel}
+              </p>
+              <div
+                className="w-1.5 h-1.5 rounded-full"
+                style={{ backgroundColor: 'var(--holo-amber)', opacity: 0.5 }}
+              />
+            </div>
+            <div className="h-px w-12" style={{ background: 'linear-gradient(90deg, rgba(200, 170, 110, 0.3), transparent)' }} />
+          </div>
         </div>
       </div>
     </div>

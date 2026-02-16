@@ -56,6 +56,7 @@ export function FleetDetailView({ fleet }: FleetDetailViewProps) {
           position={[0, 8, 0]}
           center
           distanceFactor={15}
+          zIndexRange={[0, 0]}
           style={{ pointerEvents: 'none', userSelect: 'none' }}
         >
           <div className="text-center whitespace-nowrap holo-tooltip" style={{ padding: '12px 16px' }}>
