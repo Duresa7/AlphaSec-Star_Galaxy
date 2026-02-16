@@ -10,7 +10,7 @@ import { useRole } from '@/hooks/useRole';
 import { supabase, supabaseConfigured } from '@/lib/supabase';
 
 export function MapPage() {
-  const { viewMode, initializeData, hasPendingChanges, saveAllChanges, discardAllChanges } = useGalaxyStore();
+  const { viewMode, initializeData, hasPendingChanges, saveAllChanges, discardAllChanges, requestCameraReset } = useGalaxyStore();
   const { session, profile, signOut } = useAuth();
   const { isAdmin } = useRole();
   const [saving, setSaving] = useState(false);
@@ -99,6 +99,26 @@ export function MapPage() {
             style={{ padding: '8px 16px', borderColor: 'rgba(220, 20, 60, 0.3)', color: '#DC143C' }}
           >
             Discard
+          </button>
+        </div>
+      )}
+
+
+      {viewMode === 'topdown' && (
+        <div className="absolute bottom-20 right-6 z-40">
+          <button
+            onClick={() => requestCameraReset()}
+            className="holo-button"
+            style={{ padding: '8px 14px' }}
+            title="Reset camera to default position"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h4V6" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10a9 9 0 0117.36-2.35" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 14h-4v4" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 14a9 9 0 01-17.36 2.35" />
+            </svg>
+            <span>Reset View</span>
           </button>
         </div>
       )}

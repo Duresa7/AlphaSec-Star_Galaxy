@@ -686,4 +686,8 @@ export const useGalaxyStore = create<GalaxyStore>((set, get) => ({
       hasPendingChanges: false,
     });
   },
+
+  resetCameraFlag: false,
+  requestCameraReset: () => set({ resetCameraFlag: true }),
+  clearResetCameraFlag: () => set({ resetCameraFlag: false }),
 }));
