@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Planet, Faction, PlanetType } from '@/types';
-import { useGalaxyStore } from '@/store/galaxyStore';
+import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
+import { useGalaxyDataStore } from '@/store/galaxyDataStore';
 import { FACTION_LABELS, FACTION_BAR_COLORS, FACTION_TEXT_CLASSES } from '@/constants/factions';
 import { EditableInfoRow, AddFactionControl } from '@/components/panels/infoPanelShared';
 import { PLANET_APPEARANCES } from '@/components/galaxy/SystemDetailView';
@@ -11,14 +12,14 @@ import {
 } from '@/config/topDownMarkerConfig';
 
 export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boolean }) {
-  const updatePlanetStats = useGalaxyStore((s) => s.updatePlanetStats);
-  const systems = useGalaxyStore((s) => s.systems);
-  const updateCustomSystemMarkerSize = useGalaxyStore((s) => s.updateCustomSystemMarkerSize);
-  const viewMode = useGalaxyStore((s) => s.viewMode);
-  const removeCustomSystem = useGalaxyStore((s) => s.removeCustomSystem);
-  const setInfoPanelData = useGalaxyStore((s) => s.setInfoPanelData);
-  const setSelectedSystem = useGalaxyStore((s) => s.setSelectedSystem);
-  const setSelectedPlanet = useGalaxyStore((s) => s.setSelectedPlanet);
+  const updatePlanetStats = useGalaxyDataStore((s) => s.updatePlanetStats);
+  const systems = useGalaxyDataStore((s) => s.systems);
+  const updateCustomSystemMarkerSize = useGalaxyDataStore((s) => s.updateCustomSystemMarkerSize);
+  const viewMode = useGalaxySelectionStore((s) => s.viewMode);
+  const removeCustomSystem = useGalaxyDataStore((s) => s.removeCustomSystem);
+  const setInfoPanelData = useGalaxySelectionStore((s) => s.setInfoPanelData);
+  const setSelectedSystem = useGalaxySelectionStore((s) => s.setSelectedSystem);
+  const setSelectedPlanet = useGalaxySelectionStore((s) => s.setSelectedPlanet);
 
   const [editingPopulation, setEditingPopulation] = useState(false);
   const [populationDraft, setPopulationDraft] = useState(planet.population || '');

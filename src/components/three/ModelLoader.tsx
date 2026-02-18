@@ -153,6 +153,14 @@ export function PlanetModel({ planetId, position, scale = 1, rotation = [0, 0, 0
 export function hasPlanetModel(planetId: string): boolean {
   return planetId in PLANET_MODEL_PATHS;
 }
+
+useGLTF.preload(MODEL_PATHS.sithDreadnought);
+useGLTF.preload(MODEL_PATHS.republicFrigate);
+useGLTF.preload(MODEL_PATHS.republicVenator);
+useGLTF.preload(MODEL_PATHS.nebula);
+useGLTF.preload(MODEL_PATHS.blackHole);
+useGLTF.preload(MODEL_PATHS.spaceStation);
+useGLTF.preload(MODEL_PATHS.hyperspaceMarker);
 export function GalaxySkybox() {
   return <ProceduralSkybox />;
 }

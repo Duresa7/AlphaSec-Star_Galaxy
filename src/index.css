@@ -1930,378 +1930,817 @@ body {
   box-shadow: 0 14px 28px rgba(0, 0, 0, 0.18);
 }
 
-.admin-page {
+/* ═══════════════════════════════════════════════════════════════
+   ADMIN CONSOLE — Dark Command Center
+   ═══════════════════════════════════════════════════════════════ */
+
+@keyframes adm-fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes adm-loading-sweep {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+@keyframes adm-scanline {
+  0%   { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+@keyframes adm-pulse-dot {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.4; }
+}
+
+.adm {
   position: relative;
   height: 100vh;
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  background: #f7f8fb;
-  color: #111;
+  background: #06070b;
+  color: #e8dcc8;
 }
 
-.admin-page__layer {
+/* --- Atmospheric background layers --- */
+
+.adm__bg {
   position: fixed;
   inset: 0;
   pointer-events: none;
-}
-
-.admin-page__layer--base {
   background:
-    linear-gradient(
-      140deg,
-      rgba(255, 255, 255, 0.5),
-      rgba(255, 255, 255, 0.74)
-    ),
-    var(--portfolio-hero-bg-image, url("/homepage-bg.jpg")) center / cover
-      no-repeat;
-  transform: scale(1.04);
-  filter: saturate(0.9) contrast(1.04);
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(200, 170, 110, 0.06), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 100%, rgba(96, 165, 250, 0.04), transparent 50%),
+    #06070b;
 }
 
-.admin-page__layer--grid {
+.adm__grid-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
   background-image:
-    linear-gradient(to right, rgba(12, 12, 12, 0.12) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(12, 12, 12, 0.12) 1px, transparent 1px);
-  background-size: 82px 82px;
-  opacity: 0.18;
+    linear-gradient(to right, rgba(200, 170, 110, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(200, 170, 110, 0.04) 1px, transparent 1px);
+  background-size: 64px 64px;
 }
 
-.admin-page__layer--veil {
+.adm__glow {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
   background:
-    radial-gradient(
-      circle at 16% 12%,
-      rgba(255, 255, 255, 0.44),
-      transparent 42%
-    ),
-    radial-gradient(
-      circle at 86% 16%,
-      rgba(131, 181, 255, 0.24),
-      transparent 46%
-    ),
-    linear-gradient(180deg, rgba(249, 251, 255, 0.6), rgba(248, 249, 252, 0.8));
+    radial-gradient(circle at 20% 8%, rgba(200, 170, 110, 0.08), transparent 35%),
+    radial-gradient(circle at 85% 20%, rgba(96, 165, 250, 0.05), transparent 30%);
 }
 
-.admin-page__content {
+.adm__scanline {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.adm__scanline::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(200, 170, 110, 0.12), transparent);
+  animation: adm-scanline 8s linear infinite;
+}
+
+/* --- Main shell --- */
+
+.adm__shell {
   position: relative;
   z-index: 2;
-  width: min(1100px, calc(100vw - 36px));
+  width: min(1140px, calc(100vw - 40px));
   margin: 0 auto;
-  padding: clamp(20px, 3.4vw, 44px) 0 clamp(26px, 4.4vw, 54px);
+  padding: clamp(20px, 3vw, 40px) 0 clamp(40px, 5vw, 80px);
 }
 
-.admin-page__topbar {
+/* --- Header --- */
+
+.adm__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  margin-bottom: clamp(18px, 3vw, 32px);
+  gap: 12px;
+  margin-bottom: clamp(24px, 4vw, 40px);
+  animation: adm-fade-up 0.5s ease both;
 }
 
-.admin-page__back-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 38px;
-  border-radius: 999px;
-  border: 1px solid rgba(13, 13, 13, 0.56);
-  padding: 0 14px;
-  font-family: "Manrope", "Spline Sans", sans-serif;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  text-decoration: none;
-  color: #111;
-  background: rgba(255, 255, 255, 0.68);
-  transition:
-    transform 0.2s,
-    background 0.2s;
-}
-
-.admin-page__back-link:hover {
-  transform: translateY(-1px);
-  background: rgba(255, 255, 255, 0.88);
-}
-
-.admin-page__user-pill {
+.adm__nav-back {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  border-radius: 999px;
-  border: 1px solid rgba(12, 12, 12, 0.16);
-  background: rgba(255, 255, 255, 0.6);
-  padding: 6px 14px;
-  font-family: "Manrope", "Spline Sans", sans-serif;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(17, 17, 17, 0.74);
-}
-
-.admin-page__role-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.admin-page__hero {
-  border-radius: 24px;
-  border: 1px solid rgba(12, 12, 12, 0.24);
-  padding: clamp(22px, 3.5vw, 36px);
-  background:
-    radial-gradient(
-      circle at 88% 14%,
-      rgba(167, 204, 255, 0.26),
-      transparent 42%
-    ),
-    linear-gradient(
-      150deg,
-      rgba(255, 255, 255, 0.86),
-      rgba(255, 255, 255, 0.64)
-    );
-  box-shadow:
-    0 22px 42px rgba(0, 0, 0, 0.16),
-    inset 0 1px 0 rgba(255, 255, 255, 0.58);
-  backdrop-filter: blur(8px);
-}
-
-.admin-page__kicker {
-  margin: 0;
+  padding: 8px 16px 8px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(200, 170, 110, 0.15);
+  background: rgba(200, 170, 110, 0.05);
   font-family: "Oxanium", "Spline Sans", sans-serif;
-  font-size: 10px;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: rgba(17, 17, 17, 0.58);
-}
-
-.admin-page__name {
-  margin: 10px 0 4px;
-  font-family: "Playfair Display", "Times New Roman", serif;
-  font-size: clamp(2rem, 5vw, 3rem);
+  font-size: 0.7rem;
   font-weight: 600;
-  letter-spacing: 0.03em;
-  line-height: 1;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: #c8aa6e;
+  transition: all 0.25s ease;
 }
 
-.admin-page__role-label {
-  margin: 0;
-  font-family: "Manrope", "Spline Sans", sans-serif;
-  font-size: clamp(0.85rem, 1.6vw, 1.1rem);
-  color: rgba(17, 17, 17, 0.7);
+.adm__nav-back:hover {
+  background: rgba(200, 170, 110, 0.1);
+  border-color: rgba(200, 170, 110, 0.3);
+  transform: translateX(-2px);
 }
 
-.admin-page__grid {
-  margin-top: 18px;
+.adm__header-right {
   display: flex;
-  flex-direction: column;
-  gap: 14px;
+  align-items: center;
+  gap: 12px;
 }
 
-.admin-page__section {
-  border-radius: 20px;
-  border: 1px solid rgba(12, 12, 12, 0.2);
-  background: linear-gradient(
-    150deg,
-    rgba(255, 255, 255, 0.82),
-    rgba(255, 255, 255, 0.62)
-  );
-  box-shadow:
-    0 16px 30px rgba(0, 0, 0, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
-  padding: clamp(16px, 2.6vw, 24px);
+.adm__user-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px 6px 6px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
 }
 
-.admin-page__section--full {
-  width: 100%;
-}
-
-.admin-page__section-title {
-  margin: 0 0 14px;
-  font-family: "Oxanium", "Spline Sans", sans-serif;
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: rgba(17, 17, 17, 0.58);
-}
-
-.admin-page__loading,
-.admin-page__empty {
-  padding: 20px 0;
-  font-size: 0.9rem;
-  color: rgba(17, 17, 17, 0.5);
-  text-align: center;
-}
-
-.admin-page__table-wrap {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-.admin-page__table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.82rem;
-  font-family: "Manrope", "Spline Sans", sans-serif;
-}
-
-.admin-page__table thead th {
-  text-align: left;
-  padding: 8px 10px;
-  font-family: "Oxanium", "Spline Sans", sans-serif;
-  font-size: 0.66rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: rgba(17, 17, 17, 0.5);
-  border-bottom: 1px solid rgba(12, 12, 12, 0.12);
-  white-space: nowrap;
-}
-
-.admin-page__table tbody td {
-  padding: 10px 10px;
-  border-bottom: 1px solid rgba(12, 12, 12, 0.06);
-  color: rgba(17, 17, 17, 0.82);
-  vertical-align: middle;
-}
-
-.admin-page__table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.admin-page__td-time {
-  white-space: nowrap;
-  font-family: "Oxanium", "Spline Sans", sans-serif;
-  font-size: 0.72rem;
-  color: rgba(17, 17, 17, 0.5);
-}
-
-.admin-page__td-email {
-  color: rgba(17, 17, 17, 0.6);
-  font-size: 0.78rem;
-}
-
-.admin-page__td-details {
-  max-width: 200px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 0.72rem;
-  color: rgba(17, 17, 17, 0.48);
-  font-family: monospace;
-}
-
-.admin-page__action-badge {
-  display: inline-block;
-  border-radius: 999px;
-  padding: 3px 10px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  background: rgba(12, 12, 12, 0.06);
-  border: 1px solid rgba(12, 12, 12, 0.12);
-  white-space: nowrap;
-}
-
-.admin-page__role-badge {
-  display: inline-block;
-  border-radius: 999px;
-  padding: 3px 10px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  border: 1px solid;
-  background: rgba(255, 255, 255, 0.5);
-}
-
-.admin-page__you-label {
-  font-size: 0.72rem;
-  color: rgba(17, 17, 17, 0.4);
-  font-style: italic;
-}
-
-.admin-page__role-select {
+.adm__user-avatar {
+  width: 32px;
+  height: 32px;
   border-radius: 8px;
-  border: 1px solid rgba(12, 12, 12, 0.2);
-  background: rgba(255, 255, 255, 0.7);
-  padding: 4px 8px;
-  font-size: 0.78rem;
-  font-family: "Manrope", "Spline Sans", sans-serif;
-  color: #111;
-  cursor: pointer;
-  outline: none;
-}
-
-.admin-page__role-select:focus {
-  border-color: rgba(96, 165, 250, 0.6);
-  box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.15);
-}
-
-.admin-page__role-select:disabled {
-  opacity: 0.5;
-  cursor: wait;
-}
-
-.admin-page__pagination {
+  border: 1.5px solid;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 14px;
-  margin-top: 16px;
+  font-family: "Cinzel", serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #e8dcc8;
+  background: rgba(255, 255, 255, 0.04);
 }
 
-.admin-page__page-btn {
-  border-radius: 999px;
-  border: 1px solid rgba(12, 12, 12, 0.2);
-  background: rgba(255, 255, 255, 0.6);
-  padding: 6px 14px;
-  font-size: 0.72rem;
-  font-weight: 700;
+.adm__user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.adm__user-name {
+  font-family: "Manrope", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #e8dcc8;
+}
+
+.adm__user-role {
+  font-family: "Oxanium", sans-serif;
+  font-size: 0.62rem;
+  font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
+}
+
+/* --- Hero --- */
+
+.adm__hero {
+  margin-bottom: clamp(20px, 3vw, 32px);
+  animation: adm-fade-up 0.6s ease both;
+  animation-delay: calc(var(--stagger, 0) * 80ms);
+}
+
+.adm__hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "Oxanium", sans-serif;
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(200, 170, 110, 0.6);
+  margin-bottom: 12px;
+}
+
+.adm__hero-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #c8aa6e;
+  animation: adm-pulse-dot 2.5s ease infinite;
+}
+
+.adm__hero-title {
+  margin: 0 0 8px;
+  font-family: "Cinzel", "Playfair Display", serif;
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.05;
+  color: #e8dcc8;
+  background: linear-gradient(135deg, #e8dcc8, #c8aa6e);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.adm__hero-sub {
+  margin: 0;
+  font-family: "Manrope", sans-serif;
+  font-size: clamp(0.85rem, 1.4vw, 1rem);
+  color: rgba(232, 220, 200, 0.45);
+  line-height: 1.5;
+  max-width: 500px;
+}
+
+/* --- Stats row --- */
+
+.adm__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: clamp(20px, 3vw, 28px);
+}
+
+.adm__stat-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 20px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(8px);
+  animation: adm-fade-up 0.55s ease both;
+  animation-delay: calc(var(--stagger, 0) * 80ms);
+  transition: border-color 0.3s ease, background 0.3s ease;
+}
+
+.adm__stat-card:hover {
+  border-color: rgba(200, 170, 110, 0.15);
+  background: rgba(200, 170, 110, 0.03);
+}
+
+.adm__stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.adm__stat-icon--logs {
+  background: rgba(200, 170, 110, 0.1);
+  color: #c8aa6e;
+}
+
+.adm__stat-icon--users {
+  background: rgba(96, 165, 250, 0.1);
+  color: #60a5fa;
+}
+
+.adm__stat-icon--admins {
+  background: rgba(251, 191, 36, 0.1);
+  color: #fbbf24;
+}
+
+.adm__stat-icon--pages {
+  background: rgba(156, 163, 175, 0.1);
+  color: #9ca3af;
+}
+
+.adm__stat-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.adm__stat-value {
+  font-family: "Oxanium", sans-serif;
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #e8dcc8;
+  line-height: 1;
+}
+
+.adm__stat-label {
+  font-family: "Manrope", sans-serif;
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: rgba(232, 220, 200, 0.4);
+  letter-spacing: 0.04em;
+}
+
+/* --- Panels --- */
+
+.adm__panel {
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(8px);
+  padding: clamp(18px, 2.5vw, 28px);
+  margin-bottom: 16px;
+  animation: adm-fade-up 0.6s ease both;
+  animation-delay: calc(var(--stagger, 0) * 80ms);
+}
+
+.adm__panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(200, 170, 110, 0.08);
+}
+
+.adm__panel-title-group {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.adm__panel-title {
+  margin: 0;
+  font-family: "Oxanium", sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #e8dcc8;
+}
+
+.adm__panel-count {
+  font-family: "Manrope", sans-serif;
+  font-size: 0.7rem;
+  color: rgba(200, 170, 110, 0.4);
+  font-weight: 500;
+}
+
+.adm__panel-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.adm__refresh-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(232, 220, 200, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  transition: background 0.2s;
-  font-family: "Manrope", "Spline Sans", sans-serif;
-  color: #111;
+  transition: all 0.2s ease;
 }
 
-.admin-page__page-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.9);
+.adm__refresh-btn:hover {
+  border-color: rgba(200, 170, 110, 0.25);
+  color: #c8aa6e;
+  background: rgba(200, 170, 110, 0.06);
 }
 
-.admin-page__page-btn:disabled {
-  opacity: 0.35;
+/* --- Loading & empty states --- */
+
+.adm__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 40px 0;
+  color: rgba(232, 220, 200, 0.35);
+  font-family: "Manrope", sans-serif;
+  font-size: 0.82rem;
+}
+
+.adm__loading-bar {
+  width: 120px;
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(200, 170, 110, 0.1);
+  overflow: hidden;
+  position: relative;
+}
+
+.adm__loading-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, #c8aa6e, transparent);
+  animation: adm-loading-sweep 1.4s ease infinite;
+}
+
+.adm__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 0;
+  color: rgba(232, 220, 200, 0.3);
+  font-family: "Manrope", sans-serif;
+  font-size: 0.85rem;
+}
+
+/* --- Tables --- */
+
+.adm__table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 -4px;
+  padding: 0 4px;
+}
+
+.adm__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: "Manrope", sans-serif;
+  font-size: 0.82rem;
+}
+
+.adm__table thead th {
+  text-align: left;
+  padding: 10px 14px;
+  font-family: "Oxanium", sans-serif;
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(200, 170, 110, 0.4);
+  border-bottom: 1px solid rgba(200, 170, 110, 0.08);
+  white-space: nowrap;
+}
+
+.adm__table tbody tr {
+  transition: background 0.2s ease;
+  animation: adm-fade-up 0.35s ease both;
+  animation-delay: var(--row-delay, 0ms);
+}
+
+.adm__table tbody tr:hover {
+  background: rgba(200, 170, 110, 0.03);
+}
+
+.adm__table tbody td {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  color: rgba(232, 220, 200, 0.75);
+  vertical-align: middle;
+}
+
+.adm__table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Time cells with dual display */
+.adm__td-time {
+  white-space: nowrap;
+  position: relative;
+}
+
+.adm__time-relative {
+  font-family: "Oxanium", sans-serif;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: rgba(200, 170, 110, 0.5);
+}
+
+.adm__time-full {
+  display: none;
+  font-family: "Oxanium", sans-serif;
+  font-size: 0.68rem;
+  color: rgba(200, 170, 110, 0.35);
+}
+
+.adm__td-time:hover .adm__time-relative { display: none; }
+.adm__td-time:hover .adm__time-full { display: inline; }
+
+.adm__td-user {
+  font-weight: 500;
+  color: rgba(232, 220, 200, 0.8);
+}
+
+.adm__td-entity {
+  font-weight: 500;
+  color: rgba(232, 220, 200, 0.65);
+}
+
+.adm__td-email {
+  color: rgba(232, 220, 200, 0.4);
+  font-size: 0.78rem;
+}
+
+.adm__td-details {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.7rem;
+  color: rgba(232, 220, 200, 0.25);
+  font-family: "Oxanium", monospace;
+}
+
+/* --- Action badges (color-coded by type) --- */
+
+.adm__action-badge {
+  display: inline-block;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-family: "Oxanium", sans-serif;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  border: 1px solid;
+}
+
+.adm__action-badge--create {
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.08);
+  border-color: rgba(74, 222, 128, 0.15);
+}
+
+.adm__action-badge--move {
+  color: #60a5fa;
+  background: rgba(96, 165, 250, 0.08);
+  border-color: rgba(96, 165, 250, 0.15);
+}
+
+.adm__action-badge--delete {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.08);
+  border-color: rgba(248, 113, 113, 0.15);
+}
+
+.adm__action-badge--resize {
+  color: #a78bfa;
+  background: rgba(167, 139, 250, 0.08);
+  border-color: rgba(167, 139, 250, 0.15);
+}
+
+.adm__action-badge--update {
+  color: #c8aa6e;
+  background: rgba(200, 170, 110, 0.08);
+  border-color: rgba(200, 170, 110, 0.15);
+}
+
+.adm__action-badge--role {
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.08);
+  border-color: rgba(251, 191, 36, 0.15);
+}
+
+.adm__action-badge--default {
+  color: #9ca3af;
+  background: rgba(156, 163, 175, 0.08);
+  border-color: rgba(156, 163, 175, 0.15);
+}
+
+/* --- Role badges --- */
+
+.adm__role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-family: "Oxanium", sans-serif;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--role-color);
+  background: color-mix(in srgb, var(--role-color) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--role-color) 18%, transparent);
+}
+
+.adm__role-badge-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--role-color);
+}
+
+.adm__you-label {
+  font-family: "Manrope", sans-serif;
+  font-size: 0.72rem;
+  color: rgba(232, 220, 200, 0.3);
+  font-style: italic;
+}
+
+/* --- User cell (avatar + name) in user table --- */
+
+.adm__user-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.adm__user-cell-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1.5px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Cinzel", serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #e8dcc8;
+  background: rgba(255, 255, 255, 0.04);
+  flex-shrink: 0;
+}
+
+.adm__user-cell-name {
+  font-weight: 600;
+  color: #e8dcc8;
+}
+
+/* --- Role select dropdown --- */
+
+.adm__role-select {
+  border-radius: 8px;
+  border: 1px solid rgba(200, 170, 110, 0.15);
+  background: rgba(255, 255, 255, 0.04);
+  padding: 5px 10px;
+  font-size: 0.75rem;
+  font-family: "Manrope", sans-serif;
+  color: #e8dcc8;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.adm__role-select option {
+  background: #1a1b22;
+  color: #e8dcc8;
+}
+
+.adm__role-select:focus {
+  border-color: rgba(200, 170, 110, 0.35);
+  box-shadow: 0 0 0 2px rgba(200, 170, 110, 0.08);
+}
+
+.adm__role-select:disabled {
+  opacity: 0.4;
+  cursor: wait;
+}
+
+/* --- Pagination --- */
+
+.adm__pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.adm__page-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 8px;
+  border: 1px solid rgba(200, 170, 110, 0.12);
+  background: rgba(200, 170, 110, 0.04);
+  padding: 7px 14px;
+  font-family: "Oxanium", sans-serif;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  color: rgba(200, 170, 110, 0.6);
+  transition: all 0.2s ease;
+}
+
+.adm__page-btn:hover:not(:disabled) {
+  background: rgba(200, 170, 110, 0.08);
+  border-color: rgba(200, 170, 110, 0.25);
+  color: #c8aa6e;
+}
+
+.adm__page-btn:disabled {
+  opacity: 0.25;
   cursor: not-allowed;
 }
 
-.admin-page__page-info {
-  font-size: 0.78rem;
-  color: rgba(17, 17, 17, 0.56);
-  font-family: "Oxanium", "Spline Sans", sans-serif;
-  letter-spacing: 0.06em;
+.adm__page-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
+.adm__page-dot {
+  width: 32px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  font-family: "Oxanium", sans-serif;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: rgba(232, 220, 200, 0.35);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.adm__page-dot:hover {
+  color: rgba(232, 220, 200, 0.7);
+  background: rgba(200, 170, 110, 0.05);
+}
+
+.adm__page-dot--active {
+  color: #c8aa6e;
+  background: rgba(200, 170, 110, 0.1);
+  border-color: rgba(200, 170, 110, 0.2);
+}
+
+.adm__page-ellipsis {
+  font-family: "Oxanium", sans-serif;
+  font-size: 0.75rem;
+  color: rgba(232, 220, 200, 0.2);
+  padding: 0 4px;
+}
+
+/* --- Footer --- */
+
+.adm__footer {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(200, 170, 110, 0.06);
+  text-align: center;
+  font-family: "Oxanium", sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(200, 170, 110, 0.18);
+}
+
+/* --- Responsive --- */
+
 @media (max-width: 900px) {
-  .admin-page__table {
+  .adm__table {
     font-size: 0.76rem;
+  }
+
+  .adm__stats {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 640px) {
-  .admin-page__content {
-    width: min(1100px, calc(100vw - 20px));
+  .adm__shell {
+    width: min(1140px, calc(100vw - 20px));
     padding-top: 16px;
   }
 
-  .admin-page__topbar {
+  .adm__header {
     flex-wrap: wrap;
   }
 
-  .admin-page__back-link {
-    min-height: 34px;
-    font-size: 9px;
+  .adm__stats {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .adm__stat-card {
+    padding: 14px 16px;
+  }
+
+  .adm__stat-value {
+    font-size: 1.1rem;
+  }
+
+  .adm__hero-title {
+    font-size: 1.8rem;
+  }
+
+  .adm__user-info {
+    display: none;
   }
 }
 

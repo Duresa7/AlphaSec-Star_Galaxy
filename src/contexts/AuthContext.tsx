@@ -2,18 +2,15 @@ import { createContext, useEffect, useState, useRef, useCallback, type ReactNode
 import type { Session } from '@supabase/supabase-js';
 import { supabase, supabaseConfigured } from '@/lib/supabase';
 import { deleteAccount as deleteAccountRequest } from '@/data/supabaseStorage';
-import type { UserProfile } from '@/types';
+import { withTimeout } from '@/utils/withTimeout';
 
 export interface AuthContextValue {
   session: Session | null;
-  profile: UserProfile | null;
   loading: boolean;
-  profileLoading: boolean;
   supabaseConfigured: boolean;
   signUp: (email: string, password: string, displayName: string) => Promise<{ error: string | null }>;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
-  refreshProfile: () => Promise<void>;
   updateEmail: (newEmail: string) => Promise<{ error: string | null }>;
   updatePassword: (newPassword: string) => Promise<{ error: string | null }>;
   deleteAccount: () => Promise<{ error: string | null }>;
@@ -25,66 +22,10 @@ const AUTH_OPERATION_TIMEOUT_MS = 15_000;
 const INITIAL_AUTH_TIMEOUT_MS = 7_000;
 const SESSION_BOOTSTRAP_TIMEOUT_MS = 4_000;
 
-const withTimeout = <T,>(promise: Promise<T>, timeoutMs: number, timeoutMessage: string): Promise<T> =>
-  new Promise<T>((resolve, reject) => {
-    const timeoutId = window.setTimeout(() => {
-      reject(new Error(timeoutMessage));
-    }, timeoutMs);
-
-    promise.then(
-      (value) => {
-        window.clearTimeout(timeoutId);
-        resolve(value);
-      },
-      (error) => {
-        window.clearTimeout(timeoutId);
-        reject(error);
-      },
-    );
-  });
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(supabaseConfigured);
-  const [profileLoading, setProfileLoading] = useState(false);
   const initialAuthResolvedRef = useRef(!supabaseConfigured);
-  const profileRequestsInFlightRef = useRef(0);
-
-  const fetchProfile = useCallback(async (userId: string) => {
-    if (!supabaseConfigured) return;
-    profileRequestsInFlightRef.current += 1;
-    setProfileLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Failed to fetch profile:', error);
-        setProfile(null);
-        return;
-      }
-
-      setProfile((data as UserProfile | null) ?? null);
-    } catch (error) {
-      console.error('Failed to fetch profile:', error);
-      setProfile(null);
-    } finally {
-      profileRequestsInFlightRef.current = Math.max(0, profileRequestsInFlightRef.current - 1);
-      if (profileRequestsInFlightRef.current === 0) {
-        setProfileLoading(false);
-      }
-    }
-  }, []);
-
-  const refreshProfile = useCallback(async () => {
-    if (session?.user?.id) {
-      await fetchProfile(session.user.id);
-    }
-  }, [session, fetchProfile]);
 
   useEffect(() => {
     if (!supabaseConfigured) return;
@@ -93,12 +34,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const resolveAuthState = (newSession: Session | null) => {
       setSession(newSession);
-      if (newSession?.user?.id) {
-        void fetchProfile(newSession.user.id);
-      } else {
-        setProfile(null);
-        setProfileLoading(false);
-      }
 
       if (!initialAuthResolvedRef.current) {
         initialAuthResolvedRef.current = true;
@@ -132,14 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       subscription.unsubscribe();
       window.clearTimeout(timeout);
     };
-  }, [fetchProfile]);
-  useEffect(() => {
-    if (!supabaseConfigured || !session?.user?.id) return;
-    const interval = setInterval(() => {
-      fetchProfile(session.user.id);
-    }, 60_000);
-    return () => clearInterval(interval);
-  }, [session, fetchProfile]);
+  }, []);
 
   const signUp = useCallback(async (email: string, password: string, displayName: string) => {
     if (!supabaseConfigured) return { error: 'Supabase is not configured' };
@@ -172,22 +100,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (data.session) {
         setSession(data.session);
-        if (data.session.user?.id) {
-          void fetchProfile(data.session.user.id);
-        }
       }
       setLoading(false);
       return { error: null };
     } catch (error) {
       return { error: error instanceof Error ? error.message : 'Unable to sign in. Please try again.' };
     }
-  }, [fetchProfile]);
+  }, []);
 
   const signOut = useCallback(async () => {
     setSession(null);
-    setProfile(null);
     setLoading(false);
-    setProfileLoading(false);
     if (!supabaseConfigured) return;
 
     try {
@@ -240,16 +163,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const result = await deleteAccountRequest();
     if (!result.error) {
       setSession(null);
-      setProfile(null);
       setLoading(false);
-      setProfileLoading(false);
-      try { await supabase.auth.signOut({ scope: 'local' }); } catch { }
+      try { await supabase.auth.signOut({ scope: 'local' }); } catch { /* best-effort */ }
     }
     return result;
   }, [session]);
 
   return (
-    <AuthContext.Provider value={{ session, profile, loading, profileLoading, supabaseConfigured, signUp, signIn, signOut, refreshProfile, updateEmail, updatePassword, deleteAccount }}>
+    <AuthContext.Provider value={{ session, loading, supabaseConfigured, signUp, signIn, signOut, updateEmail, updatePassword, deleteAccount }}>
       {children}
     </AuthContext.Provider>
   );

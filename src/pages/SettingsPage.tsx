@@ -1,6 +1,7 @@
 import { useState, type CSSProperties, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
 import { updateDisplayName, logAction } from '@/data/supabaseStorage';
 
 const PASSWORD_RULES = [
@@ -14,7 +15,8 @@ const PASSWORD_RULES = [
 export function SettingsPage() {
   const heroImageUrl = `${import.meta.env.BASE_URL}homepage-bg.jpg`;
   const navigate = useNavigate();
-  const { session, profile, refreshProfile, updateEmail, updatePassword, deleteAccount } = useAuth();
+  const { session, updateEmail, updatePassword, deleteAccount } = useAuth();
+  const { profile, refreshProfile } = useProfile();
 
   const [displayName, setDisplayName] = useState(profile?.display_name ?? '');
   const [displayNameSaving, setDisplayNameSaving] = useState(false);

@@ -3,11 +3,15 @@ import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import type { Fleet } from '@/types';
-import { useGalaxyStore } from '@/store/galaxyStore';
+import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
+import { useGalaxyUIStore } from '@/store/galaxyUIStore';
+import { useGalaxyDataStore } from '@/store/galaxyDataStore';
 import { FACTION_MARKER_COLORS } from '@/constants/factions';
 import { useMarkerInteraction } from '@/hooks/useMarkerInteraction';
 import { ShipModel } from '@/components/three/ModelLoader';
 import { DEFAULT_TOPDOWN_FLEET_MARKER_SIZE } from '@/config/topDownMarkerConfig';
+
+const ORIGIN = new THREE.Vector3(0, 0, 0);
 
 interface FleetMarkerProps {
   fleet: Fleet;
@@ -29,14 +33,14 @@ const FleetMarker = memo(function FleetMarker({ fleet }: FleetMarkerProps) {
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
 
-  const setInfoPanelData = useGalaxyStore((s) => s.setInfoPanelData);
-  const setTopDownFleetSelection = useGalaxyStore((s) => s.setTopDownFleetSelection);
-  const setSelectedFleet = useGalaxyStore((s) => s.setSelectedFleet);
-  const showLabels = useGalaxyStore((s) => s.showLabels);
-  const previewCustomFleetPosition = useGalaxyStore((s) => s.previewCustomFleetPosition);
-  const updateCustomFleetPosition = useGalaxyStore((s) => s.updateCustomFleetPosition);
-  const setDraggingCustomFleet = useGalaxyStore((s) => s.setDraggingCustomFleet);
-  const fleetPlacementMode = useGalaxyStore((s) => s.fleetPlacementMode);
+  const setInfoPanelData = useGalaxySelectionStore((s) => s.setInfoPanelData);
+  const setTopDownFleetSelection = useGalaxySelectionStore((s) => s.setTopDownFleetSelection);
+  const setSelectedFleet = useGalaxySelectionStore((s) => s.setSelectedFleet);
+  const showLabels = useGalaxyUIStore((s) => s.showLabels);
+  const previewCustomFleetPosition = useGalaxyDataStore((s) => s.previewCustomFleetPosition);
+  const updateCustomFleetPosition = useGalaxyDataStore((s) => s.updateCustomFleetPosition);
+  const setDraggingCustomFleet = useGalaxyUIStore((s) => s.setDraggingCustomFleet);
+  const fleetPlacementMode = useGalaxyUIStore((s) => s.fleetPlacementMode);
 
   const color = FACTION_MARKER_COLORS[fleet.faction];
   const shipType = fleet.modelType;
@@ -151,7 +155,7 @@ const FleetMarker = memo(function FleetMarker({ fleet }: FleetMarkerProps) {
       }>
         <ShipModel
           type={shipType}
-          position={new THREE.Vector3(0, 0, 0)}
+          position={ORIGIN}
           scale={3 * markerScale}
           rotation={[0, Math.PI / 4, 0]}
         />
@@ -180,8 +184,8 @@ const FleetMarker = memo(function FleetMarker({ fleet }: FleetMarkerProps) {
 export { FleetMarker };
 
 export function FleetMarkers() {
-  const fleets = useGalaxyStore((s) => s.fleets);
-  const showFleets = useGalaxyStore((s) => s.showFleets);
+  const fleets = useGalaxyDataStore((s) => s.fleets);
+  const showFleets = useGalaxyUIStore((s) => s.showFleets);
 
   if (!showFleets) return null;
 

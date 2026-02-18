@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
 import { useRole } from '@/hooks/useRole';
 
 const AUTH_GUARD_TIMEOUT_MS = 8_000;
 
 export function AdminRoute({ children }: { children: React.ReactNode }) {
-  const { session, loading, profileLoading, supabaseConfigured } = useAuth();
+  const { session, loading, supabaseConfigured } = useAuth();
+  const { profileLoading } = useProfile();
   const { isAdmin } = useRole();
   const [authWaitExpired, setAuthWaitExpired] = useState(false);
 

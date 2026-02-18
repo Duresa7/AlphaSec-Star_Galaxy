@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { useGalaxyStore } from '@/store/galaxyStore';
+import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
+import { useGalaxyDataStore } from '@/store/galaxyDataStore';
 import { useRole } from '@/hooks/useRole';
 
 import type { StarSystem, Fleet, InfoPanelData, ViewMode } from '@/types';
@@ -69,17 +70,17 @@ function resolvePanelData({
 
 export function InfoPanel() {
   const { isAdmin } = useRole();
-  const infoPanelData = useGalaxyStore((s) => s.infoPanelData);
-  const setInfoPanelData = useGalaxyStore((s) => s.setInfoPanelData);
-  const setSelectedSystem = useGalaxyStore((s) => s.setSelectedSystem);
-  const setSelectedPlanet = useGalaxyStore((s) => s.setSelectedPlanet);
-  const setSelectedFleet = useGalaxyStore((s) => s.setSelectedFleet);
-  const viewMode = useGalaxyStore((s) => s.viewMode);
-  const selectedSystemId = useGalaxyStore((s) => s.selectedSystemId);
-  const selectedPlanetId = useGalaxyStore((s) => s.selectedPlanetId);
-  const selectedFleetId = useGalaxyStore((s) => s.selectedFleetId);
-  const systems = useGalaxyStore((s) => s.systems);
-  const fleets = useGalaxyStore((s) => s.fleets);
+  const infoPanelData = useGalaxySelectionStore((s) => s.infoPanelData);
+  const setInfoPanelData = useGalaxySelectionStore((s) => s.setInfoPanelData);
+  const setSelectedSystem = useGalaxySelectionStore((s) => s.setSelectedSystem);
+  const setSelectedPlanet = useGalaxySelectionStore((s) => s.setSelectedPlanet);
+  const setSelectedFleet = useGalaxySelectionStore((s) => s.setSelectedFleet);
+  const viewMode = useGalaxySelectionStore((s) => s.viewMode);
+  const selectedSystemId = useGalaxySelectionStore((s) => s.selectedSystemId);
+  const selectedPlanetId = useGalaxySelectionStore((s) => s.selectedPlanetId);
+  const selectedFleetId = useGalaxySelectionStore((s) => s.selectedFleetId);
+  const systems = useGalaxyDataStore((s) => s.systems);
+  const fleets = useGalaxyDataStore((s) => s.fleets);
 
   const panelData = useMemo(
     () =>

@@ -8,4 +8,15 @@ export default defineConfig({
       '@': '/src',
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          three: ['three'],
+          'react-three': ['@react-three/fiber', '@react-three/drei'],
+          supabase: ['@supabase/supabase-js'],
+        },
+      },
+    },
+  },
 })
