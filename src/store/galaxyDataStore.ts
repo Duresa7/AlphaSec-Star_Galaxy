@@ -353,7 +353,7 @@ export const useGalaxyDataStore = create<GalaxyDataStore>((set, get) => ({
     useGalaxyUIStore.getState().setPlacementMode(false);
     getAuthenticatedUserId().then((uid) => {
       if (uid) {
-        insertCustomSystem(system, uid).catch(() => {});
+        insertCustomSystem(system, uid).catch((err) => console.error('[galaxyDataStore] Failed to save system:', err));
         auditLog('system_created', 'system', system.id, system.name);
       }
     });
@@ -371,7 +371,7 @@ export const useGalaxyDataStore = create<GalaxyDataStore>((set, get) => ({
     if (shouldClearPanelForSystem(selStore.infoPanelData, id)) {
       selStore.setInfoPanelData(null);
     }
-    deleteSystemFromSupabase(id).catch(() => {});
+    deleteSystemFromSupabase(id).catch((err) => console.error('[galaxyDataStore] Failed to delete system:', err));
     if (systemToRemove) {
       auditLog('system_deleted', 'system', id, systemToRemove.name);
     }
@@ -415,7 +415,7 @@ export const useGalaxyDataStore = create<GalaxyDataStore>((set, get) => ({
     useGalaxyUIStore.getState().setFleetPlacementMode(false);
     getAuthenticatedUserId().then((uid) => {
       if (uid) {
-        insertCustomFleet(fleet, uid).catch(() => {});
+        insertCustomFleet(fleet, uid).catch((err) => console.error('[galaxyDataStore] Failed to save fleet:', err));
         auditLog('fleet_created', 'fleet', fleet.id, fleet.name);
       }
     });
@@ -433,7 +433,7 @@ export const useGalaxyDataStore = create<GalaxyDataStore>((set, get) => ({
     if (shouldClearPanelForFleet(selStore.infoPanelData, id)) {
       selStore.setInfoPanelData(null);
     }
-    deleteFleetFromSupabase(id).catch(() => {});
+    deleteFleetFromSupabase(id).catch((err) => console.error('[galaxyDataStore] Failed to delete fleet:', err));
     if (fleetToRemove) {
       auditLog('fleet_deleted', 'fleet', id, fleetToRemove.name);
     }
