@@ -47,7 +47,6 @@ function resolvePanelData({
     return selectedFleet ? { type: 'fleet', data: selectedFleet } : null;
   }
 
-  // Always resolve fresh data from the store so edits are reflected immediately
   if (infoPanelData?.type === 'planet') {
     const stale = infoPanelData.data;
     const sys = systems.find((s) => s.id === stale.systemId);

@@ -122,8 +122,6 @@ export function CameraController() {
 
   useFrame(() => {
     if (controlsRef.current) {
-      // Handle reset camera request directly in the render loop
-      // to avoid React useEffect cleanup killing the animation timer
       const store = useGalaxySelectionStore.getState();
       if (store.resetCameraFlag && viewMode === 'topdown' && !isAnimating.current) {
         store.clearResetCameraFlag();
@@ -133,7 +131,6 @@ export function CameraController() {
         animationEndTime.current = performance.now() + ANIMATION_DURATION_MS;
       }
 
-      // Handle button zoom requests (+/- buttons)
       if (store.zoomDelta !== 0 && !isAnimating.current) {
         const delta = store.zoomDelta;
         store.clearZoomDelta();
@@ -155,7 +152,6 @@ export function CameraController() {
         controlsRef.current.target.lerp(targetLookAt.current, LERP_FACTOR);
         camera.position.lerp(targetPosition.current, LERP_FACTOR);
 
-        // End animation after duration elapses (for reset animations)
         if (animationEndTime.current !== null && performance.now() >= animationEndTime.current) {
           isAnimating.current = false;
           animationEndTime.current = null;

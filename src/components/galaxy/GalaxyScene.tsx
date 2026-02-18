@@ -1,6 +1,5 @@
 ﻿import { Suspense, useEffect } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { ThreeEvent } from '@react-three/fiber';
+import { Canvas, ThreeEvent } from '@react-three/fiber';
 import { Environment } from '@react-three/drei';
 import * as THREE from 'three';
 import { GalaxySkybox } from '@/components/three/ModelLoader';
@@ -49,26 +48,17 @@ function GalaxyContent() {
 
   return (
     <group>
-
       <Environment preset="night" background={false} blur={0.5} />
-
-
       <hemisphereLight
         args={[hemisphereConfig.skyColor, hemisphereConfig.groundColor, hemisphereConfig.intensity]}
       />
-
-
       <ambientLight intensity={ambientConfig.intensity} color={ambientConfig.color} />
-
-
       <directionalLight
         position={directionalConfig.position}
         intensity={directionalConfig.intensity}
         color={directionalConfig.color}
         castShadow={directionalConfig.castShadow}
       />
-
-
       {pointLightsConfig.map((light) => (
         <pointLight
           key={light.name}
@@ -79,32 +69,25 @@ function GalaxyContent() {
           decay={light.decay}
         />
       ))}
-
-
       <GalaxySkybox />
 
-
-      {viewMode === 'topdown' && (
-        <TopDownView />
-      )}
-
+      {viewMode === 'topdown' && <TopDownView />}
       {viewMode === 'system' && selectedSystem && (
         <group position={selectedSystem.position}>
           <SystemDetailView system={selectedSystem} />
         </group>
       )}
-
       {viewMode === 'fleet' && selectedFleet && (
         <group position={selectedFleet.position}>
           <FleetDetailView fleet={selectedFleet} />
         </group>
       )}
 
-
       <CameraController />
     </group>
   );
 }
+
 function TopDownView() {
   const { isAdmin } = useRole();
   const placementMode = useGalaxyUIStore((s) => s.placementMode);
@@ -162,18 +145,10 @@ function TopDownView() {
 
   return (
     <>
-
       <GalaxyMapBackground />
-
-
       <AnomalyMarkers />
-
-
       <FleetMarkers />
-
-
       <TopDownMarkers />
-
 
       {(placementMode || fleetPlacementMode) && (
         <mesh
@@ -188,6 +163,7 @@ function TopDownView() {
     </>
   );
 }
+
 function LoadingFallback() {
   return (
     <group>

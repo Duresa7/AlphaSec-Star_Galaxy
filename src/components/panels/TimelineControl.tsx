@@ -79,8 +79,6 @@ export function TimelineControl() {
             )}
             <span className="holo-label-orbitron" style={{ fontSize: '11px', color: 'var(--holo-text-muted)' }}>BBY</span>
           </div>
-          <div className="mt-1">
-          </div>
         </>
       )}
     </div>
