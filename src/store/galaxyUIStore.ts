@@ -5,9 +5,11 @@ export const useGalaxyUIStore = create<GalaxyUIStore>((set) => ({
   showFleets: true,
   showAnomalies: true,
   showLabels: true,
+  showCivilianTraffic: true,
   toggleFleets: () => set((state) => ({ showFleets: !state.showFleets })),
   toggleAnomalies: () => set((state) => ({ showAnomalies: !state.showAnomalies })),
   toggleLabels: () => set((state) => ({ showLabels: !state.showLabels })),
+  toggleCivilianTraffic: () => set((state) => ({ showCivilianTraffic: !state.showCivilianTraffic })),
 
   searchQuery: '',
   setSearchQuery: (query: string) => set({ searchQuery: query }),
