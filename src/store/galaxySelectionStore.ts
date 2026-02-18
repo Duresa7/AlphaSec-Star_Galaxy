@@ -42,4 +42,11 @@ export const useGalaxySelectionStore = create<GalaxySelectionStore>((set) => ({
 
   infoPanelData: null,
   setInfoPanelData: (data: InfoPanelData | null) => set({ infoPanelData: data }),
+
+  resetCameraFlag: false,
+  requestCameraReset: () => set({ resetCameraFlag: true }),
+  clearResetCameraFlag: () => set({ resetCameraFlag: false }),
+  zoomDelta: 0,
+  requestZoom: (delta: number) => set({ zoomDelta: delta }),
+  clearZoomDelta: () => set({ zoomDelta: 0 }),
 }));

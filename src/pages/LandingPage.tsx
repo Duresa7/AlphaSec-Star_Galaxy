@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ComponentType, type CSSProperties } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useProfile } from '@/hooks/useProfile';
 import { AuthModal } from '@/components/auth/AuthModal';
 import { Footer } from '@/components/Footer';
 import { clamp } from '@/utils/math';
@@ -122,8 +121,7 @@ const SOCIAL_LINKS: SocialLink[] = [
 
 export function LandingPage() {
   const heroImageUrl = `${import.meta.env.BASE_URL}homepage-bg.jpg`;
-  const { session, signOut } = useAuth();
-  const { profile } = useProfile();
+  const { session, profile, signOut } = useAuth();
   const location = useLocation();
   const locationState = location.state as { showAuthModal?: boolean } | null;
   const [showAuthModal, setShowAuthModal] = useState(locationState?.showAuthModal ?? false);

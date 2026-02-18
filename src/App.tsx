@@ -35,6 +35,16 @@ function App() {
         } />
         <Route path="/admin" element={
           <AdminRoute>
+            <Navigate to="/admin/audit" replace />
+          </AdminRoute>
+        } />
+        <Route path="/admin/audit" element={
+          <AdminRoute>
+            <AdminPage />
+          </AdminRoute>
+        } />
+        <Route path="/admin/users" element={
+          <AdminRoute>
             <AdminPage />
           </AdminRoute>
         } />
