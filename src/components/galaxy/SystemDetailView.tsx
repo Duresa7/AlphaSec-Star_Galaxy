@@ -3,7 +3,8 @@ import { ThreeEvent } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import type { StarSystem, Planet, PlanetType } from '@/types';
-import { useGalaxyStore } from '@/store/galaxyStore';
+import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
+import { useGalaxyUIStore } from '@/store/galaxyUIStore';
 import { PlanetModel, hasPlanetModel } from '@/components/three/ModelLoader';
 
 interface SystemDetailViewProps {
@@ -94,7 +95,9 @@ export const PLANET_APPEARANCES: Record<PlanetType, {
 };
 
 export function SystemDetailView({ system }: SystemDetailViewProps) {
-  const { showLabels, viewMode, selectedPlanetId } = useGalaxyStore();
+  const showLabels = useGalaxyUIStore((s) => s.showLabels);
+  const viewMode = useGalaxySelectionStore((s) => s.viewMode);
+  const selectedPlanetId = useGalaxySelectionStore((s) => s.selectedPlanetId);
   const planet = system.planets[0];
 
   if (!planet) {
@@ -124,7 +127,9 @@ function StaticPlanet({ planet, showLabels, isDetailView, customColor }: StaticP
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
 
-  const { setSelectedPlanet, setInfoPanelData, selectedPlanetId } = useGalaxyStore();
+  const setSelectedPlanet = useGalaxySelectionStore((s) => s.setSelectedPlanet);
+  const setInfoPanelData = useGalaxySelectionStore((s) => s.setInfoPanelData);
+  const selectedPlanetId = useGalaxySelectionStore((s) => s.selectedPlanetId);
   const isSelected = selectedPlanetId === planet.id;
 
   const appearance = PLANET_APPEARANCES[planet.type] || PLANET_APPEARANCES.terrestrial;

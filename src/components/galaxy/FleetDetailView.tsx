@@ -2,7 +2,7 @@ import { useRef, Suspense } from 'react';
 import * as THREE from 'three';
 import { Html } from '@react-three/drei';
 import type { Fleet } from '@/types';
-import { useGalaxyStore } from '@/store/galaxyStore';
+import { useGalaxyUIStore } from '@/store/galaxyUIStore';
 import { ShipModel } from '@/components/three/ModelLoader';
 
 interface FleetDetailViewProps {
@@ -10,7 +10,7 @@ interface FleetDetailViewProps {
 }
 
 export function FleetDetailView({ fleet }: FleetDetailViewProps) {
-  const { showLabels } = useGalaxyStore();
+  const showLabels = useGalaxyUIStore((s) => s.showLabels);
   const groupRef = useRef<THREE.Group>(null);
 
   const shipType = fleet.modelType;

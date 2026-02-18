@@ -1,28 +1,11 @@
 import * as THREE from 'three';
 import { supabase, supabaseConfigured } from '@/lib/supabase';
+import { withTimeout } from '@/utils/withTimeout';
 import type { StarSystem, Fleet, Faction, Planet, AuditAction, AuditLogEntry, UserProfile, ShipModelType } from '@/types';
 
 const AUTH_LOOKUP_TIMEOUT_MS = 8_000;
 
-const withTimeout = <T,>(promise: Promise<T>, timeoutMs: number, timeoutMessage: string): Promise<T> =>
-  new Promise<T>((resolve, reject) => {
-    const timeoutId = window.setTimeout(() => {
-      reject(new Error(timeoutMessage));
-    }, timeoutMs);
-
-    promise.then(
-      (value) => {
-        window.clearTimeout(timeoutId);
-        resolve(value);
-      },
-      (error) => {
-        window.clearTimeout(timeoutId);
-        reject(error);
-      },
-    );
-  });
-
-const getAuthenticatedUserId = async (): Promise<string | null> => {
+export const getAuthenticatedUserId = async (): Promise<string | null> => {
   if (!supabaseConfigured) return null;
   try {
     const { data, error } = await withTimeout(
@@ -141,6 +124,49 @@ function dbToFleet(row: DbFleet): Fleet {
   };
 }
 
+function serializeSystemForDb(system: StarSystem, userId: string) {
+  return {
+    id: system.id,
+    name: system.name,
+    position_x: system.position.x,
+    position_y: system.position.y,
+    position_z: system.position.z,
+    custom_color: system.customColor || null,
+    marker_size: system.markerSize ?? null,
+    planets: system.planets.map(p => ({
+      id: p.id,
+      name: p.name,
+      type: p.type,
+      radius: p.radius,
+      faction: p.faction,
+      description: p.description,
+      population: p.population,
+      climate: p.climate,
+      terrain: p.terrain,
+      notable: p.notable,
+      nativeInhabitants: p.nativeInhabitants,
+      factionControl: p.factionControl,
+      customColor: p.customColor,
+    })),
+    created_by: userId,
+  };
+}
+
+function serializeFleetForDb(fleet: Fleet, userId: string) {
+  return {
+    id: fleet.id,
+    name: fleet.name,
+    position_x: fleet.position.x,
+    position_y: fleet.position.y,
+    position_z: fleet.position.z,
+    faction: fleet.faction,
+    ship_count: fleet.shipCount,
+    model_type: fleet.modelType,
+    marker_size: fleet.markerSize ?? null,
+    created_by: userId,
+  };
+}
+
 export async function loadCustomSystems(): Promise<StarSystem[]> {
   if (!supabaseConfigured) return [];
   const { data, error } = await supabase
@@ -155,63 +181,28 @@ export async function loadCustomSystems(): Promise<StarSystem[]> {
 
 export async function insertCustomSystem(system: StarSystem, userId: string): Promise<void> {
   if (!supabaseConfigured) return;
-  const { error } = await supabase.from('custom_systems').insert({
-    id: system.id,
-    name: system.name,
-    position_x: system.position.x,
-    position_y: system.position.y,
-    position_z: system.position.z,
-    custom_color: system.customColor || null,
-    marker_size: system.markerSize ?? null,
-    planets: system.planets.map(p => ({
-      id: p.id,
-      name: p.name,
-      type: p.type,
-      radius: p.radius,
-      faction: p.faction,
-      description: p.description,
-      population: p.population,
-      climate: p.climate,
-      terrain: p.terrain,
-      notable: p.notable,
-      nativeInhabitants: p.nativeInhabitants,
-      factionControl: p.factionControl,
-      customColor: p.customColor,
-    })),
-    created_by: userId,
-  });
-  if (error) console.error('Failed to insert custom system:', error);
+  const { error } = await supabase.from('custom_systems').insert(serializeSystemForDb(system, userId));
+  if (error) {
+    console.error('Failed to insert custom system:', error);
+    throw error;
+  }
 }
 
 export async function upsertSystem(system: StarSystem, userId: string): Promise<void> {
   if (!supabaseConfigured) return;
-  const { error } = await supabase.from('custom_systems').upsert({
-    id: system.id,
-    name: system.name,
-    position_x: system.position.x,
-    position_y: system.position.y,
-    position_z: system.position.z,
-    custom_color: system.customColor || null,
-    marker_size: system.markerSize ?? null,
-    planets: system.planets.map(p => ({
-      id: p.id,
-      name: p.name,
-      type: p.type,
-      radius: p.radius,
-      faction: p.faction,
-      description: p.description,
-      population: p.population,
-      climate: p.climate,
-      terrain: p.terrain,
-      notable: p.notable,
-      nativeInhabitants: p.nativeInhabitants,
-      factionControl: p.factionControl,
-      customColor: p.customColor,
-    })),
-    created_by: userId,
-  }, { onConflict: 'id' });
+  const { error } = await supabase.from('custom_systems').upsert(serializeSystemForDb(system, userId), { onConflict: 'id' });
   if (error) {
     console.error('Failed to upsert system:', error);
+    throw error;
+  }
+}
+
+export async function batchUpsertSystems(systems: StarSystem[], userId: string): Promise<void> {
+  if (!supabaseConfigured || systems.length === 0) return;
+  const rows = systems.map(s => serializeSystemForDb(s, userId));
+  const { error } = await supabase.from('custom_systems').upsert(rows, { onConflict: 'id' });
+  if (error) {
+    console.error('Failed to batch upsert systems:', error);
     throw error;
   }
 }
@@ -219,7 +210,10 @@ export async function upsertSystem(system: StarSystem, userId: string): Promise<
 export async function deleteCustomSystem(id: string): Promise<void> {
   if (!supabaseConfigured) return;
   const { error } = await supabase.from('custom_systems').delete().eq('id', id);
-  if (error) console.error('Failed to delete custom system:', error);
+  if (error) {
+    console.error('Failed to delete custom system:', error);
+    throw error;
+  }
 }
 
 export async function loadCustomFleets(): Promise<Fleet[]> {
@@ -236,37 +230,28 @@ export async function loadCustomFleets(): Promise<Fleet[]> {
 
 export async function insertCustomFleet(fleet: Fleet, userId: string): Promise<void> {
   if (!supabaseConfigured) return;
-  const { error } = await supabase.from('custom_fleets').insert({
-    id: fleet.id,
-    name: fleet.name,
-    position_x: fleet.position.x,
-    position_y: fleet.position.y,
-    position_z: fleet.position.z,
-    faction: fleet.faction,
-    ship_count: fleet.shipCount,
-    model_type: fleet.modelType,
-    marker_size: fleet.markerSize ?? null,
-    created_by: userId,
-  });
-  if (error) console.error('Failed to insert custom fleet:', error);
+  const { error } = await supabase.from('custom_fleets').insert(serializeFleetForDb(fleet, userId));
+  if (error) {
+    console.error('Failed to insert custom fleet:', error);
+    throw error;
+  }
 }
 
 export async function upsertFleet(fleet: Fleet, userId: string): Promise<void> {
   if (!supabaseConfigured) return;
-  const { error } = await supabase.from('custom_fleets').upsert({
-    id: fleet.id,
-    name: fleet.name,
-    position_x: fleet.position.x,
-    position_y: fleet.position.y,
-    position_z: fleet.position.z,
-    faction: fleet.faction,
-    ship_count: fleet.shipCount,
-    model_type: fleet.modelType,
-    marker_size: fleet.markerSize ?? null,
-    created_by: userId,
-  }, { onConflict: 'id' });
+  const { error } = await supabase.from('custom_fleets').upsert(serializeFleetForDb(fleet, userId), { onConflict: 'id' });
   if (error) {
     console.error('Failed to upsert fleet:', error);
+    throw error;
+  }
+}
+
+export async function batchUpsertFleets(fleets: Fleet[], userId: string): Promise<void> {
+  if (!supabaseConfigured || fleets.length === 0) return;
+  const rows = fleets.map(f => serializeFleetForDb(f, userId));
+  const { error } = await supabase.from('custom_fleets').upsert(rows, { onConflict: 'id' });
+  if (error) {
+    console.error('Failed to batch upsert fleets:', error);
     throw error;
   }
 }
@@ -274,7 +259,10 @@ export async function upsertFleet(fleet: Fleet, userId: string): Promise<void> {
 export async function deleteCustomFleet(id: string): Promise<void> {
   if (!supabaseConfigured) return;
   const { error } = await supabase.from('custom_fleets').delete().eq('id', id);
-  if (error) console.error('Failed to delete custom fleet:', error);
+  if (error) {
+    console.error('Failed to delete custom fleet:', error);
+    throw error;
+  }
 }
 
 export async function loadSetting(key: string): Promise<unknown> {

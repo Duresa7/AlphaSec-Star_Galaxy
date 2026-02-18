@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState, type ComponentType, type CSSProperties } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
 import { AuthModal } from '@/components/auth/AuthModal';
 import { Footer } from '@/components/Footer';
+import { clamp } from '@/utils/math';
 
 type Point = {
   x: number;
@@ -39,7 +41,6 @@ const ECHO_LIFETIME_MS = 450;
 const ECHO_SPEED_THRESHOLD = 1.2;
 const ECHO_SPAWN_COOLDOWN_MS = 42;
 
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 const getMediaMatch = (query: string, fallback: boolean) => {
   if (typeof window === 'undefined') return fallback;
   return window.matchMedia(query).matches;
@@ -121,7 +122,8 @@ const SOCIAL_LINKS: SocialLink[] = [
 
 export function LandingPage() {
   const heroImageUrl = `${import.meta.env.BASE_URL}homepage-bg.jpg`;
-  const { session, profile, signOut } = useAuth();
+  const { session, signOut } = useAuth();
+  const { profile } = useProfile();
   const location = useLocation();
   const locationState = location.state as { showAuthModal?: boolean } | null;
   const [showAuthModal, setShowAuthModal] = useState(locationState?.showAuthModal ?? false);

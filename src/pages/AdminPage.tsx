@@ -1,6 +1,6 @@
-import { useEffect, useState, useCallback, type CSSProperties } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
 import { useRole } from '@/hooks/useRole';
 import { fetchAuditLogs, fetchAllProfiles, updateUserRole, logAction } from '@/data/supabaseStorage';
 import type { AuditLogEntry, UserProfile, UserRole } from '@/types';
@@ -20,10 +20,23 @@ const ACTION_LABELS: Record<string, string> = {
   role_changed: 'Changed Role',
 };
 
+const ACTION_VARIANTS: Record<string, string> = {
+  system_created: 'create',
+  system_moved: 'move',
+  system_deleted: 'delete',
+  system_resized: 'resize',
+  fleet_created: 'create',
+  fleet_moved: 'move',
+  fleet_deleted: 'delete',
+  fleet_resized: 'resize',
+  planet_stats_updated: 'update',
+  role_changed: 'role',
+};
+
 const ROLE_COLORS: Record<UserRole, string> = {
-  user: 'rgba(156, 163, 175, 0.85)',
-  admin: 'rgba(96, 165, 250, 0.9)',
-  bossman: 'rgba(251, 191, 36, 0.95)',
+  user: '#9ca3af',
+  admin: '#60a5fa',
+  bossman: '#c8aa6e',
 };
 
 function formatTime(iso: string): string {
@@ -32,9 +45,23 @@ function formatTime(iso: string): string {
     + ' ' + d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 }
 
+function formatTimeShort(iso: string): string {
+  const d = new Date(iso);
+  const now = new Date();
+  const diffMs = now.getTime() - d.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMins / 60);
+  const diffDays = Math.floor(diffHours / 24);
+
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+}
+
 export function AdminPage() {
-  const heroImageUrl = `${import.meta.env.BASE_URL}homepage-bg.jpg`;
-  const { profile: currentProfile } = useAuth();
+  const { profile: currentProfile } = useProfile();
   const { isBossman } = useRole();
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);
   const [logTotal, setLogTotal] = useState(0);
@@ -80,168 +107,330 @@ export function AdminPage() {
   };
 
   const totalPages = Math.max(1, Math.ceil(logTotal / PAGE_SIZE));
+  const adminCount = users.filter((u) => u.role === 'admin' || u.role === 'bossman').length;
 
   return (
-    <div
-      className="admin-page"
-      style={{ '--portfolio-hero-bg-image': `url("${heroImageUrl}")` } as CSSProperties}
-    >
+    <div className="adm">
+      {/* Atmospheric background layers */}
+      <div className="adm__bg" />
+      <div className="adm__grid-overlay" />
+      <div className="adm__glow" />
+      <div className="adm__scanline" />
 
-      <div className="admin-page__layer admin-page__layer--base" />
-      <div className="admin-page__layer admin-page__layer--grid" />
-      <div className="admin-page__layer admin-page__layer--veil" />
-
-      <div className="admin-page__content">
-
-        <div className="admin-page__topbar">
-          <Link to="/map" className="admin-page__back-link">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 6 }}>
-              <path d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+      <div className="adm__shell">
+        {/* Top navigation bar */}
+        <header className="adm__header">
+          <Link to="/map" className="adm__nav-back">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
-            Back to Map
+            <span>Galaxy Map</span>
           </Link>
-          {currentProfile && (
-            <span className="admin-page__user-pill">
-              {currentProfile.display_name}
-              <span className="admin-page__role-dot" style={{ background: ROLE_COLORS[currentProfile.role as UserRole] }} />
-            </span>
-          )}
-        </div>
 
-
-        <div className="admin-page__hero">
-          <p className="admin-page__kicker">Administration</p>
-          <h1 className="admin-page__name">Admin Dashboard</h1>
-          <p className="admin-page__role-label">Galaxy Map Management Console</p>
-        </div>
-
-
-        <div className="admin-page__grid">
-
-          <div className="admin-page__section admin-page__section--full">
-            <h2 className="admin-page__section-title">Audit Log</h2>
-
-            {logsLoading ? (
-              <p className="admin-page__loading">Loading audit logs...</p>
-            ) : logs.length === 0 ? (
-              <p className="admin-page__empty">No audit entries yet.</p>
-            ) : (
-              <>
-                <div className="admin-page__table-wrap">
-                  <table className="admin-page__table">
-                    <thead>
-                      <tr>
-                        <th>Time</th>
-                        <th>User</th>
-                        <th>Action</th>
-                        <th>Entity</th>
-                        <th>Details</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {logs.map((log) => (
-                        <tr key={log.id}>
-                          <td className="admin-page__td-time">{formatTime(log.created_at)}</td>
-                          <td>{log.display_name || 'Unknown'}</td>
-                          <td>
-                            <span className="admin-page__action-badge">
-                              {ACTION_LABELS[log.action] || log.action}
-                            </span>
-                          </td>
-                          <td>{log.entity_name || log.entity_id}</td>
-                          <td className="admin-page__td-details">
-                            {log.details ? JSON.stringify(log.details).slice(0, 80) : ''}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+          <div className="adm__header-right">
+            {currentProfile && (
+              <div className="adm__user-chip">
+                <div className="adm__user-avatar" style={{ borderColor: ROLE_COLORS[currentProfile.role as UserRole] }}>
+                  {currentProfile.display_name.charAt(0).toUpperCase()}
                 </div>
-
-
-                <div className="admin-page__pagination">
-                  <button
-                    disabled={logPage === 0}
-                    onClick={() => setLogPage((p) => Math.max(0, p - 1))}
-                    className="admin-page__page-btn"
-                  >
-                    Prev
-                  </button>
-                  <span className="admin-page__page-info">
-                    Page {logPage + 1} of {totalPages}
+                <div className="adm__user-info">
+                  <span className="adm__user-name">{currentProfile.display_name}</span>
+                  <span className="adm__user-role" style={{ color: ROLE_COLORS[currentProfile.role as UserRole] }}>
+                    {currentProfile.role}
                   </span>
-                  <button
-                    disabled={logPage + 1 >= totalPages}
-                    onClick={() => setLogPage((p) => p + 1)}
-                    className="admin-page__page-btn"
-                  >
-                    Next
-                  </button>
                 </div>
-              </>
+              </div>
             )}
           </div>
+        </header>
 
+        {/* Hero title area */}
+        <div className="adm__hero" style={{ '--stagger': 0 } as React.CSSProperties}>
+          <div className="adm__hero-eyebrow">
+            <span className="adm__hero-dot" />
+            Command Center
+          </div>
+          <h1 className="adm__hero-title">Admin Console</h1>
+          <p className="adm__hero-sub">Monitor activity, manage users, and oversee galaxy operations.</p>
+        </div>
+
+        {/* Stat cards row */}
+        <div className="adm__stats">
+          <div className="adm__stat-card" style={{ '--stagger': 1 } as React.CSSProperties}>
+            <div className="adm__stat-icon adm__stat-icon--logs">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
+            <div className="adm__stat-body">
+              <span className="adm__stat-value">{logTotal.toLocaleString()}</span>
+              <span className="adm__stat-label">Audit Events</span>
+            </div>
+          </div>
 
           {isBossman && (
-            <div className="admin-page__section admin-page__section--full">
-              <h2 className="admin-page__section-title">User Management</h2>
-
-              {usersLoading ? (
-                <p className="admin-page__loading">Loading users...</p>
-              ) : users.length === 0 ? (
-                <p className="admin-page__empty">No users found.</p>
-              ) : (
-                <div className="admin-page__table-wrap">
-                  <table className="admin-page__table">
-                    <thead>
-                      <tr>
-                        <th>Display Name</th>
-                        <th>Email</th>
-                        <th>Role</th>
-                        <th>Joined</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {users.map((user) => (
-                        <tr key={user.id}>
-                          <td style={{ fontWeight: 600 }}>{user.display_name}</td>
-                          <td className="admin-page__td-email">{user.email}</td>
-                          <td>
-                            <span
-                              className="admin-page__role-badge"
-                              style={{ color: ROLE_COLORS[user.role], borderColor: ROLE_COLORS[user.role] }}
-                            >
-                              {user.role}
-                            </span>
-                          </td>
-                          <td className="admin-page__td-time">{formatTime(user.created_at)}</td>
-                          <td>
-                            {user.id === currentProfile?.id ? (
-                              <span className="admin-page__you-label">You</span>
-                            ) : (
-                              <select
-                                value={user.role}
-                                onChange={(e) => handleRoleChange(user.id, e.target.value as UserRole, user.display_name)}
-                                disabled={roleUpdating === user.id}
-                                className="admin-page__role-select"
-                              >
-                                <option value="user">user</option>
-                                <option value="admin">admin</option>
-                                <option value="bossman">bossman</option>
-                              </select>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+            <>
+              <div className="adm__stat-card" style={{ '--stagger': 2 } as React.CSSProperties}>
+                <div className="adm__stat-icon adm__stat-icon--users">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+                  </svg>
                 </div>
-              )}
-            </div>
+                <div className="adm__stat-body">
+                  <span className="adm__stat-value">{users.length}</span>
+                  <span className="adm__stat-label">Total Users</span>
+                </div>
+              </div>
+
+              <div className="adm__stat-card" style={{ '--stagger': 3 } as React.CSSProperties}>
+                <div className="adm__stat-icon adm__stat-icon--admins">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                    <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                <div className="adm__stat-body">
+                  <span className="adm__stat-value">{adminCount}</span>
+                  <span className="adm__stat-label">Privileged</span>
+                </div>
+              </div>
+            </>
           )}
+
+          <div className="adm__stat-card" style={{ '--stagger': isBossman ? 4 : 2 } as React.CSSProperties}>
+            <div className="adm__stat-icon adm__stat-icon--pages">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+              </svg>
+            </div>
+            <div className="adm__stat-body">
+              <span className="adm__stat-value">{totalPages}</span>
+              <span className="adm__stat-label">Log Pages</span>
+            </div>
+          </div>
         </div>
+
+        {/* Audit Log Panel */}
+        <section className="adm__panel" style={{ '--stagger': 5 } as React.CSSProperties}>
+          <div className="adm__panel-header">
+            <div className="adm__panel-title-group">
+              <h2 className="adm__panel-title">Audit Log</h2>
+              <span className="adm__panel-count">{logTotal} entries</span>
+            </div>
+            <div className="adm__panel-actions">
+              <button
+                onClick={() => loadLogs(logPage)}
+                className="adm__refresh-btn"
+                title="Refresh logs"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="23 4 23 10 17 10" />
+                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          {logsLoading ? (
+            <div className="adm__loading">
+              <div className="adm__loading-bar" />
+              <span>Loading audit logs...</span>
+            </div>
+          ) : logs.length === 0 ? (
+            <div className="adm__empty">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.4">
+                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              <span>No audit entries recorded yet.</span>
+            </div>
+          ) : (
+            <>
+              <div className="adm__table-wrap">
+                <table className="adm__table">
+                  <thead>
+                    <tr>
+                      <th>Timestamp</th>
+                      <th>Operator</th>
+                      <th>Action</th>
+                      <th>Target</th>
+                      <th>Details</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {logs.map((log, i) => (
+                      <tr key={log.id} style={{ '--row-delay': `${i * 25}ms` } as React.CSSProperties}>
+                        <td className="adm__td-time">
+                          <span className="adm__time-relative">{formatTimeShort(log.created_at)}</span>
+                          <span className="adm__time-full">{formatTime(log.created_at)}</span>
+                        </td>
+                        <td className="adm__td-user">{log.display_name || 'Unknown'}</td>
+                        <td>
+                          <span className={`adm__action-badge adm__action-badge--${ACTION_VARIANTS[log.action] || 'default'}`}>
+                            {ACTION_LABELS[log.action] || log.action}
+                          </span>
+                        </td>
+                        <td className="adm__td-entity">{log.entity_name || log.entity_id}</td>
+                        <td className="adm__td-details">
+                          {log.details ? JSON.stringify(log.details).slice(0, 80) : '\u2014'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="adm__pagination">
+                <button
+                  disabled={logPage === 0}
+                  onClick={() => setLogPage((p) => Math.max(0, p - 1))}
+                  className="adm__page-btn"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M15 18l-6-6 6-6" />
+                  </svg>
+                  Prev
+                </button>
+                <div className="adm__page-indicator">
+                  {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                    let page: number;
+                    if (totalPages <= 5) {
+                      page = i;
+                    } else if (logPage < 3) {
+                      page = i;
+                    } else if (logPage > totalPages - 4) {
+                      page = totalPages - 5 + i;
+                    } else {
+                      page = logPage - 2 + i;
+                    }
+                    return (
+                      <button
+                        key={page}
+                        className={`adm__page-dot ${page === logPage ? 'adm__page-dot--active' : ''}`}
+                        onClick={() => setLogPage(page)}
+                      >
+                        {page + 1}
+                      </button>
+                    );
+                  })}
+                  {totalPages > 5 && logPage < totalPages - 3 && (
+                    <span className="adm__page-ellipsis">...</span>
+                  )}
+                </div>
+                <button
+                  disabled={logPage + 1 >= totalPages}
+                  onClick={() => setLogPage((p) => p + 1)}
+                  className="adm__page-btn"
+                >
+                  Next
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                    <path d="M9 18l6-6-6-6" />
+                  </svg>
+                </button>
+              </div>
+            </>
+          )}
+        </section>
+
+        {/* User Management Panel */}
+        {isBossman && (
+          <section className="adm__panel" style={{ '--stagger': 6 } as React.CSSProperties}>
+            <div className="adm__panel-header">
+              <div className="adm__panel-title-group">
+                <h2 className="adm__panel-title">User Management</h2>
+                <span className="adm__panel-count">{users.length} users</span>
+              </div>
+              <div className="adm__panel-actions">
+                <button
+                  onClick={() => loadUsers()}
+                  className="adm__refresh-btn"
+                  title="Refresh users"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="23 4 23 10 17 10" />
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {usersLoading ? (
+              <div className="adm__loading">
+                <div className="adm__loading-bar" />
+                <span>Loading users...</span>
+              </div>
+            ) : users.length === 0 ? (
+              <div className="adm__empty">
+                <span>No users found.</span>
+              </div>
+            ) : (
+              <div className="adm__table-wrap">
+                <table className="adm__table adm__table--users">
+                  <thead>
+                    <tr>
+                      <th>User</th>
+                      <th>Email</th>
+                      <th>Role</th>
+                      <th>Joined</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.map((user, i) => (
+                      <tr key={user.id} style={{ '--row-delay': `${i * 30}ms` } as React.CSSProperties}>
+                        <td>
+                          <div className="adm__user-cell">
+                            <div
+                              className="adm__user-cell-avatar"
+                              style={{ borderColor: ROLE_COLORS[user.role] }}
+                            >
+                              {user.display_name.charAt(0).toUpperCase()}
+                            </div>
+                            <span className="adm__user-cell-name">{user.display_name}</span>
+                          </div>
+                        </td>
+                        <td className="adm__td-email">{user.email}</td>
+                        <td>
+                          <span
+                            className="adm__role-badge"
+                            style={{
+                              '--role-color': ROLE_COLORS[user.role],
+                            } as React.CSSProperties}
+                          >
+                            <span className="adm__role-badge-dot" />
+                            {user.role}
+                          </span>
+                        </td>
+                        <td className="adm__td-time">
+                          <span className="adm__time-relative">{formatTimeShort(user.created_at)}</span>
+                          <span className="adm__time-full">{formatTime(user.created_at)}</span>
+                        </td>
+                        <td>
+                          {user.id === currentProfile?.id ? (
+                            <span className="adm__you-label">You</span>
+                          ) : (
+                            <select
+                              value={user.role}
+                              onChange={(e) => handleRoleChange(user.id, e.target.value as UserRole, user.display_name)}
+                              disabled={roleUpdating === user.id}
+                              className="adm__role-select"
+                            >
+                              <option value="user">user</option>
+                              <option value="admin">admin</option>
+                              <option value="bossman">bossman</option>
+                            </select>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+        )}
+
+        <footer className="adm__footer">
+          Galaxy Map Administration &middot; Authorized Personnel Only
+        </footer>
       </div>
     </div>
   );

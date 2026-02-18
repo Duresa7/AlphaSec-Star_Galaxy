@@ -11,7 +11,9 @@ import { FleetMarkers } from '@/components/galaxy/FleetMarker';
 import { AnomalyMarkers } from '@/components/galaxy/AnomalyMarker';
 import { SystemDetailView } from '@/components/galaxy/SystemDetailView';
 import { FleetDetailView } from '@/components/galaxy/FleetDetailView';
-import { useGalaxyStore } from '@/store/galaxyStore';
+import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
+import { useGalaxyUIStore } from '@/store/galaxyUIStore';
+import { useGalaxyDataStore } from '@/store/galaxyDataStore';
 import { useRole } from '@/hooks/useRole';
 import {
   AMBIENT_LIGHT,
@@ -22,12 +24,12 @@ import {
 } from '@/config/lightingConfig';
 
 function GalaxyContent() {
-  const systems = useGalaxyStore((s) => s.systems);
-  const setIsLoading = useGalaxyStore((s) => s.setIsLoading);
-  const viewMode = useGalaxyStore((s) => s.viewMode);
-  const selectedSystemId = useGalaxyStore((s) => s.selectedSystemId);
-  const selectedFleetId = useGalaxyStore((s) => s.selectedFleetId);
-  const fleets = useGalaxyStore((s) => s.fleets);
+  const systems = useGalaxyDataStore((s) => s.systems);
+  const setIsLoading = useGalaxyDataStore((s) => s.setIsLoading);
+  const viewMode = useGalaxySelectionStore((s) => s.viewMode);
+  const selectedSystemId = useGalaxySelectionStore((s) => s.selectedSystemId);
+  const selectedFleetId = useGalaxySelectionStore((s) => s.selectedFleetId);
+  const fleets = useGalaxyDataStore((s) => s.fleets);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 1500);
@@ -105,12 +107,12 @@ function GalaxyContent() {
 }
 function TopDownView() {
   const { isAdmin } = useRole();
-  const placementMode = useGalaxyStore((s) => s.placementMode);
-  const pendingCustomPlanet = useGalaxyStore((s) => s.pendingCustomPlanet);
-  const addCustomSystem = useGalaxyStore((s) => s.addCustomSystem);
-  const fleetPlacementMode = useGalaxyStore((s) => s.fleetPlacementMode);
-  const pendingCustomFleet = useGalaxyStore((s) => s.pendingCustomFleet);
-  const addCustomFleet = useGalaxyStore((s) => s.addCustomFleet);
+  const placementMode = useGalaxyUIStore((s) => s.placementMode);
+  const pendingCustomPlanet = useGalaxyUIStore((s) => s.pendingCustomPlanet);
+  const addCustomSystem = useGalaxyDataStore((s) => s.addCustomSystem);
+  const fleetPlacementMode = useGalaxyUIStore((s) => s.fleetPlacementMode);
+  const pendingCustomFleet = useGalaxyUIStore((s) => s.pendingCustomFleet);
+  const addCustomFleet = useGalaxyDataStore((s) => s.addCustomFleet);
 
   const handlePlacementClick = (e: ThreeEvent<MouseEvent>) => {
     if (!isAdmin) return;
@@ -198,12 +200,12 @@ function LoadingFallback() {
 }
 
 export function GalaxyScene() {
-  const viewMode = useGalaxyStore((s) => s.viewMode);
-  const placementMode = useGalaxyStore((s) => s.placementMode);
-  const fleetPlacementMode = useGalaxyStore((s) => s.fleetPlacementMode);
-  const setSelectedSystem = useGalaxyStore((s) => s.setSelectedSystem);
-  const setSelectedFleet = useGalaxyStore((s) => s.setSelectedFleet);
-  const setInfoPanelData = useGalaxyStore((s) => s.setInfoPanelData);
+  const viewMode = useGalaxySelectionStore((s) => s.viewMode);
+  const placementMode = useGalaxyUIStore((s) => s.placementMode);
+  const fleetPlacementMode = useGalaxyUIStore((s) => s.fleetPlacementMode);
+  const setSelectedSystem = useGalaxySelectionStore((s) => s.setSelectedSystem);
+  const setSelectedFleet = useGalaxySelectionStore((s) => s.setSelectedFleet);
+  const setInfoPanelData = useGalaxySelectionStore((s) => s.setInfoPanelData);
   const handlePointerMissed = () => {
     if (placementMode || fleetPlacementMode) return;
     switch (viewMode) {

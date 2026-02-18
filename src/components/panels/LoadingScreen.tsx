@@ -1,7 +1,7 @@
-import { useGalaxyStore } from '@/store/galaxyStore';
+import { useGalaxyDataStore } from '@/store/galaxyDataStore';
 
 export function LoadingScreen() {
-  const { isLoading } = useGalaxyStore();
+  const isLoading = useGalaxyDataStore((s) => s.isLoading);
 
   if (!isLoading) return null;
 

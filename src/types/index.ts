@@ -158,7 +158,7 @@ export interface FleetStatsUpdate {
   faction?: Faction;
   modelType?: ShipModelType;
 }
-export interface GalaxyStore {
+export interface GalaxySelectionStore {
   viewMode: ViewMode;
   selectedSystemId: string | null;
   selectedPlanetId: string | null;
@@ -168,38 +168,24 @@ export interface GalaxyStore {
   setTopDownFleetSelection: (fleetId: string | null) => void;
   setSelectedPlanet: (id: string | null) => void;
   setSelectedFleet: (id: string | null) => void;
-  systems: StarSystem[];
-  anomalies: Anomaly[];
-  fleets: Fleet[];
+  infoPanelData: InfoPanelData | null;
+  setInfoPanelData: (data: InfoPanelData | null) => void;
+}
+
+export interface GalaxyUIStore {
   showFleets: boolean;
   showAnomalies: boolean;
   showLabels: boolean;
   toggleFleets: () => void;
   toggleAnomalies: () => void;
   toggleLabels: () => void;
-  infoPanelData: InfoPanelData | null;
-  setInfoPanelData: (data: InfoPanelData | null) => void;
-  currentYear: number;
-  setCurrentYear: (year: number) => void;
-  isLoading: boolean;
-  setIsLoading: (loading: boolean) => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   factionFilters: FactionFilters;
   toggleFactionFilter: (faction: Faction) => void;
-  getFilteredSystems: () => StarSystem[];
-  getSearchResults: () => SearchResult[];
-  getFactionStats: () => Record<Faction, { planets: number; fleets: number; shipUnits: number }>;
-  initializeData: () => Promise<void>;
-  updatePlanetStats: (systemId: string, planetId: string, stats: PlanetStatsUpdate) => void;
   placementMode: boolean;
   pendingCustomPlanet: { name: string; color: string; faction: Faction } | null;
   setPlacementMode: (mode: boolean, pending?: { name: string; color: string; faction: Faction } | null) => void;
-  addCustomSystem: (system: StarSystem) => void;
-  removeCustomSystem: (id: string) => void;
-  previewCustomSystemPosition: (id: string, position: THREE.Vector3) => void;
-  updateCustomSystemPosition: (id: string, position: THREE.Vector3, previousPosition?: THREE.Vector3) => void;
-  updateCustomSystemMarkerSize: (id: string, markerSize: number) => void;
   draggingCustomPlanet: boolean;
   setDraggingCustomPlanet: (dragging: boolean) => void;
   fleetPlacementMode: boolean;
@@ -208,14 +194,34 @@ export interface GalaxyStore {
     mode: boolean,
     pending?: { name: string; faction: Faction; shipCount: number; modelType: ShipModelType } | null,
   ) => void;
+  draggingCustomFleet: boolean;
+  setDraggingCustomFleet: (dragging: boolean) => void;
+}
+
+export interface GalaxyDataStore {
+  systems: StarSystem[];
+  anomalies: Anomaly[];
+  fleets: Fleet[];
+  isLoading: boolean;
+  setIsLoading: (loading: boolean) => void;
+  currentYear: number;
+  setCurrentYear: (year: number) => void;
+  initializeData: () => Promise<void>;
+  updatePlanetStats: (systemId: string, planetId: string, stats: PlanetStatsUpdate) => void;
+  addCustomSystem: (system: StarSystem) => void;
+  removeCustomSystem: (id: string) => void;
+  previewCustomSystemPosition: (id: string, position: THREE.Vector3) => void;
+  updateCustomSystemPosition: (id: string, position: THREE.Vector3) => void;
+  updateCustomSystemMarkerSize: (id: string, markerSize: number) => void;
   addCustomFleet: (fleet: Fleet) => void;
   removeCustomFleet: (id: string) => void;
   previewCustomFleetPosition: (id: string, position: THREE.Vector3) => void;
-  updateCustomFleetPosition: (id: string, position: THREE.Vector3, previousPosition?: THREE.Vector3) => void;
+  updateCustomFleetPosition: (id: string, position: THREE.Vector3) => void;
   updateFleetMarkerSize: (id: string, markerSize: number) => void;
   updateFleetStats: (id: string, updates: FleetStatsUpdate) => void;
-  draggingCustomFleet: boolean;
-  setDraggingCustomFleet: (dragging: boolean) => void;
+  getFilteredSystems: () => StarSystem[];
+  getSearchResults: () => SearchResult[];
+  getFactionStats: () => Record<Faction, { planets: number; fleets: number; shipUnits: number }>;
   dirtySystemIds: Set<string>;
   dirtyFleetIds: Set<string>;
   dirtyTimeline: boolean;
