@@ -1,5 +1,4 @@
-import { useMemo } from 'react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useGalaxyDataStore } from '@/store/galaxyDataStore';
 import { FACTION_STAT_CONFIG } from '@/constants/factions';
 

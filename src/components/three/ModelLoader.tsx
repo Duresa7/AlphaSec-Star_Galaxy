@@ -4,6 +4,7 @@ import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { ProceduralSkybox } from './ProceduralSkybox';
 import type { ShipModelType } from '@/types';
+
 const MODEL_PATHS = {
   sithDreadnought: '/models/ships/sith_dreadnought.glb',
   republicFrigate: '/models/ships/republic_frigate.glb',
@@ -150,6 +151,7 @@ export function PlanetModel({ planetId, position, scale = 1, rotation = [0, 0, 0
     </group>
   );
 }
+
 export function hasPlanetModel(planetId: string): boolean {
   return planetId in PLANET_MODEL_PATHS;
 }
@@ -161,6 +163,7 @@ useGLTF.preload(MODEL_PATHS.nebula);
 useGLTF.preload(MODEL_PATHS.blackHole);
 useGLTF.preload(MODEL_PATHS.spaceStation);
 useGLTF.preload(MODEL_PATHS.hyperspaceMarker);
+
 export function GalaxySkybox() {
   return <ProceduralSkybox />;
 }
