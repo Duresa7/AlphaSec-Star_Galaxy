@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
-import { useProfile } from './useProfile';
+import { useAuth } from './useAuth';
 import type { UserRole } from '@/types';
 
 export function useRole() {
-  const { profile } = useProfile();
+  const { profile } = useAuth();
 
   return useMemo(() => {
     const role: UserRole = profile?.role ?? 'user';

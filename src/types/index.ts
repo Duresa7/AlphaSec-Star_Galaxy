@@ -170,6 +170,12 @@ export interface GalaxySelectionStore {
   setSelectedFleet: (id: string | null) => void;
   infoPanelData: InfoPanelData | null;
   setInfoPanelData: (data: InfoPanelData | null) => void;
+  resetCameraFlag: boolean;
+  requestCameraReset: () => void;
+  clearResetCameraFlag: () => void;
+  zoomDelta: number;
+  requestZoom: (delta: number) => void;
+  clearZoomDelta: () => void;
 }
 
 export interface GalaxyUIStore {
