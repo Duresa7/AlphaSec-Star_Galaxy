@@ -37,6 +37,7 @@ export function AdminRoute({ children }: { children: React.ReactNode }) {
 
     return () => window.clearTimeout(timeoutId);
   }, [authResolved]);
+
   if (!supabaseConfigured) {
     return <Navigate to="/" replace />;
   }

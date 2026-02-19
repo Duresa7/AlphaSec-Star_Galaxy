@@ -2,7 +2,9 @@ import { useRef, useEffect } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
-import { useGalaxyStore } from '@/store/galaxyStore';
+import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
+import { useGalaxyUIStore } from '@/store/galaxyUIStore';
+import { useGalaxyDataStore } from '@/store/galaxyDataStore';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { shouldRecenterTopdown } from '@/components/three/cameraTransition';
 
@@ -52,10 +54,14 @@ export function CameraController() {
   const controlsRef = useRef<OrbitControlsImpl>(null);
   const { camera } = useThree();
 
-  const {
-    viewMode, selectedSystemId, selectedPlanetId, selectedFleetId,
-    systems, fleets, draggingCustomPlanet, draggingCustomFleet,
-  } = useGalaxyStore();
+  const viewMode = useGalaxySelectionStore((s) => s.viewMode);
+  const selectedSystemId = useGalaxySelectionStore((s) => s.selectedSystemId);
+  const selectedPlanetId = useGalaxySelectionStore((s) => s.selectedPlanetId);
+  const selectedFleetId = useGalaxySelectionStore((s) => s.selectedFleetId);
+  const systems = useGalaxyDataStore((s) => s.systems);
+  const fleets = useGalaxyDataStore((s) => s.fleets);
+  const draggingCustomPlanet = useGalaxyUIStore((s) => s.draggingCustomPlanet);
+  const draggingCustomFleet = useGalaxyUIStore((s) => s.draggingCustomFleet);
   const previousViewModeRef = useRef<'topdown' | 'system' | 'fleet' | null>(null);
   const targetPosition = useRef(new THREE.Vector3(0, 60, 120));
   const targetLookAt = useRef(new THREE.Vector3(0, 0, 0));
@@ -116,9 +122,7 @@ export function CameraController() {
 
   useFrame(() => {
     if (controlsRef.current) {
-      // Handle reset camera request directly in the render loop
-      // to avoid React useEffect cleanup killing the animation timer
-      const store = useGalaxyStore.getState();
+      const store = useGalaxySelectionStore.getState();
       if (store.resetCameraFlag && viewMode === 'topdown' && !isAnimating.current) {
         store.clearResetCameraFlag();
         targetPosition.current.set(0, CAMERA_CONFIG.topdown.height, 0);
@@ -127,7 +131,6 @@ export function CameraController() {
         animationEndTime.current = performance.now() + ANIMATION_DURATION_MS;
       }
 
-      // Handle button zoom requests (+/- buttons)
       if (store.zoomDelta !== 0 && !isAnimating.current) {
         const delta = store.zoomDelta;
         store.clearZoomDelta();
@@ -149,7 +152,6 @@ export function CameraController() {
         controlsRef.current.target.lerp(targetLookAt.current, LERP_FACTOR);
         camera.position.lerp(targetPosition.current, LERP_FACTOR);
 
-        // End animation after duration elapses (for reset animations)
         if (animationEndTime.current !== null && performance.now() >= animationEndTime.current) {
           isAnimating.current = false;
           animationEndTime.current = null;

@@ -1,0 +1,593 @@
+import { create } from 'zustand';
+import type {
+  GalaxyDataStore,
+  InfoPanelData,
+  Faction,
+  SearchResult,
+  Planet,
+  PlanetStatsUpdate,
+  FleetStatsUpdate,
+  StarSystem,
+  Fleet,
+} from '@/types';
+import { starSystems, anomalies, fleets } from '@/data/galaxyData';
+import {
+  loadCustomSystems as loadFromSupabase,
+  loadCustomFleets as loadFleetsFromSupabase,
+  insertCustomSystem,
+  batchUpsertSystems,
+  deleteCustomSystem as deleteSystemFromSupabase,
+  insertCustomFleet,
+  batchUpsertFleets,
+  deleteCustomFleet as deleteFleetFromSupabase,
+  logAction,
+  loadSetting,
+  updateSetting,
+  getAuthenticatedUserId,
+} from '@/data/supabaseStorage';
+import { TOPDOWN_MARKER_MAX_SIZE, TOPDOWN_MARKER_MIN_SIZE } from '@/config/topDownMarkerConfig';
+import { clamp } from '@/utils/math';
+import { useGalaxySelectionStore } from './galaxySelectionStore';
+import { useGalaxyUIStore } from './galaxyUIStore';
+
+const cloneSystem = (system: StarSystem): StarSystem => ({
+  ...system,
+  position: system.position.clone(),
+  planets: system.planets.map((planet) => ({ ...planet, position: planet.position.clone() })),
+});
+
+const cloneFleet = (fleet: Fleet): Fleet => ({
+  ...fleet,
+  position: fleet.position.clone(),
+});
+
+const cloneSystems = (systems: StarSystem[]): StarSystem[] =>
+  systems.map((s) => cloneSystem(s));
+
+const cloneFleets = (fleetArr: Fleet[]): Fleet[] =>
+  fleetArr.map((f) => cloneFleet(f));
+
+let _systemsSnapshot: StarSystem[] = [];
+let _fleetsSnapshot: Fleet[] = [];
+let _yearSnapshot: number = 3956;
+
+let _systemsArrRef: StarSystem[] = [];
+let _systemsMap = new Map<string, StarSystem>();
+let _fleetsArrRef: Fleet[] = [];
+let _fleetsMap = new Map<string, Fleet>();
+
+function getSystemsMap(systems: StarSystem[]): Map<string, StarSystem> {
+  if (systems !== _systemsArrRef) {
+    _systemsArrRef = systems;
+    _systemsMap = new Map(systems.map(s => [s.id, s]));
+  }
+  return _systemsMap;
+}
+
+function getFleetsMap(fleets: Fleet[]): Map<string, Fleet> {
+  if (fleets !== _fleetsArrRef) {
+    _fleetsArrRef = fleets;
+    _fleetsMap = new Map(fleets.map(f => [f.id, f]));
+  }
+  return _fleetsMap;
+}
+const _pendingPlanetAudits: Map<string, { systemId: string; planetName: string; fields: Set<string> }> = new Map();
+const FACTION_KEYS: Faction[] = ['galactic_republic', 'sith_empire', 'neutral', 'contested', 'hutt_cartel'];
+const FACTION_SET = new Set<Faction>(FACTION_KEYS);
+const _unknownFactionWarnings = {
+  planet: new Set<string>(),
+  fleet: new Set<string>(),
+};
+
+const isKnownFaction = (value: string): value is Faction => FACTION_SET.has(value as Faction);
+
+const warnUnknownFaction = (kind: 'planet' | 'fleet', faction: string) => {
+  if (!import.meta.env.DEV || _unknownFactionWarnings[kind].has(faction)) return;
+  _unknownFactionWarnings[kind].add(faction);
+  console.warn(`[galaxyDataStore] Ignoring ${kind} with unknown faction "${faction}" in getFactionStats().`);
+};
+
+const shouldClearPanelForSystem = (panel: InfoPanelData | null, systemId: string): boolean => {
+  if (!panel) return false;
+  if (panel.type === 'system') return panel.data.id === systemId;
+  if (panel.type === 'planet') return panel.data.systemId === systemId;
+  return false;
+};
+
+const shouldClearPanelForFleet = (panel: InfoPanelData | null, fleetId: string): boolean => {
+  return panel?.type === 'fleet' && panel.data.id === fleetId;
+};
+
+const hasOwn = (obj: object, key: string): boolean => Object.prototype.hasOwnProperty.call(obj, key);
+
+const clampMarkerSize = (value: number): number => clamp(value, TOPDOWN_MARKER_MIN_SIZE, TOPDOWN_MARKER_MAX_SIZE);
+
+const applyPlanetStatsPatch = (planet: Planet, updates: PlanetStatsUpdate): Planet => {
+  const next: Planet = { ...planet };
+
+  if (hasOwn(updates, 'population')) {
+    next.population = updates.population ?? undefined;
+  }
+  if (hasOwn(updates, 'description')) {
+    next.description = updates.description ?? '';
+  }
+  if (hasOwn(updates, 'climate')) {
+    next.climate = updates.climate ?? undefined;
+  }
+  if (hasOwn(updates, 'terrain')) {
+    next.terrain = updates.terrain ?? undefined;
+  }
+  if (hasOwn(updates, 'notable')) {
+    next.notable = updates.notable ?? undefined;
+  }
+  if (hasOwn(updates, 'nativeInhabitants')) {
+    next.nativeInhabitants = updates.nativeInhabitants ?? undefined;
+  }
+  if (hasOwn(updates, 'faction') && updates.faction) {
+    next.faction = updates.faction;
+  }
+  if (hasOwn(updates, 'factionControl')) {
+    next.factionControl = updates.factionControl ?? undefined;
+  }
+  if (hasOwn(updates, 'customColor')) {
+    next.customColor = updates.customColor ?? undefined;
+  }
+
+  return next;
+};
+
+const auditLog = (
+  action: import('@/types').AuditAction,
+  entityType: 'system' | 'fleet' | 'user',
+  entityId: string,
+  entityName: string,
+  details?: Record<string, unknown>,
+) => {
+  logAction(action, entityType, entityId, entityName, details).catch(() => {});
+};
+
+const mergeById = <T extends { id: string }>(current: T[], incoming: T[]): T[] => {
+  if (incoming.length === 0) return current;
+
+  const overrideMap = new Map(incoming.map((item) => [item.id, item]));
+  const merged = current.map((item) => overrideMap.get(item.id) ?? item);
+  const existingIds = new Set(current.map((item) => item.id));
+  for (const item of incoming) {
+    if (existingIds.has(item.id)) continue;
+    merged.push(item);
+    existingIds.add(item.id);
+  }
+
+  return merged;
+};
+
+const mergeSavedSnapshotEntries = <T extends { id: string }>(
+  currentSnapshot: T[],
+  latestData: T[],
+  attemptedIds: Set<string>,
+  failedIds: Set<string>,
+  cloneItem: (item: T) => T,
+): T[] => {
+  if (attemptedIds.size === 0) return currentSnapshot;
+
+  const latestById = new Map(latestData.map((item) => [item.id, item]));
+  const nextSnapshot = currentSnapshot.map((item) => {
+    if (!attemptedIds.has(item.id) || failedIds.has(item.id)) {
+      return item;
+    }
+
+    const latestItem = latestById.get(item.id);
+    return latestItem ? cloneItem(latestItem) : item;
+  });
+
+  const existingIds = new Set(nextSnapshot.map((item) => item.id));
+  for (const id of attemptedIds) {
+    if (failedIds.has(id) || existingIds.has(id)) continue;
+    const latestItem = latestById.get(id);
+    if (!latestItem) continue;
+    nextSnapshot.push(cloneItem(latestItem));
+    existingIds.add(id);
+  }
+
+  return nextSnapshot;
+};
+
+export const useGalaxyDataStore = create<GalaxyDataStore>((set, get) => ({
+  systems: [...starSystems],
+  anomalies,
+  fleets: [...fleets],
+  isLoading: true,
+  setIsLoading: (loading: boolean) => set({ isLoading: loading }),
+  currentYear: 3956,
+  setCurrentYear: (year: number) => set({ currentYear: year, dirtyTimeline: true, hasPendingChanges: true }),
+
+  getFilteredSystems: () => {
+    const state = get();
+    const { searchQuery, factionFilters } = useGalaxyUIStore.getState();
+    const query = searchQuery.toLowerCase().trim();
+
+    return state.systems.filter((system) => {
+      if (!factionFilters[system.faction]) {
+        return false;
+      }
+
+      if (query) {
+        const matchesName = system.name.toLowerCase().includes(query);
+        const matchesRegion = system.region.replace('_', ' ').toLowerCase().includes(query);
+        const matchesPlanets = system.planets.some((p) => p.name.toLowerCase().includes(query));
+        return matchesName || matchesRegion || matchesPlanets;
+      }
+
+      return true;
+    });
+  },
+  getSearchResults: () => {
+    const state = get();
+    const { searchQuery } = useGalaxyUIStore.getState();
+    const query = searchQuery.toLowerCase().trim();
+
+    if (!query || query.length < 2) {
+      return [];
+    }
+
+    const results: SearchResult[] = [];
+
+    state.systems.forEach((system) => {
+      if (system.name.toLowerCase().includes(query)) {
+        results.push({ type: 'system', id: system.id, name: system.name });
+      }
+
+      system.planets.forEach((planet) => {
+        if (planet.name.toLowerCase().includes(query)) {
+          results.push({
+            type: 'planet',
+            id: planet.id,
+            name: planet.name,
+            parentName: system.name,
+            parentSystemId: system.id,
+          });
+        }
+      });
+    });
+
+    state.fleets.forEach((fleet) => {
+      if (fleet.name.toLowerCase().includes(query)) {
+        results.push({ type: 'fleet', id: fleet.id, name: fleet.name });
+      }
+    });
+
+    return results.slice(0, 10);
+  },
+  getFactionStats: () => {
+    const state = get();
+    const stats = {} as Record<Faction, { planets: number; fleets: number; shipUnits: number }>;
+    for (const faction of FACTION_KEYS) {
+      stats[faction] = { planets: 0, fleets: 0, shipUnits: 0 };
+    }
+    for (const system of state.systems) {
+      for (const planet of system.planets) {
+        if (!isKnownFaction(planet.faction)) {
+          warnUnknownFaction('planet', planet.faction);
+          continue;
+        }
+        stats[planet.faction].planets++;
+      }
+    }
+    for (const fleet of state.fleets) {
+      if (!isKnownFaction(fleet.faction)) {
+        warnUnknownFaction('fleet', fleet.faction);
+        continue;
+      }
+      if (!Number.isFinite(fleet.shipCount)) continue;
+      stats[fleet.faction].fleets++;
+      stats[fleet.faction].shipUnits += fleet.shipCount;
+    }
+    return stats;
+  },
+
+  initializeData: async () => {
+    try {
+      const [customSystems, customFleets, yearSetting] = await Promise.all([
+        loadFromSupabase(),
+        loadFleetsFromSupabase(),
+        loadSetting('current_year'),
+      ]);
+
+      const loadedYear = typeof yearSetting === 'number' ? yearSetting : 3956;
+      set(() => ({
+        systems: mergeById([...starSystems], customSystems),
+        fleets: mergeById([...fleets], customFleets),
+        currentYear: loadedYear,
+        isLoading: false,
+      }));
+      const s = get();
+      _systemsSnapshot = cloneSystems(s.systems);
+      _fleetsSnapshot = cloneFleets(s.fleets);
+      _yearSnapshot = loadedYear;
+    } catch (err) {
+      console.error('Failed to initialize custom data from Supabase:', err);
+      set({ isLoading: false });
+    }
+  },
+
+  updatePlanetStats: (systemId, planetId, updates) => {
+    const state = get();
+    const sysMap = getSystemsMap(state.systems);
+    const resolvedSystem =
+      sysMap.get(systemId) ?? state.systems.find((s) => s.planets.some((p) => p.id === planetId));
+    if (!resolvedSystem) return;
+
+    const currentPlanet = resolvedSystem.planets.find((p) => p.id === planetId);
+    if (!currentPlanet) return;
+
+    set((currentState) => ({
+      systems: currentState.systems.map((s) => {
+        const isTargetSystem = s.id === resolvedSystem.id;
+        if (!isTargetSystem) return s;
+        return {
+          ...s,
+          planets: s.planets.map((p) => (p.id === planetId ? applyPlanetStatsPatch(p, updates) : p)),
+        };
+      }),
+      dirtySystemIds: new Set(currentState.dirtySystemIds).add(resolvedSystem.id),
+      hasPendingChanges: true,
+    }));
+
+    const existing = _pendingPlanetAudits.get(planetId);
+    const changedFields = Object.keys(updates);
+    if (existing) {
+      changedFields.forEach((f) => existing.fields.add(f));
+    } else {
+      _pendingPlanetAudits.set(planetId, {
+        systemId: resolvedSystem.id,
+        planetName: currentPlanet.name,
+        fields: new Set(changedFields),
+      });
+    }
+  },
+
+  addCustomSystem: (system) => {
+    set((state) => ({
+      systems: [...state.systems, system],
+    }));
+    useGalaxyUIStore.getState().setPlacementMode(false);
+    getAuthenticatedUserId().then((uid) => {
+      if (uid) {
+        insertCustomSystem(system, uid).catch((err) => console.error('[galaxyDataStore] Failed to save system:', err));
+        auditLog('system_created', 'system', system.id, system.name);
+      }
+    });
+  },
+
+  removeCustomSystem: (id) => {
+    const systemToRemove = getSystemsMap(get().systems).get(id);
+    set((state) => ({
+      systems: state.systems.filter((s) => s.id !== id),
+    }));
+    const selStore = useGalaxySelectionStore.getState();
+    if (selStore.selectedSystemId === id) {
+      selStore.setSelectedSystem(null);
+    }
+    if (shouldClearPanelForSystem(selStore.infoPanelData, id)) {
+      selStore.setInfoPanelData(null);
+    }
+    deleteSystemFromSupabase(id).catch((err) => console.error('[galaxyDataStore] Failed to delete system:', err));
+    if (systemToRemove) {
+      auditLog('system_deleted', 'system', id, systemToRemove.name);
+    }
+  },
+
+  previewCustomSystemPosition: (id, position) => {
+    if (!getSystemsMap(get().systems).has(id)) return;
+
+    set((state) => ({
+      systems: state.systems.map((s) => (s.id === id ? { ...s, position: position.clone() } : s)),
+    }));
+  },
+
+  updateCustomSystemPosition: (id, position) => {
+    if (!getSystemsMap(get().systems).has(id)) return;
+
+    set((state) => ({
+      systems: state.systems.map((s) =>
+        s.id === id ? { ...s, position: position.clone(), planets: s.planets.map((p) => ({ ...p })) } : s,
+      ),
+      dirtySystemIds: new Set(state.dirtySystemIds).add(id),
+      hasPendingChanges: true,
+    }));
+  },
+
+  updateCustomSystemMarkerSize: (id, markerSize) => {
+    if (!getSystemsMap(get().systems).has(id)) return;
+
+    const size = clampMarkerSize(markerSize);
+    set((state) => ({
+      systems: state.systems.map((s) => (s.id === id ? { ...s, markerSize: size } : s)),
+      dirtySystemIds: new Set(state.dirtySystemIds).add(id),
+      hasPendingChanges: true,
+    }));
+  },
+
+  addCustomFleet: (fleet) => {
+    set((state) => ({
+      fleets: [...state.fleets, fleet],
+    }));
+    useGalaxyUIStore.getState().setFleetPlacementMode(false);
+    getAuthenticatedUserId().then((uid) => {
+      if (uid) {
+        insertCustomFleet(fleet, uid).catch((err) => console.error('[galaxyDataStore] Failed to save fleet:', err));
+        auditLog('fleet_created', 'fleet', fleet.id, fleet.name);
+      }
+    });
+  },
+
+  removeCustomFleet: (id) => {
+    const fleetToRemove = getFleetsMap(get().fleets).get(id);
+    set((state) => ({
+      fleets: state.fleets.filter((f) => f.id !== id),
+    }));
+    const selStore = useGalaxySelectionStore.getState();
+    if (selStore.selectedFleetId === id) {
+      selStore.setSelectedFleet(null);
+    }
+    if (shouldClearPanelForFleet(selStore.infoPanelData, id)) {
+      selStore.setInfoPanelData(null);
+    }
+    deleteFleetFromSupabase(id).catch((err) => console.error('[galaxyDataStore] Failed to delete fleet:', err));
+    if (fleetToRemove) {
+      auditLog('fleet_deleted', 'fleet', id, fleetToRemove.name);
+    }
+  },
+
+  previewCustomFleetPosition: (id, position) => {
+    if (!getFleetsMap(get().fleets).has(id)) return;
+
+    set((state) => ({
+      fleets: state.fleets.map((f) => (f.id === id ? { ...f, position: position.clone() } : f)),
+    }));
+  },
+
+  updateCustomFleetPosition: (id, position) => {
+    if (!getFleetsMap(get().fleets).has(id)) return;
+
+    set((state) => ({
+      fleets: state.fleets.map((f) => (f.id === id ? { ...f, position: position.clone() } : f)),
+      dirtyFleetIds: new Set(state.dirtyFleetIds).add(id),
+      hasPendingChanges: true,
+    }));
+  },
+
+  updateFleetMarkerSize: (id, markerSize) => {
+    if (!getFleetsMap(get().fleets).has(id)) return;
+
+    const size = clampMarkerSize(markerSize);
+    set((state) => ({
+      fleets: state.fleets.map((f) => (f.id === id ? { ...f, markerSize: size } : f)),
+      dirtyFleetIds: new Set(state.dirtyFleetIds).add(id),
+      hasPendingChanges: true,
+    }));
+  },
+
+  updateFleetStats: (id: string, updates: FleetStatsUpdate) => {
+    const existing = getFleetsMap(get().fleets).get(id);
+    if (!existing) return;
+
+    set((state) => ({
+      fleets: state.fleets.map((f) => (f.id === id ? { ...f, ...updates } : f)),
+      dirtyFleetIds: new Set(state.dirtyFleetIds).add(id),
+      hasPendingChanges: true,
+    }));
+
+    auditLog('fleet_updated', 'fleet', id, updates.name ?? existing.name, { fields: Object.keys(updates) });
+  },
+
+  dirtySystemIds: new Set<string>(),
+  dirtyFleetIds: new Set<string>(),
+  dirtyTimeline: false,
+  hasPendingChanges: false,
+
+  saveAllChanges: async () => {
+    const state = get();
+    const uid = await getAuthenticatedUserId();
+    if (!uid) return;
+
+    const failedSystemIds = new Set<string>();
+    const failedFleetIds = new Set<string>();
+
+    const sysMap = getSystemsMap(state.systems);
+    const fltMap = getFleetsMap(state.fleets);
+
+    const dirtySystems = [...state.dirtySystemIds]
+      .map(id => sysMap.get(id))
+      .filter((s): s is StarSystem => !!s);
+
+    const dirtyFleets = [...state.dirtyFleetIds]
+      .map(id => fltMap.get(id))
+      .filter((f): f is Fleet => !!f);
+
+    try {
+      await batchUpsertSystems(dirtySystems, uid);
+      for (const system of dirtySystems) {
+        const planetAudits = [..._pendingPlanetAudits.entries()].filter(([, v]) => v.systemId === system.id);
+        if (planetAudits.length > 0) {
+          for (const [pId, audit] of planetAudits) {
+            auditLog('planet_stats_updated', 'system', pId, audit.planetName, {
+              fields: [...audit.fields],
+            });
+            _pendingPlanetAudits.delete(pId);
+          }
+        } else {
+          auditLog('system_moved', 'system', system.id, system.name);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to batch save systems:', error);
+      for (const s of dirtySystems) failedSystemIds.add(s.id);
+    }
+
+    try {
+      await batchUpsertFleets(dirtyFleets, uid);
+      for (const fleet of dirtyFleets) {
+        auditLog('fleet_moved', 'fleet', fleet.id, fleet.name);
+      }
+    } catch (error) {
+      console.error('Failed to batch save fleets:', error);
+      for (const f of dirtyFleets) failedFleetIds.add(f.id);
+    }
+
+    let timelineFailed = false;
+    if (state.dirtyTimeline) {
+      try {
+        await updateSetting('current_year', state.currentYear);
+        auditLog('timeline_changed', 'system', 'current_year', 'Timeline', { year: state.currentYear });
+      } catch (error) {
+        console.error('Failed to save timeline setting:', error);
+        timelineFailed = true;
+      }
+    }
+
+    const nextDirtySystemIds = failedSystemIds;
+    const nextDirtyFleetIds = failedFleetIds;
+    const nextDirtyTimeline = timelineFailed;
+    const hasPendingChanges = nextDirtySystemIds.size > 0 || nextDirtyFleetIds.size > 0 || nextDirtyTimeline;
+
+    set({
+      dirtySystemIds: nextDirtySystemIds,
+      dirtyFleetIds: nextDirtyFleetIds,
+      dirtyTimeline: nextDirtyTimeline,
+      hasPendingChanges,
+    });
+
+    const saved = get();
+    _systemsSnapshot = mergeSavedSnapshotEntries(
+      _systemsSnapshot,
+      saved.systems,
+      state.dirtySystemIds,
+      failedSystemIds,
+      cloneSystem,
+    );
+    _fleetsSnapshot = mergeSavedSnapshotEntries(
+      _fleetsSnapshot,
+      saved.fleets,
+      state.dirtyFleetIds,
+      failedFleetIds,
+      cloneFleet,
+    );
+    if (state.dirtyTimeline && !timelineFailed) {
+      _yearSnapshot = saved.currentYear;
+    }
+  },
+
+  discardAllChanges: async () => {
+    _pendingPlanetAudits.clear();
+    set({
+      systems: cloneSystems(_systemsSnapshot),
+      fleets: cloneFleets(_fleetsSnapshot),
+      currentYear: _yearSnapshot,
+      dirtySystemIds: new Set<string>(),
+      dirtyFleetIds: new Set<string>(),
+      dirtyTimeline: false,
+      hasPendingChanges: false,
+    });
+  },
+}));

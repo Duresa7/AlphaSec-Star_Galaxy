@@ -3,7 +3,9 @@ import { useFrame, ThreeEvent } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import type { Anomaly } from '@/types';
-import { useGalaxyStore } from '@/store/galaxyStore';
+import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
+import { useGalaxyUIStore } from '@/store/galaxyUIStore';
+import { useGalaxyDataStore } from '@/store/galaxyDataStore';
 import { AnomalyModel } from '@/components/three/ModelLoader';
 
 interface AnomalyMarkerProps {
@@ -21,7 +23,8 @@ function AnomalyMarker({ anomaly }: AnomalyMarkerProps) {
   const groupRef = useRef<THREE.Group>(null);
   const [hovered, setHovered] = useState(false);
 
-  const { showLabels, setInfoPanelData } = useGalaxyStore();
+  const showLabels = useGalaxyUIStore((s) => s.showLabels);
+  const setInfoPanelData = useGalaxySelectionStore((s) => s.setInfoPanelData);
 
   const color = ANOMALY_COLORS[anomaly.type] || '#FFFFFF';
   useFrame((state) => {
@@ -179,7 +182,8 @@ function AnomalyMarker({ anomaly }: AnomalyMarkerProps) {
   );
 }
 export function AnomalyMarkers() {
-  const { anomalies, showAnomalies } = useGalaxyStore();
+  const anomalies = useGalaxyDataStore((s) => s.anomalies);
+  const showAnomalies = useGalaxyUIStore((s) => s.showAnomalies);
 
   if (!showAnomalies) return null;
 

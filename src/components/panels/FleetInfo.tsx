@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Fleet, Faction, ShipModelType } from '@/types';
-import { useGalaxyStore } from '@/store/galaxyStore';
+import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
+import { useGalaxyDataStore } from '@/store/galaxyDataStore';
 import {
   FACTION_LABELS,
   FLEET_STRENGTH_SEGMENTS,
@@ -18,12 +19,12 @@ const MODEL_TYPE_LABELS: Record<ShipModelType, string> = {
 };
 
 export function FleetInfo({ fleet, editable }: { fleet: Fleet; editable: boolean }) {
-  const removeCustomFleet = useGalaxyStore((s) => s.removeCustomFleet);
-  const setInfoPanelData = useGalaxyStore((s) => s.setInfoPanelData);
-  const setSelectedFleet = useGalaxyStore((s) => s.setSelectedFleet);
-  const updateFleetMarkerSize = useGalaxyStore((s) => s.updateFleetMarkerSize);
-  const updateFleetStats = useGalaxyStore((s) => s.updateFleetStats);
-  const viewMode = useGalaxyStore((s) => s.viewMode);
+  const removeCustomFleet = useGalaxyDataStore((s) => s.removeCustomFleet);
+  const setInfoPanelData = useGalaxySelectionStore((s) => s.setInfoPanelData);
+  const setSelectedFleet = useGalaxySelectionStore((s) => s.setSelectedFleet);
+  const updateFleetMarkerSize = useGalaxyDataStore((s) => s.updateFleetMarkerSize);
+  const updateFleetStats = useGalaxyDataStore((s) => s.updateFleetStats);
+  const viewMode = useGalaxySelectionStore((s) => s.viewMode);
 
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState(fleet.name);

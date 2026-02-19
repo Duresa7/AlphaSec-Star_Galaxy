@@ -2,6 +2,7 @@ import { createContext, useEffect, useState, useRef, useCallback, type ReactNode
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 import { supabase, supabaseConfigured } from '@/lib/supabase';
 import { deleteAccount as deleteAccountRequest } from '@/data/supabaseStorage';
+import { withTimeout } from '@/utils/withTimeout';
 import type { UserProfile } from '@/types';
 
 export interface AuthContextValue {
@@ -62,24 +63,6 @@ export function shouldFetchProfileForEvent(
   if (event === 'MANUAL') return true;
   return PROFILE_FETCH_EVENTS.includes(event);
 }
-
-const withTimeout = <T,>(promise: Promise<T>, timeoutMs: number, timeoutMessage: string): Promise<T> =>
-  new Promise<T>((resolve, reject) => {
-    const timeoutId = window.setTimeout(() => {
-      reject(new Error(timeoutMessage));
-    }, timeoutMs);
-
-    promise.then(
-      (value) => {
-        window.clearTimeout(timeoutId);
-        resolve(value);
-      },
-      (error) => {
-        window.clearTimeout(timeoutId);
-        reject(error);
-      },
-    );
-  });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -167,6 +150,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const nextSessionUserId = newSession?.user?.id ?? null;
       sessionUserIdRef.current = nextSessionUserId;
       setSession(newSession);
+
       if (nextSessionUserId) {
         const profileFetchMode = getProfileFetchMode({
           previousSessionUserId,
@@ -190,11 +174,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setAuthResolved(true);
       }
     };
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, newSession) => {
         resolveAuthState(newSession, event);
       }
     );
+
     void withTimeout(
       supabase.auth.getSession(),
       SESSION_BOOTSTRAP_TIMEOUT_MS,
@@ -204,6 +190,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         resolveAuthState(data.session ?? null, 'MANUAL');
       })
       .catch(() => {});
+
     const timeout = window.setTimeout(() => {
       if (!initialAuthResolvedRef.current) {
         initialAuthResolvedRef.current = true;
@@ -217,6 +204,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       window.clearTimeout(timeout);
     };
   }, [fetchProfile]);
+
   useEffect(() => {
     if (!supabaseConfigured || !session?.user?.id) return;
     const interval = setInterval(() => {
@@ -343,7 +331,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setProfileError(null);
       resolvedProfileUserIdRef.current = null;
       sessionUserIdRef.current = null;
-      try { await supabase.auth.signOut({ scope: 'local' }); } catch { }
+      try { await supabase.auth.signOut({ scope: 'local' }); } catch { /* best-effort */ }
     }
     return result;
   }, [session]);

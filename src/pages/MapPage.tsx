@@ -4,13 +4,20 @@ import { GalaxyScene } from '@/components/galaxy/GalaxyScene';
 import { InfoPanel } from '@/components/panels/InfoPanel';
 import { ControlsPanel } from '@/components/panels/ControlsPanel';
 import { LoadingScreen } from '@/components/panels/LoadingScreen';
-import { useGalaxyStore } from '@/store/galaxyStore';
+import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
+import { useGalaxyDataStore } from '@/store/galaxyDataStore';
 import { useAuth } from '@/hooks/useAuth';
 import { useRole } from '@/hooks/useRole';
 import { supabase, supabaseConfigured } from '@/lib/supabase';
 
 export function MapPage() {
-  const { viewMode, initializeData, hasPendingChanges, saveAllChanges, discardAllChanges, requestCameraReset, requestZoom } = useGalaxyStore();
+  const viewMode = useGalaxySelectionStore((s) => s.viewMode);
+  const requestCameraReset = useGalaxySelectionStore((s) => s.requestCameraReset);
+  const requestZoom = useGalaxySelectionStore((s) => s.requestZoom);
+  const initializeData = useGalaxyDataStore((s) => s.initializeData);
+  const hasPendingChanges = useGalaxyDataStore((s) => s.hasPendingChanges);
+  const saveAllChanges = useGalaxyDataStore((s) => s.saveAllChanges);
+  const discardAllChanges = useGalaxyDataStore((s) => s.discardAllChanges);
   const { session, profile, signOut } = useAuth();
   const { isAdmin } = useRole();
   const [saving, setSaving] = useState(false);
@@ -33,9 +40,9 @@ export function MapPage() {
 
       realtimeRefreshTimeoutRef.current = window.setTimeout(() => {
         realtimeRefreshTimeoutRef.current = null;
-        const state = useGalaxyStore.getState();
-        if (state.hasPendingChanges) return;
-        void state.initializeData();
+        const dataState = useGalaxyDataStore.getState();
+        if (dataState.hasPendingChanges) return;
+        void dataState.initializeData();
       }, 300);
     };
 
