@@ -8,6 +8,7 @@ import { TopDownMarkers } from '@/components/galaxy/TopDownMarker';
 import { GalaxyMapBackground } from '@/components/galaxy/GalaxyMapBackground';
 import { FleetMarkers } from '@/components/galaxy/FleetMarker';
 import { AnomalyMarkers } from '@/components/galaxy/AnomalyMarker';
+import { CivilianTrafficLayer } from '@/components/galaxy/CivilianTrafficLayer';
 import { SystemDetailView } from '@/components/galaxy/SystemDetailView';
 import { FleetDetailView } from '@/components/galaxy/FleetDetailView';
 import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
@@ -146,6 +147,7 @@ function TopDownView() {
   return (
     <>
       <GalaxyMapBackground />
+      <CivilianTrafficLayer />
       <AnomalyMarkers />
       <FleetMarkers />
       <TopDownMarkers />
