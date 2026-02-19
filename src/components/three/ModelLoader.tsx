@@ -9,6 +9,9 @@ const MODEL_PATHS = {
   sithDreadnought: '/models/ships/sith_dreadnought.glb',
   republicFrigate: '/models/ships/republic_frigate.glb',
   republicVenator: '/models/ships/venator_destroyer.glb',
+  civilianFreighter: '/models/ships/civilian_freighter.glb',
+  civilianCorvette: '/models/ships/civilian_corvette.glb',
+  civilianTransport: '/models/ships/civilian_transport.glb',
   nebula: '/models/icons/nebula.glb',
   blackHole: '/models/icons/black_hole.glb',
   spaceStation: '/models/icons/space_station.glb',
@@ -163,6 +166,9 @@ useGLTF.preload(MODEL_PATHS.nebula);
 useGLTF.preload(MODEL_PATHS.blackHole);
 useGLTF.preload(MODEL_PATHS.spaceStation);
 useGLTF.preload(MODEL_PATHS.hyperspaceMarker);
+useGLTF.preload(MODEL_PATHS.civilianFreighter);
+useGLTF.preload(MODEL_PATHS.civilianCorvette);
+useGLTF.preload(MODEL_PATHS.civilianTransport);
 
 export function GalaxySkybox() {
   return <ProceduralSkybox />;

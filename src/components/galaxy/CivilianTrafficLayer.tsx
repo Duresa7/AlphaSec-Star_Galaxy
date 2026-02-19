@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { useGalaxyDataStore } from '@/store/galaxyDataStore';
 import { useGalaxyUIStore } from '@/store/galaxyUIStore';
@@ -16,9 +17,21 @@ import {
   type RouteAnchor,
 } from '@/utils/civilianTraffic';
 
+const CIVILIAN_FREIGHTER_PATH = '/models/ships/civilian_freighter.glb';
+const CIVILIAN_CORVETTE_PATH = '/models/ships/civilian_corvette.glb';
+const CIVILIAN_TRANSPORT_PATH = '/models/ships/civilian_transport.glb';
+
+const SHIP_VARIANTS = [
+  { path: CIVILIAN_FREIGHTER_PATH, scale: 0.65 },
+  { path: CIVILIAN_CORVETTE_PATH, scale: 0.50 },
+  { path: CIVILIAN_TRANSPORT_PATH, scale: 0.45 },
+];
+
 interface RuntimeTrafficShip {
   id: string;
   route: CivilianRoute;
+  modelPath: string;
+  modelScale: number;
 }
 
 interface CivilianTrafficShipProps {
@@ -30,20 +43,8 @@ interface CivilianTrafficShipProps {
 const SHIP_ALTITUDE = 0.35;
 const TRAIL_ALTITUDE = 0.2;
 const TRAIL_POINT_SPACING = 1.2;
-const SHIP_RING_INNER = 0.28;
-const SHIP_RING_OUTER = 0.46;
 const TRAIL_POINT_RADIUS = 0.16;
 const TRAIL_POINT_SEGMENTS = 8;
-
-const createShipGeometry = (): THREE.ShapeGeometry => {
-  const shape = new THREE.Shape();
-  shape.moveTo(0, 0.52);
-  shape.lineTo(-0.34, -0.34);
-  shape.lineTo(0, -0.15);
-  shape.lineTo(0.34, -0.34);
-  shape.closePath();
-  return new THREE.ShapeGeometry(shape);
-};
 
 function CivilianTrafficShip({ ship, trailLength, onComplete }: CivilianTrafficShipProps) {
   const shipRef = useRef<THREE.Group>(null);
@@ -56,8 +57,8 @@ function CivilianTrafficShip({ ship, trailLength, onComplete }: CivilianTrafficS
   const tangentScratchRef = useRef(new THREE.Vector3());
   const trailScratchRef = useRef(new THREE.Vector3());
 
-  const shipGeometry = useMemo(() => createShipGeometry(), []);
-  const ringGeometry = useMemo(() => new THREE.RingGeometry(SHIP_RING_INNER, SHIP_RING_OUTER, 12), []);
+  const { scene } = useGLTF(ship.modelPath);
+  const clonedScene = useMemo(() => scene.clone(), [scene]);
   const trailGeometry = useMemo(
     () => new THREE.CircleGeometry(TRAIL_POINT_RADIUS, TRAIL_POINT_SEGMENTS),
     [],
@@ -65,11 +66,9 @@ function CivilianTrafficShip({ ship, trailLength, onComplete }: CivilianTrafficS
 
   useEffect(() => {
     return () => {
-      shipGeometry.dispose();
-      ringGeometry.dispose();
       trailGeometry.dispose();
     };
-  }, [ringGeometry, shipGeometry, trailGeometry]);
+  }, [trailGeometry]);
 
   useFrame((_, delta) => {
     if (completedRef.current) return;
@@ -101,7 +100,7 @@ function CivilianTrafficShip({ ship, trailLength, onComplete }: CivilianTrafficS
         progress,
         tangentScratchRef.current,
       );
-      const heading = Math.atan2(tangent.x, tangent.z);
+      const heading = Math.atan2(tangent.x, tangent.z) + Math.PI;
       shipRef.current.rotation.set(0, heading, 0);
     }
 
@@ -151,25 +150,8 @@ function CivilianTrafficShip({ ship, trailLength, onComplete }: CivilianTrafficS
 
   return (
     <group>
-      <group ref={shipRef}>
-        <mesh geometry={shipGeometry} rotation={[Math.PI / 2, 0, 0]}>
-          <meshBasicMaterial
-            color="#9CD8FF"
-            transparent
-            opacity={0.95}
-            side={THREE.DoubleSide}
-            depthWrite={false}
-          />
-        </mesh>
-        <mesh geometry={ringGeometry} rotation={[Math.PI / 2, 0, 0]}>
-          <meshBasicMaterial
-            color="#5FB9F9"
-            transparent
-            opacity={0.35}
-            side={THREE.DoubleSide}
-            depthWrite={false}
-          />
-        </mesh>
+      <group ref={shipRef} scale={ship.modelScale}>
+        <primitive object={clonedScene} />
       </group>
 
       {Array.from({ length: trailLength }).map((_, index) => (
@@ -194,6 +176,10 @@ function CivilianTrafficShip({ ship, trailLength, onComplete }: CivilianTrafficS
     </group>
   );
 }
+
+useGLTF.preload(CIVILIAN_FREIGHTER_PATH);
+useGLTF.preload(CIVILIAN_CORVETTE_PATH);
+useGLTF.preload(CIVILIAN_TRANSPORT_PATH);
 
 export function CivilianTrafficLayer() {
   const showCivilianTraffic = useGalaxyUIStore((s) => s.showCivilianTraffic);
@@ -235,9 +221,13 @@ export function CivilianTrafficLayer() {
       maxDurationSec: DEFAULT_CIVILIAN_TRAFFIC_SETTINGS.maxDurationSec,
     });
 
+    const variant = SHIP_VARIANTS[Math.floor(Math.random() * SHIP_VARIANTS.length)];
+
     return {
       id: `civilian-traffic-${nextShipIdRef.current++}`,
       route,
+      modelPath: variant.path,
+      modelScale: variant.scale,
     };
   }, [routeAnchors]);
 
