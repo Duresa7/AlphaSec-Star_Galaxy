@@ -182,9 +182,11 @@ export interface GalaxyUIStore {
   showFleets: boolean;
   showAnomalies: boolean;
   showLabels: boolean;
+  showCivilianTraffic: boolean;
   toggleFleets: () => void;
   toggleAnomalies: () => void;
   toggleLabels: () => void;
+  toggleCivilianTraffic: () => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   factionFilters: FactionFilters;

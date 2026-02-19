@@ -8,9 +8,11 @@ export function FilterControls() {
   const showFleets = useGalaxyUIStore((s) => s.showFleets);
   const showAnomalies = useGalaxyUIStore((s) => s.showAnomalies);
   const showLabels = useGalaxyUIStore((s) => s.showLabels);
+  const showCivilianTraffic = useGalaxyUIStore((s) => s.showCivilianTraffic);
   const toggleFleets = useGalaxyUIStore((s) => s.toggleFleets);
   const toggleAnomalies = useGalaxyUIStore((s) => s.toggleAnomalies);
   const toggleLabels = useGalaxyUIStore((s) => s.toggleLabels);
+  const toggleCivilianTraffic = useGalaxyUIStore((s) => s.toggleCivilianTraffic);
 
   const [collapsed, setCollapsed] = useState(false);
   const [layersCollapsed, setLayersCollapsed] = useState(false);
@@ -80,6 +82,12 @@ export function FilterControls() {
               <FilterBox active={showFleets} onClick={toggleFleets} label="Fleets" color="red" />
               <FilterBox active={showAnomalies} onClick={toggleAnomalies} label="Anomalies" color="purple" />
               <FilterBox active={showLabels} onClick={toggleLabels} label="Labels" color="yellow" />
+              <FilterBox
+                active={showCivilianTraffic}
+                onClick={toggleCivilianTraffic}
+                label="Civilian Traffic"
+                color="cyan"
+              />
             </div>
           )}
         </>
