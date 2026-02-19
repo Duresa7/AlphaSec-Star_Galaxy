@@ -1,7 +1,33 @@
 import * as THREE from 'three';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { StarSystem } from '../src/types';
-import { useGalaxyStore } from '../src/store/galaxyStore';
+
+vi.mock('@/data/supabaseStorage', () => ({
+  loadCustomSystems: vi.fn(async () => []),
+  loadCustomFleets: vi.fn(async () => []),
+  insertCustomSystem: vi.fn(async () => {}),
+  batchUpsertSystems: vi.fn(async () => {}),
+  deleteCustomSystem: vi.fn(async () => {}),
+  insertCustomFleet: vi.fn(async () => {}),
+  batchUpsertFleets: vi.fn(async () => {}),
+  deleteCustomFleet: vi.fn(async () => {}),
+  logAction: vi.fn(async () => {}),
+  loadSetting: vi.fn(async () => null),
+  updateSetting: vi.fn(async () => {}),
+  getAuthenticatedUserId: vi.fn(async () => 'user-1'),
+}));
+
+vi.mock('@/lib/supabase', () => ({
+  supabaseConfigured: true,
+  supabase: {
+    auth: {
+      getUser: vi.fn(async () => ({ data: { user: { id: 'user-1' } }, error: null })),
+    },
+  },
+}));
+
+import { useGalaxyDataStore } from '../src/store/galaxyDataStore';
+import { useGalaxyUIStore } from '../src/store/galaxyUIStore';
 
 const buildSystem = (id: string, name: string, planetId: string, planetName: string): StarSystem => ({
   id,
@@ -26,20 +52,22 @@ const buildSystem = (id: string, name: string, planetId: string, planetName: str
   ],
 });
 
-describe('useGalaxyStore.getSearchResults', () => {
+describe('useGalaxyDataStore.getSearchResults', () => {
   beforeEach(() => {
-    useGalaxyStore.setState({
+    useGalaxyDataStore.setState({
       systems: [
         buildSystem('system-1', 'Alpha Prime', 'planet-1', 'Taris'),
         buildSystem('system-2', 'Alpha Prime', 'planet-2', 'Korriban'),
       ],
       fleets: [],
+    });
+    useGalaxyUIStore.setState({
       searchQuery: 'ta',
     });
   });
 
   it('includes parentSystemId for planet search hits', () => {
-    const results = useGalaxyStore.getState().getSearchResults();
+    const results = useGalaxyDataStore.getState().getSearchResults();
     const taris = results.find((result) => result.type === 'planet' && result.id === 'planet-1');
 
     expect(taris).toBeDefined();

@@ -1,7 +1,9 @@
-import { memo, useState } from 'react';
+import { memo, useState, useMemo } from 'react';
 import { Html } from '@react-three/drei';
 import type { StarSystem } from '@/types';
-import { useGalaxyStore } from '@/store/galaxyStore';
+import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
+import { useGalaxyUIStore } from '@/store/galaxyUIStore';
+import { useGalaxyDataStore } from '@/store/galaxyDataStore';
 import { FACTION_MARKER_COLORS } from '@/constants/factions';
 import { useMarkerInteraction } from '@/hooks/useMarkerInteraction';
 import {
@@ -16,15 +18,15 @@ interface TopDownMarkerProps {
 const TopDownMarker = memo(function TopDownMarker({ system }: TopDownMarkerProps) {
   const [hovered, setHovered] = useState(false);
 
-  const setSelectedSystem = useGalaxyStore((s) => s.setSelectedSystem);
-  const setTopDownSelection = useGalaxyStore((s) => s.setTopDownSelection);
-  const setSelectedPlanet = useGalaxyStore((s) => s.setSelectedPlanet);
-  const setInfoPanelData = useGalaxyStore((s) => s.setInfoPanelData);
-  const showLabels = useGalaxyStore((s) => s.showLabels);
-  const previewCustomSystemPosition = useGalaxyStore((s) => s.previewCustomSystemPosition);
-  const updateCustomSystemPosition = useGalaxyStore((s) => s.updateCustomSystemPosition);
-  const setDraggingCustomPlanet = useGalaxyStore((s) => s.setDraggingCustomPlanet);
-  const placementMode = useGalaxyStore((s) => s.placementMode);
+  const setSelectedSystem = useGalaxySelectionStore((s) => s.setSelectedSystem);
+  const setTopDownSelection = useGalaxySelectionStore((s) => s.setTopDownSelection);
+  const setSelectedPlanet = useGalaxySelectionStore((s) => s.setSelectedPlanet);
+  const setInfoPanelData = useGalaxySelectionStore((s) => s.setInfoPanelData);
+  const showLabels = useGalaxyUIStore((s) => s.showLabels);
+  const previewCustomSystemPosition = useGalaxyDataStore((s) => s.previewCustomSystemPosition);
+  const updateCustomSystemPosition = useGalaxyDataStore((s) => s.updateCustomSystemPosition);
+  const setDraggingCustomPlanet = useGalaxyUIStore((s) => s.setDraggingCustomPlanet);
+  const placementMode = useGalaxyUIStore((s) => s.placementMode);
 
   const primaryPlanetColor = system.planets[0]?.customColor;
   const factionColor = primaryPlanetColor
@@ -129,8 +131,12 @@ const TopDownMarker = memo(function TopDownMarker({ system }: TopDownMarkerProps
 export { TopDownMarker };
 
 export function TopDownMarkers() {
-  const getFilteredSystems = useGalaxyStore((s) => s.getFilteredSystems);
-  const systems = getFilteredSystems();
+  const getFilteredSystems = useGalaxyDataStore((s) => s.getFilteredSystems);
+  const allSystems = useGalaxyDataStore((s) => s.systems);
+  const searchQuery = useGalaxyUIStore((s) => s.searchQuery);
+  const factionFilters = useGalaxyUIStore((s) => s.factionFilters);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- allSystems/searchQuery/factionFilters trigger recomputation via store
+  const systems = useMemo(() => getFilteredSystems(), [getFilteredSystems, allSystems, searchQuery, factionFilters]);
 
   return (
     <>

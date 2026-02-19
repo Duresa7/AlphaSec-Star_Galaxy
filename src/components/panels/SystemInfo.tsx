@@ -1,5 +1,6 @@
 import type { StarSystem } from '@/types';
-import { useGalaxyStore } from '@/store/galaxyStore';
+import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
+import { useGalaxyDataStore } from '@/store/galaxyDataStore';
 import { FACTION_LABELS } from '@/constants/factions';
 import { InfoRow, formatRegion, capitalizeFirst } from '@/components/panels/infoPanelShared';
 import {
@@ -7,12 +8,12 @@ import {
 } from '@/config/topDownMarkerConfig';
 
 export function SystemInfo({ system, editable }: { system: StarSystem; editable: boolean }) {
-  const removeCustomSystem = useGalaxyStore((s) => s.removeCustomSystem);
-  const setInfoPanelData = useGalaxyStore((s) => s.setInfoPanelData);
-  const setSelectedSystem = useGalaxyStore((s) => s.setSelectedSystem);
-  const setSelectedPlanet = useGalaxyStore((s) => s.setSelectedPlanet);
-  const updateCustomSystemMarkerSize = useGalaxyStore((s) => s.updateCustomSystemMarkerSize);
-  const viewMode = useGalaxyStore((s) => s.viewMode);
+  const removeCustomSystem = useGalaxyDataStore((s) => s.removeCustomSystem);
+  const setInfoPanelData = useGalaxySelectionStore((s) => s.setInfoPanelData);
+  const setSelectedSystem = useGalaxySelectionStore((s) => s.setSelectedSystem);
+  const setSelectedPlanet = useGalaxySelectionStore((s) => s.setSelectedPlanet);
+  const updateCustomSystemMarkerSize = useGalaxyDataStore((s) => s.updateCustomSystemMarkerSize);
+  const viewMode = useGalaxySelectionStore((s) => s.viewMode);
 
   return (
     <div className="space-y-4">

@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { AuthModal } from '@/components/auth/AuthModal';
 import { Footer } from '@/components/Footer';
+import { clamp } from '@/utils/math';
 
 type Point = {
   x: number;
@@ -39,7 +40,6 @@ const ECHO_LIFETIME_MS = 450;
 const ECHO_SPEED_THRESHOLD = 1.2;
 const ECHO_SPAWN_COOLDOWN_MS = 42;
 
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 const getMediaMatch = (query: string, fallback: boolean) => {
   if (typeof window === 'undefined') return fallback;
   return window.matchMedia(query).matches;

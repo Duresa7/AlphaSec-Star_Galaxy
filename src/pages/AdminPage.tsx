@@ -21,9 +21,9 @@ const ACTION_LABELS: Record<string, string> = {
 };
 
 const ROLE_COLORS: Record<UserRole, string> = {
-  user: 'rgba(156, 163, 175, 0.85)',
-  admin: 'rgba(96, 165, 250, 0.9)',
-  bossman: 'rgba(251, 191, 36, 0.95)',
+  user: '#9ca3af',
+  admin: '#60a5fa',
+  bossman: '#c8aa6e',
 };
 
 function formatTime(iso: string): string {

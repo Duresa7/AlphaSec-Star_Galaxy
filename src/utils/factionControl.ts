@@ -1,4 +1,5 @@
 import type { Faction } from '@/types';
+import { clamp } from '@/utils/math';
 
 const FACTION_ORDER: Faction[] = [
   'sith_empire',
@@ -7,8 +8,6 @@ const FACTION_ORDER: Faction[] = [
   'contested',
   'hutt_cartel',
 ];
-
-const clamp = (value: number, min: number, max: number): number => Math.min(max, Math.max(min, value));
 
 interface NormalizeFactionControlParams {
   current: Partial<Record<Faction, number>>;

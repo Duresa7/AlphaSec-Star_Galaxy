@@ -4,6 +4,12 @@ import * as THREE from 'three';
 import { useRole } from '@/hooks/useRole';
 import { DRAG_THRESHOLD_PX, SINGLE_CLICK_DELAY_MS } from '@/config/topDownMarkerConfig';
 
+const _raycaster = new THREE.Raycaster();
+const _mouse = new THREE.Vector2();
+const _plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+const _intersection = new THREE.Vector3();
+const _nextPosition = new THREE.Vector3();
+
 interface UseMarkerInteractionOptions {
   entityId: string;
   position: THREE.Vector3;
@@ -95,15 +101,13 @@ export function useMarkerInteraction({
         const rect = gl.domElement.getBoundingClientRect();
         const mouseX = ((moveEvent.clientX - rect.left) / rect.width) * 2 - 1;
         const mouseY = -((moveEvent.clientY - rect.top) / rect.height) * 2 + 1;
-        const raycaster = new THREE.Raycaster();
-        raycaster.setFromCamera(new THREE.Vector2(mouseX, mouseY), cameraRef.current);
-        const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
-        const intersection = new THREE.Vector3();
-        raycaster.ray.intersectPlane(plane, intersection);
-        if (intersection) {
-          const nextPosition = new THREE.Vector3(intersection.x, 0, intersection.z);
-          dragPositionRef.current = nextPosition.clone();
-          previewPosition(entityId, nextPosition);
+        _mouse.set(mouseX, mouseY);
+        _raycaster.setFromCamera(_mouse, cameraRef.current);
+        _raycaster.ray.intersectPlane(_plane, _intersection);
+        if (_intersection) {
+          _nextPosition.set(_intersection.x, 0, _intersection.z);
+          dragPositionRef.current = _nextPosition.clone();
+          previewPosition(entityId, _nextPosition.clone());
         }
       }
     };
