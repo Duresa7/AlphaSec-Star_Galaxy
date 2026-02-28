@@ -171,7 +171,8 @@ body {
 }
 
 @keyframes holoGlowPulse {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow:
       0 0 1px rgba(200, 170, 110, 0.15),
       0 8px 32px rgba(0, 0, 0, 0.6),
@@ -187,7 +188,8 @@ body {
 }
 
 @keyframes cornerPulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.4;
   }
   50% {
@@ -221,19 +223,19 @@ body {
 }
 .holo-panel {
   position: relative;
-  background: rgba(10, 10, 16, 0.92);
+  background: rgba(10, 10, 16, 0.4);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(200, 170, 110, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
-  padding: 18px;
+  padding: 20px;
   overflow: hidden;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   transition: border-color 0.3s ease;
 }
 
 .holo-panel:hover {
-  border-color: rgba(200, 170, 110, 0.2);
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
 .holo-panel::before {
@@ -246,8 +248,8 @@ body {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(200, 170, 110, 0.25) 30%,
-    rgba(200, 170, 110, 0.25) 70%,
+    rgba(255, 255, 255, 0.15) 30%,
+    rgba(255, 255, 255, 0.15) 70%,
     transparent 100%
   );
   pointer-events: none;
@@ -263,7 +265,7 @@ body {
   height: 50px;
   background: linear-gradient(
     180deg,
-    rgba(200, 170, 110, 0.03) 0%,
+    rgba(255, 255, 255, 0.02) 0%,
     transparent 100%
   );
   pointer-events: none;
@@ -323,8 +325,8 @@ body {
 }
 
 .holo-input {
-  background: rgba(5, 5, 8, 0.6);
-  border: 1px solid rgba(200, 170, 110, 0.15);
+  background: rgba(5, 5, 8, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   color: var(--holo-text-primary);
   font-family: "Spline Sans", "Manrope", sans-serif;
@@ -338,8 +340,8 @@ body {
 }
 
 .holo-input:focus {
-  background: rgba(5, 5, 8, 0.9);
-  border-color: rgba(200, 170, 110, 0.35);
+  background: rgba(5, 5, 8, 0.7);
+  border-color: var(--holo-amber);
   outline: none;
 }
 
@@ -358,10 +360,10 @@ body {
   justify-content: center;
   gap: 7px;
   padding: 10px 16px;
-  background: rgba(200, 170, 110, 0.06);
-  border: 1px solid rgba(200, 170, 110, 0.18);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
-  color: var(--holo-amber);
+  color: var(--holo-text-primary);
   font-family: "Oxanium", "Orbitron", monospace;
   font-size: 12px;
   font-weight: 500;
@@ -375,8 +377,8 @@ body {
 }
 
 .holo-button:hover {
-  background: rgba(200, 170, 110, 0.12);
-  border-color: rgba(200, 170, 110, 0.35);
+  background: rgba(200, 170, 110, 0.1);
+  border-color: var(--holo-amber);
   color: var(--holo-amber-bright);
 }
 
@@ -387,6 +389,483 @@ body {
 .holo-button:disabled {
   opacity: 0.3;
   cursor: not-allowed;
+}
+
+.holo-button-sm {
+  padding: 8px 14px;
+}
+
+.holo-button.is-active {
+  background: rgba(200, 170, 110, 0.15);
+  border-color: rgba(200, 170, 110, 0.4);
+  color: var(--holo-amber);
+}
+
+.holo-button-danger {
+  background: rgba(220, 20, 60, 0.06);
+  border-color: rgba(220, 20, 60, 0.25);
+  color: var(--holo-crimson);
+}
+
+.holo-button-danger:hover {
+  background: rgba(220, 20, 60, 0.15);
+  border-color: rgba(220, 20, 60, 0.45);
+  color: #ff6b86;
+}
+
+.holo-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(10, 10, 16, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.holo-rail-item {
+  position: relative;
+}
+
+.holo-rail-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(10, 10, 16, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.8);
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.holo-rail-button.is-active {
+  background: rgba(200, 170, 110, 0.15);
+  border-color: rgba(200, 170, 110, 0.4);
+  color: var(--holo-amber);
+  box-shadow: 0 0 15px rgba(200, 170, 110, 0.2);
+}
+
+.holo-rail-button:hover {
+  color: var(--holo-text-primary);
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.holo-rail-tooltip {
+  position: absolute;
+  left: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%) translateX(-8px);
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(5, 5, 8, 0.92);
+  color: var(--holo-text-primary);
+  opacity: 0;
+  pointer-events: none;
+  white-space: nowrap;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+  z-index: 50;
+}
+
+.holo-rail-item:hover .holo-rail-tooltip {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+.holo-tab-strip {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 4px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.holo-tab-button {
+  flex: 1;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--holo-text-muted);
+  font-family: "Oxanium", "Orbitron", monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 7px 8px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.holo-tab-button.is-active {
+  background: rgba(200, 170, 110, 0.1);
+  color: var(--holo-amber);
+}
+
+.holo-tab-button:hover {
+  color: var(--holo-text-primary);
+}
+
+.holo-overview-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  background: rgba(200, 170, 110, 0.03);
+  border: 1px solid rgba(200, 170, 110, 0.08);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.holo-overview-row:hover {
+  background: rgba(200, 170, 110, 0.06);
+  border-color: rgba(200, 170, 110, 0.2);
+}
+
+.holo-overview-metric {
+  text-align: center;
+  min-width: 34px;
+}
+
+.holo-overview-metric-value {
+  font-family: "Orbitron", monospace;
+  font-size: 13px;
+  color: var(--holo-text-primary);
+}
+
+.holo-overview-metric-label {
+  font-family: "Orbitron", monospace;
+  font-size: 9px;
+  color: var(--holo-text-muted);
+}
+
+.holo-year-card {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.holo-year-label {
+  margin-bottom: 4px;
+  font-family: "Oxanium", "Orbitron", monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.holo-year-value {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.holo-year-input {
+  width: 70px;
+  padding: 2px 6px;
+  font-family: "Orbitron", monospace;
+  font-size: 16px;
+  color: var(--holo-amber);
+}
+
+.holo-year-number {
+  font-family: "Orbitron", monospace;
+  font-size: 18px;
+  color: var(--holo-amber);
+}
+
+.holo-year-unit {
+  font-family: "Orbitron", monospace;
+  font-size: 11px;
+  color: var(--holo-text-muted);
+}
+
+.holo-account-shell {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  border-radius: 12px;
+  background: rgba(12, 12, 18, 0.88);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(200, 170, 110, 0.15);
+}
+
+.holo-account-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(200, 170, 110, 0.1);
+  background: rgba(200, 170, 110, 0.06);
+  color: rgba(255, 255, 255, 0.8);
+  font-family: "Oxanium", "Orbitron", monospace;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.holo-account-action:hover {
+  color: var(--holo-amber);
+  background: rgba(200, 170, 110, 0.12);
+  border-color: rgba(200, 170, 110, 0.25);
+}
+
+.holo-placement-notice {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  background: rgba(0, 240, 255, 0.04);
+}
+
+.holo-placement-notice-text {
+  font-family: "Oxanium", "Orbitron", monospace;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--holo-cyan);
+}
+
+.holo-text-button {
+  border: 0;
+  background: transparent;
+  color: var(--holo-text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.holo-text-button:hover {
+  color: var(--holo-text-primary);
+}
+
+.holo-color-input {
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(200, 170, 110, 0.2);
+  background: transparent;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.holo-panel-reset {
+  margin-top: 0;
+}
+
+.holo-icon-dim {
+  opacity: 0.7;
+}
+
+.holo-chevron-cyan {
+  color: var(--holo-cyan);
+  opacity: 0.8;
+}
+
+.holo-chevron-crimson {
+  color: var(--holo-crimson);
+  opacity: 0.8;
+}
+
+.holo-meta-count {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--holo-text-muted);
+}
+
+.holo-form-label-xs {
+  color: var(--holo-text-muted);
+  font-family: "Orbitron", monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.holo-section-label {
+  margin-bottom: 8px;
+}
+
+.holo-section-label-tight {
+  margin-bottom: 6px;
+}
+
+.holo-faction-territory {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "Spline Sans", "Manrope", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.holo-faction-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.holo-color-mode-label {
+  flex: 1;
+  font-family: "Orbitron", monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--holo-text-muted);
+}
+
+.holo-inline-link {
+  border: 0;
+  background: transparent;
+  font-family: "Orbitron", monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--holo-cyan);
+  cursor: pointer;
+}
+
+.holo-inline-link:hover {
+  text-decoration: underline;
+}
+
+.holo-control-meter {
+  display: flex;
+  height: 12px;
+  margin-top: 8px;
+  overflow: hidden;
+  border-radius: 4px;
+}
+
+.holo-control-segment {
+  box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.2);
+}
+
+.holo-faction-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.holo-faction-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: "Orbitron", monospace;
+  font-size: 10px;
+  color: var(--holo-text-muted);
+}
+
+.holo-faction-slider {
+  width: 140px;
+  flex-shrink: 0;
+}
+
+.holo-faction-value {
+  width: 32px;
+  text-align: right;
+  font-family: "Orbitron", monospace;
+  font-size: 10px;
+  color: var(--holo-text-primary);
+}
+
+.holo-field-textarea {
+  padding: 6px 8px;
+  font-size: 13px;
+  font-family: "Forum", "Rajdhani", serif;
+  resize: vertical;
+}
+
+.holo-field-input {
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.holo-edit-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.holo-edit-action {
+  border: 0;
+  background: transparent;
+  font-family: "Orbitron", monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.holo-edit-action-save {
+  color: var(--holo-cyan);
+}
+
+.holo-edit-action-cancel {
+  color: var(--holo-text-muted);
+}
+
+.holo-editable-text {
+  text-decoration-color: var(--holo-cyan);
+}
+
+.holo-marker-value {
+  width: 24px;
+  text-align: right;
+  font-family: "Orbitron", monospace;
+  color: var(--holo-text-primary);
+}
+
+.holo-info-grid-danger {
+  background: rgba(220, 20, 60, 0.08);
+  border-color: rgba(220, 20, 60, 0.2);
+}
+
+.holo-info-grid-warning {
+  background: rgba(255, 140, 0, 0.08);
+  border-color: rgba(255, 140, 0, 0.2);
+}
+
+.holo-alert-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "Orbitron", monospace;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.holo-alert-danger {
+  color: var(--holo-crimson);
+}
+
+.holo-alert-warning {
+  color: #fb923c;
 }
 
 .holo-tooltip {
@@ -444,10 +923,10 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(8, 8, 14, 0.85);
-  border: 1px solid rgba(200, 170, 110, 0.2);
+  background: rgba(8, 8, 14, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 50%;
-  color: var(--holo-amber);
+  color: var(--holo-text-muted);
   cursor: pointer;
   transition: all 0.25s ease;
   backdrop-filter: blur(12px);
@@ -455,9 +934,9 @@ body {
 }
 
 .holo-close-button:hover {
-  background: rgba(220, 20, 60, 0.12);
-  border-color: rgba(220, 20, 60, 0.35);
-  color: #ff4466;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--holo-text-primary);
   transform: rotate(90deg);
 }
 
@@ -466,9 +945,9 @@ body {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(200, 170, 110, 0.15) 20%,
-    rgba(200, 170, 110, 0.2) 50%,
-    rgba(200, 170, 110, 0.15) 80%,
+    rgba(255, 255, 255, 0.1) 20%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.1) 80%,
     transparent 100%
   );
   margin: 14px 0;
@@ -482,8 +961,8 @@ body {
   left: 50%;
   transform: translateX(-50%);
   width: 6px;
-  height: 3px;
-  background: var(--holo-amber);
+  height: 1px;
+  background: rgba(255, 255, 255, 0.3);
   border-radius: 1px;
   opacity: 0.3;
 }
@@ -506,15 +985,15 @@ body {
 .holo-corner-brackets::before {
   top: 6px;
   left: 6px;
-  border-top: 1px solid rgba(200, 170, 110, 0.2);
-  border-left: 1px solid rgba(200, 170, 110, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  border-left: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .holo-corner-brackets::after {
   bottom: 6px;
   right: 6px;
-  border-bottom: 1px solid rgba(200, 170, 110, 0.2);
-  border-right: 1px solid rgba(200, 170, 110, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  border-right: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 /* Scanline overlay for panels */
@@ -528,7 +1007,12 @@ body {
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(200, 170, 110, 0.1), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(200, 170, 110, 0.1),
+    transparent
+  );
   animation: subtleScanline 10s linear infinite;
   pointer-events: none;
   z-index: 3;
@@ -605,12 +1089,12 @@ body {
 .holo-title-bar {
   position: relative;
   padding: 10px 28px 12px;
-  background: rgba(8, 8, 14, 0.8);
+  background: rgba(8, 8, 14, 0.5);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(200, 170, 110, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .holo-title-bar::before {
@@ -623,9 +1107,9 @@ body {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(200, 170, 110, 0.2) 30%,
-    rgba(200, 170, 110, 0.25) 50%,
-    rgba(200, 170, 110, 0.2) 70%,
+    rgba(255, 255, 255, 0.1) 30%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.1) 70%,
     transparent 100%
   );
 }
@@ -1931,8 +2415,8 @@ body {
 }
 
 .admin-page {
-  --admin-bg: #0F0F12;
-  --admin-sidebar: #0B0B0E;
+  --admin-bg: #0f0f12;
+  --admin-sidebar: #0b0b0e;
   --admin-surface: #151518;
   --admin-text: rgba(255, 255, 255, 0.92);
   --admin-text-secondary: rgba(255, 255, 255, 0.65);
@@ -2273,7 +2757,9 @@ body {
   white-space: nowrap;
   font-size: 12px;
   color: var(--admin-text-secondary);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-family:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
 }
 
 .admin-page__action-badge {
@@ -2420,7 +2906,6 @@ body {
     width: 48px;
     padding: 0;
   }
-
 }
 
 @media (max-width: 767px) {
@@ -3203,6 +3688,13 @@ body {
     rgba(18, 20, 32, 0.8) 100%
   );
   overflow: hidden;
+}
+
+.fleet-ship-preview-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: transparent;
 }
 
 .fleet-ship-class-badge {

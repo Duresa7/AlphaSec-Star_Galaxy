@@ -16,7 +16,7 @@ function ShipCardPreview({ modelType }: ShipCardPreviewProps) {
   return (
     <Canvas
       camera={{ position: [1.5, 0.9, 2.2], fov: 32 }}
-      style={{ width: '100%', height: '100%', background: 'transparent' }}
+      className="fleet-ship-preview-canvas"
       gl={{ alpha: true, antialias: true }}
     >
       <ambientLight intensity={0.6} />
@@ -105,7 +105,6 @@ export function FleetLogisticsModal({ onConfirm, onCancel }: FleetLogisticsModal
   return (
     <div className="fleet-modal-overlay" onClick={onCancel}>
       <div className="fleet-modal-container" onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
         <div className="fleet-modal-header">
           <div className="fleet-modal-header-left">
             <svg
@@ -119,16 +118,14 @@ export function FleetLogisticsModal({ onConfirm, onCancel }: FleetLogisticsModal
             </svg>
             <h2 className="fleet-modal-title">Fleet Logistics Interface</h2>
           </div>
-          <button className="fleet-modal-close" onClick={onCancel}>
+          <button className="fleet-modal-close holo-close-button" onClick={onCancel}>
             <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
               <path d="M18 6 6 18M6 6l12 12" />
             </svg>
           </button>
         </div>
 
-        {/* Body */}
         <div className="fleet-modal-body">
-          {/* Left — Ship Catalog */}
           <div className="fleet-modal-catalog">
             <div className="fleet-ship-grid">
               {shipCatalog.map((ship) => (
@@ -152,9 +149,7 @@ export function FleetLogisticsModal({ onConfirm, onCancel }: FleetLogisticsModal
             </div>
           </div>
 
-          {/* Right — Configuration & Hangar */}
           <div className="fleet-modal-config">
-            {/* Fleet Designation */}
             <div className="fleet-config-section">
               <label className="fleet-config-label">Fleet Designation:</label>
               <input
@@ -167,7 +162,6 @@ export function FleetLogisticsModal({ onConfirm, onCancel }: FleetLogisticsModal
               />
             </div>
 
-            {/* Allegiance */}
             <div className="fleet-config-section">
               <label className="fleet-config-label">Allegiance</label>
               <div className="fleet-config-select-wrap">
@@ -185,7 +179,6 @@ export function FleetLogisticsModal({ onConfirm, onCancel }: FleetLogisticsModal
               </div>
             </div>
 
-            {/* Deployable Units */}
             <div className="fleet-config-section">
               <div className="fleet-config-units-header">
                 <span className="fleet-config-label">Deployable Units</span>
@@ -193,7 +186,6 @@ export function FleetLogisticsModal({ onConfirm, onCancel }: FleetLogisticsModal
               </div>
             </div>
 
-            {/* Hangar */}
             <div className="fleet-hangar">
               {hangar.length === 0 ? (
                 <div className="fleet-hangar-empty">
@@ -227,16 +219,15 @@ export function FleetLogisticsModal({ onConfirm, onCancel }: FleetLogisticsModal
               )}
             </div>
 
-            {/* Actions */}
             <div className="fleet-modal-actions">
               <button
-                className="fleet-confirm-btn"
+                className="holo-button fleet-confirm-btn"
                 onClick={handleConfirm}
                 disabled={!fleetName.trim() || totalUnits === 0}
               >
                 Confirm Fleet
               </button>
-              <button className="fleet-cancel-btn" onClick={onCancel}>
+              <button className="holo-button fleet-cancel-btn" onClick={onCancel}>
                 Cancel
               </button>
             </div>

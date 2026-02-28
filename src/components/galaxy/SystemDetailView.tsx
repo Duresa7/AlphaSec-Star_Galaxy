@@ -98,7 +98,7 @@ export function SystemDetailView({ system }: SystemDetailViewProps) {
   const showLabels = useGalaxyUIStore((s) => s.showLabels);
   const viewMode = useGalaxySelectionStore((s) => s.viewMode);
   const selectedPlanetId = useGalaxySelectionStore((s) => s.selectedPlanetId);
-  const planet = system.planets[0];
+  const planet = system.planets.find((p) => p.id === selectedPlanetId) ?? system.planets[0];
 
   if (!planet) {
     return null;

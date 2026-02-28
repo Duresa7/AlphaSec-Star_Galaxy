@@ -141,7 +141,7 @@ function FactionEditForm({
   );
 }
 
-export function FactionManagementPanel() {
+export function FactionManagementPanel({ isFloatingMode = false }: { isFloatingMode?: boolean }) {
   const factions = useFactionStore((s) => s.factions);
   const createFaction = useFactionStore((s) => s.createFaction);
   const updateFaction = useFactionStore((s) => s.updateFaction);
@@ -180,7 +180,6 @@ export function FactionManagementPanel() {
   const handleDelete = async (id: string) => {
     const success = await removeFaction(id);
     if (!success) return;
-    // Reassign affected entities to neutral
     for (const system of systems) {
       for (const planet of system.planets) {
         if (planet.faction === id) {
@@ -209,31 +208,33 @@ export function FactionManagementPanel() {
   };
 
   return (
-    <div className="holo-panel" style={{ marginTop: '0' }}>
-      <label
-        className="holo-label holo-section-header"
-        onClick={() => setCollapsed(!collapsed)}
-      >
-        <span className="flex items-center gap-2">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ opacity: 0.7 }}>
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
-          </svg>
-          Factions
-        </span>
-        <span aria-hidden="true" style={{ color: 'var(--holo-amber)', opacity: 0.7 }}>
-          {collapsed ? (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+    <div className={isFloatingMode ? "" : "holo-panel"} style={isFloatingMode ? {} : { marginTop: '0' }}>
+      {!isFloatingMode && (
+        <label
+          className="holo-label holo-section-header"
+          onClick={() => setCollapsed(!collapsed)}
+        >
+          <span className="flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ opacity: 0.7 }}>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9" />
             </svg>
-          ) : (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          )}
-        </span>
-      </label>
+            Factions
+          </span>
+          <span aria-hidden="true" style={{ color: 'var(--holo-amber)', opacity: 0.7 }}>
+            {collapsed ? (
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            ) : (
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            )}
+          </span>
+        </label>
+      )}
 
-      {!collapsed && (
+      {(isFloatingMode || !collapsed) && (
         <div className="space-y-2 mt-3">
           {factions.map((f) =>
             editingId === f.id && editingFaction ? (
@@ -359,8 +360,7 @@ export function FactionManagementPanel() {
           ) : (
             <button
               onClick={() => setShowCreate(true)}
-              className="holo-button w-full"
-              style={{ padding: '6px 16px' }}
+              className="holo-button holo-button-sm w-full"
             >
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

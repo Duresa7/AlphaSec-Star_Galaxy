@@ -190,15 +190,7 @@ export function FleetInfo({ fleet, editable }: { fleet: Fleet; editable: boolean
             setInfoPanelData(null);
             setSelectedFleet(null);
           }}
-          className="w-full mt-2 px-4 py-2 border text-[12px] font-medium hover:bg-red-500/20 transition-colors"
-          style={{
-            borderColor: 'rgba(220, 20, 60, 0.25)',
-            background: 'rgba(220, 20, 60, 0.06)',
-            color: '#DC143C',
-            fontFamily: 'Oxanium, Orbitron, monospace',
-            fontSize: '12px',
-            borderRadius: '8px',
-          }}
+          className="holo-button holo-button-danger holo-button-sm w-full mt-2"
         >
           Delete Custom Fleet
         </button>

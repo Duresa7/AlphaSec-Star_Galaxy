@@ -1,4 +1,4 @@
-import { memo, useState, useMemo } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { Html } from '@react-three/drei';
 import type { StarSystem } from '@/types';
 import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
@@ -132,12 +132,27 @@ const TopDownMarker = memo(function TopDownMarker({ system }: TopDownMarkerProps
 export { TopDownMarker };
 
 export function TopDownMarkers() {
-  const getFilteredSystems = useGalaxyDataStore((s) => s.getFilteredSystems);
   const allSystems = useGalaxyDataStore((s) => s.systems);
   const searchQuery = useGalaxyUIStore((s) => s.searchQuery);
   const factionFilters = useGalaxyUIStore((s) => s.factionFilters);
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- allSystems/searchQuery/factionFilters trigger recomputation via store
-  const systems = useMemo(() => getFilteredSystems(), [getFilteredSystems, allSystems, searchQuery, factionFilters]);
+  const systems = useMemo(() => {
+    const query = searchQuery.toLowerCase().trim();
+
+    return allSystems.filter((system) => {
+      if (factionFilters[system.faction] === false) {
+        return false;
+      }
+
+      if (!query) {
+        return true;
+      }
+
+      const matchesName = system.name.toLowerCase().includes(query);
+      const matchesRegion = system.region.replace('_', ' ').toLowerCase().includes(query);
+      const matchesPlanet = system.planets.some((planet) => planet.name.toLowerCase().includes(query));
+      return matchesName || matchesRegion || matchesPlanet;
+    });
+  }, [allSystems, searchQuery, factionFilters]);
 
   return (
     <>

@@ -101,8 +101,8 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
 
       <div className="holo-divider" />
 
-      <div className="text-[14px] font-medium flex items-center gap-2" style={{ fontFamily: '"Spline Sans", Manrope, sans-serif', color: getFactionBarColor(planet.faction) }}>
-        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: getFactionBarColor(planet.faction) }}></span>
+      <div className="holo-faction-territory" style={{ color: getFactionBarColor(planet.faction) }}>
+        <span className="holo-faction-dot" style={{ backgroundColor: getFactionBarColor(planet.faction) }} />
         {getFactionLabel(planet.faction)} Territory
       </div>
 
@@ -159,23 +159,21 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
 
       {editable && (
         <div>
-          <label className="holo-label" style={{ marginBottom: '8px' }}>Planet Color</label>
+          <label className="holo-label holo-section-label">Planet Color</label>
           <div className="flex items-center gap-3 mt-2">
             <input
               type="color"
               value={planet.customColor || (PLANET_APPEARANCES[planet.type as PlanetType] || PLANET_APPEARANCES.terrestrial).color}
               onChange={(e) => updatePlanetStats(planet.systemId, planet.id, { customColor: e.target.value })}
-              className="w-8 h-8 border cursor-pointer bg-transparent"
-              style={{ borderColor: 'rgba(200, 170, 110, 0.2)' }}
+              className="holo-color-input"
             />
-            <span className="text-[11px] flex-1 holo-label-orbitron" style={{ color: 'var(--holo-text-muted)', fontSize: '9px' }}>
+            <span className="holo-color-mode-label">
               {planet.customColor ? 'Custom' : 'Type Default'}
             </span>
             {planet.customColor && (
               <button
                 onClick={() => updatePlanetStats(planet.systemId, planet.id, { customColor: null })}
-                className="text-[9px] uppercase tracking-wide hover:underline holo-label-orbitron"
-                style={{ color: 'var(--holo-cyan)' }}
+                className="holo-inline-link"
               >
                 Reset
               </button>
@@ -185,18 +183,18 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
       )}
 
       <div>
-        <label className="holo-label" style={{ marginBottom: '8px' }}>Faction Control</label>
+        <label className="holo-label holo-section-label">Faction Control</label>
 
-        <div className="flex h-3 mt-2 overflow-hidden" style={{ borderRadius: '4px' }}>
+        <div className="holo-control-meter">
           {(Object.entries(factionControl) as [string, number][])
             .filter(([, v]) => v > 0)
             .map(([faction, pct]) => (
               <div
                 key={faction}
+                className="holo-control-segment"
                 style={{
                   width: `${pct}%`,
                   backgroundColor: getFactionBarColor(faction),
-                  boxShadow: 'inset 0 0 4px rgba(0,0,0,0.2)',
                 }}
               />
             ))}
@@ -207,12 +205,12 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
             const pct = factionControl[f.id] || 0;
             if (pct === 0 && f.id !== planet.faction) return null;
             return (
-              <div key={f.id} className="flex items-center gap-2">
+              <div key={f.id} className="holo-faction-row">
                 <span
-                  className="w-2 h-2 flex-shrink-0"
-                  style={{ backgroundColor: getFactionBarColor(f.id), borderRadius: '50%' }}
+                  className="holo-faction-dot"
+                  style={{ backgroundColor: getFactionBarColor(f.id) }}
                 />
-                <span className="text-[10px] flex-1 truncate holo-label-orbitron" style={{ color: 'var(--holo-text-muted)' }}>
+                <span className="holo-faction-name">
                   {getFactionLabel(f.id)}
                 </span>
                 <input
@@ -223,10 +221,10 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
                   value={pct}
                   onChange={(e) => handleControlChange(f.id, parseInt(e.target.value))}
                   disabled={!editable}
-                  className="holo-slider flex-shrink-0"
-                  style={{ width: '140px', accentColor: getFactionBarColor(f.id) }}
+                  className="holo-slider holo-faction-slider"
+                  style={{ accentColor: getFactionBarColor(f.id) }}
                 />
-                <span className="text-[10px] w-8 text-right holo-label-orbitron" style={{ color: 'var(--holo-text-primary)' }}>
+                <span className="holo-faction-value">
                   {pct}%
                 </span>
               </div>
@@ -243,7 +241,7 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
       </div>
 
       <div>
-        <label className="holo-label" style={{ marginBottom: '6px' }}>Description</label>
+        <label className="holo-label holo-section-label-tight">Description</label>
         {editable && editingDescription ? (
           <div className="mt-1">
             <textarea
@@ -259,21 +257,18 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
               }}
               autoFocus
               rows={3}
-              className="holo-input w-full text-sm"
-              style={{ padding: '6px 8px', fontSize: '13px', fontFamily: '"Forum", Rajdhani, serif', resize: 'vertical' }}
+              className="holo-input holo-field-textarea w-full"
             />
-            <div className="flex gap-2 mt-1">
+            <div className="holo-edit-actions">
               <button
                 onClick={() => { updatePlanetStats(planet.systemId, planet.id, { description: descriptionDraft }); setEditingDescription(false); }}
-                className="text-[9px] uppercase tracking-wide holo-label-orbitron"
-                style={{ color: 'var(--holo-cyan)' }}
+                className="holo-edit-action holo-edit-action-save"
               >
                 Save
               </button>
               <button
                 onClick={() => setEditingDescription(false)}
-                className="text-[9px] uppercase tracking-wide holo-label-orbitron"
-                style={{ color: 'var(--holo-text-muted)' }}
+                className="holo-edit-action holo-edit-action-cancel"
               >
                 Cancel
               </button>
@@ -285,8 +280,7 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
               setDescriptionDraft(planet.description || '');
               setEditingDescription(true);
             } : undefined}
-            className={`text-sm leading-relaxed holo-body-text${editable ? ' cursor-pointer hover:underline' : ''}`}
-            style={{ textDecorationColor: 'var(--holo-cyan)' }}
+            className={`text-sm leading-relaxed holo-body-text holo-editable-text${editable ? ' cursor-pointer hover:underline' : ''}`}
             title={editable ? 'Click to edit' : undefined}
           >
             {planet.description || 'No description'}
@@ -296,7 +290,7 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
 
       {editable && viewMode === 'topdown' && (
         <div>
-          <label className="holo-label" style={{ marginBottom: '8px' }}>Top-Down Marker Size</label>
+          <label className="holo-label holo-section-label">Top-Down Marker Size</label>
           <div className="flex items-center gap-2">
             <input
               type="range"
@@ -307,7 +301,7 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
               onChange={(e) => updateCustomSystemMarkerSize(planet.systemId, parseFloat(e.target.value))}
               className="holo-slider flex-1"
             />
-            <span className="holo-label-orbitron" style={{ color: 'var(--holo-text-primary)', width: '24px', textAlign: 'right' }}>
+            <span className="holo-marker-value">
               {markerSize.toFixed(1)}
             </span>
           </div>
@@ -315,7 +309,7 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
       )}
 
       <div>
-        <label className="holo-label" style={{ marginBottom: '8px' }}>Points of Interest</label>
+        <label className="holo-label holo-section-label">Points of Interest</label>
         {editable && editingNotable ? (
           <div className="mt-1">
             <input
@@ -332,25 +326,22 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
               }}
               autoFocus
               placeholder="Location 1, Location 2, ..."
-              className="holo-input w-full text-sm"
-              style={{ padding: '4px 8px', fontSize: '12px' }}
+              className="holo-input holo-field-input w-full text-sm"
             />
-            <div className="flex gap-2 mt-1">
+            <div className="holo-edit-actions">
               <button
                 onClick={() => {
                   const locations = notableDraft.split(',').map(s => s.trim()).filter(Boolean);
                   updatePlanetStats(planet.systemId, planet.id, { notable: locations });
                   setEditingNotable(false);
                 }}
-                className="text-[9px] uppercase tracking-wide holo-label-orbitron"
-                style={{ color: 'var(--holo-cyan)' }}
+                className="holo-edit-action holo-edit-action-save"
               >
                 Save
               </button>
               <button
                 onClick={() => setEditingNotable(false)}
-                className="text-[9px] uppercase tracking-wide holo-label-orbitron"
-                style={{ color: 'var(--holo-text-muted)' }}
+                className="holo-edit-action holo-edit-action-cancel"
               >
                 Cancel
               </button>
@@ -386,8 +377,8 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
       </div>
 
       {planet.type === 'destroyed' && (
-        <div className="holo-info-grid" style={{ background: 'rgba(220, 20, 60, 0.08)', borderColor: 'rgba(220, 20, 60, 0.2)' }}>
-          <div className="flex items-center gap-2 text-xs font-bold holo-label-orbitron" style={{ color: 'var(--holo-crimson)', fontSize: '9px' }}>
+        <div className="holo-info-grid holo-info-grid-danger">
+          <div className="holo-alert-row holo-alert-danger">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
@@ -399,8 +390,8 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
       )}
 
       {planet.type === 'volcanic' && (
-        <div className="holo-info-grid" style={{ background: 'rgba(255, 140, 0, 0.08)', borderColor: 'rgba(255, 140, 0, 0.2)' }}>
-          <div className="flex items-center gap-2 text-orange-400 text-xs font-bold holo-label-orbitron" style={{ fontSize: '9px' }}>
+        <div className="holo-info-grid holo-info-grid-warning">
+          <div className="holo-alert-row holo-alert-warning">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                 d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"
@@ -419,15 +410,7 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
             setSelectedPlanet(null);
             setSelectedSystem(null);
           }}
-          className="w-full mt-2 px-4 py-2 border text-[12px] font-medium hover:bg-red-500/20 transition-colors"
-          style={{
-            borderColor: 'rgba(220, 20, 60, 0.25)',
-            background: 'rgba(220, 20, 60, 0.06)',
-            color: '#DC143C',
-            fontFamily: 'Orbitron, monospace',
-            fontSize: '10px',
-            borderRadius: '8px',
-          }}
+          className="holo-button holo-button-danger holo-button-sm w-full mt-2"
         >
           Delete Custom Planet
         </button>
