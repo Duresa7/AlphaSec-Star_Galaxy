@@ -92,18 +92,20 @@ export function SystemInfo({ system, editable }: { system: StarSystem; editable:
         </div>
       )}
 
-      {system.planets.length > 0 && system.planets[0].notable && (
+      {system.planets.some((p) => p.notable && p.notable.length > 0) && (
         <div>
           <label className="holo-label" style={{ marginBottom: '8px' }}>Notable Locations</label>
           <div className="flex flex-wrap gap-2 mt-2">
-            {system.planets[0].notable.map((loc, i) => (
-              <span
-                key={i}
-                className="holo-badge bg-cyan-900/30 border border-cyan-500/30 text-cyan-200"
-              >
-                {loc}
-              </span>
-            ))}
+            {system.planets.flatMap((p) =>
+              (p.notable ?? []).map((loc) => (
+                <span
+                  key={`${p.id}-${loc}`}
+                  className="holo-badge bg-cyan-900/30 border border-cyan-500/30 text-cyan-200"
+                >
+                  {loc}
+                </span>
+              ))
+            )}
           </div>
         </div>
       )}
@@ -121,15 +123,7 @@ export function SystemInfo({ system, editable }: { system: StarSystem; editable:
             setInfoPanelData(null);
             setSelectedSystem(null);
           }}
-          className="w-full mt-2 px-4 py-2 border text-[12px] font-medium hover:bg-red-500/20 transition-colors"
-          style={{
-            borderColor: 'rgba(220, 20, 60, 0.25)',
-            background: 'rgba(220, 20, 60, 0.06)',
-            color: '#DC143C',
-            fontFamily: 'Oxanium, Orbitron, monospace',
-            fontSize: '12px',
-            borderRadius: '8px',
-          }}
+          className="holo-button holo-button-danger holo-button-sm w-full mt-2"
         >
           Delete Custom System
         </button>

@@ -1,45 +1,55 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useGalaxyDataStore } from '@/store/galaxyDataStore';
 import { useFactionStore } from '@/store/factionStore';
+import { useGalaxyUIStore } from '@/store/galaxyUIStore';
 
 export function GalaxyOverview() {
   const systems = useGalaxyDataStore((s) => s.systems);
   const fleets = useGalaxyDataStore((s) => s.fleets);
-  const getFactionStats = useGalaxyDataStore((s) => s.getFactionStats);
   const factions = useFactionStore((s) => s.factions);
+  const activeModule = useGalaxyUIStore((s) => s.activeModule);
+  const factionStats = useMemo(() => {
+    const stats: Record<string, { planets: number; fleets: number; shipUnits: number }> = {};
+    factions.forEach((faction) => {
+      stats[faction.id] = { planets: 0, fleets: 0, shipUnits: 0 };
+    });
 
-  const [collapsed, setCollapsed] = useState(false);
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- systems/fleets trigger recomputation via store
-  const factionStats = useMemo(() => getFactionStats(), [systems, fleets, getFactionStats]);
+    systems.forEach((system) => {
+      system.planets.forEach((planet) => {
+        if (!stats[planet.faction]) {
+          stats[planet.faction] = { planets: 0, fleets: 0, shipUnits: 0 };
+        }
+        stats[planet.faction].planets += 1;
+      });
+    });
+
+    fleets.forEach((fleet) => {
+      if (!Number.isFinite(fleet.shipCount)) return;
+      if (!stats[fleet.faction]) {
+        stats[fleet.faction] = { planets: 0, fleets: 0, shipUnits: 0 };
+      }
+      stats[fleet.faction].fleets += 1;
+      stats[fleet.faction].shipUnits += fleet.shipCount;
+    });
+
+    return stats;
+  }, [systems, fleets, factions]);
+
+  if (activeModule !== 'overview') return null;
 
   return (
-    <div className="holo-panel" style={{ marginTop: '0' }}>
-      <label
-        className="holo-label holo-section-header"
-        style={{ marginBottom: collapsed ? '0' : '10px' }}
-        onClick={() => setCollapsed(!collapsed)}
-      >
-        <span className="flex items-center gap-2">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ opacity: 0.7 }}>
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          Galaxy Overview
-        </span>
-        <span aria-hidden="true" style={{ color: 'var(--holo-cyan)', opacity: 0.8 }}>
-          {collapsed ? (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+    <div className="absolute left-20 top-20 z-40 w-80 animate-slide-in-left">
+      <div className="holo-panel">
+        <label className="holo-label holo-section-header mb-3 pointer-events-none">
+          <span className="flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ opacity: 0.7 }}>
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-          ) : (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          )}
-        </span>
-      </label>
+            Galaxy Overview
+          </span>
+        </label>
 
-      {!collapsed && (
-        <div className="space-y-2">
+        <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-2">
           {factions.map((f) => {
             const stats = factionStats[f.id];
             const color = f.barColor;
@@ -47,12 +57,7 @@ export function GalaxyOverview() {
             return (
               <div
                 key={f.id}
-                className="flex items-center gap-3 py-2 px-4"
-                style={{
-                  background: 'rgba(200, 170, 110, 0.03)',
-                  border: '1px solid rgba(200, 170, 110, 0.08)',
-                  borderRadius: '8px',
-                }}
+                className="holo-overview-row"
               >
                 <div
                   className="holo-status-dot"
@@ -62,36 +67,24 @@ export function GalaxyOverview() {
                   {f.label}
                 </span>
                 <div className="flex gap-3 text-right">
-                  <div className="text-center">
-                    <div className="holo-label-orbitron" style={{ fontSize: '13px', color: 'var(--holo-text-primary)' }}>
-                      {stats.planets}
-                    </div>
-                    <div className="holo-label-orbitron" style={{ fontSize: '9px', color: 'var(--holo-text-muted)' }}>
-                      PLN
-                    </div>
+                  <div className="holo-overview-metric">
+                    <div className="holo-overview-metric-value">{stats.planets}</div>
+                    <div className="holo-overview-metric-label">PLN</div>
                   </div>
-                  <div className="text-center">
-                    <div className="holo-label-orbitron" style={{ fontSize: '13px', color: 'var(--holo-text-primary)' }}>
-                      {stats.fleets}
-                    </div>
-                    <div className="holo-label-orbitron" style={{ fontSize: '9px', color: 'var(--holo-text-muted)' }}>
-                      FLTS
-                    </div>
+                  <div className="holo-overview-metric">
+                    <div className="holo-overview-metric-value">{stats.fleets}</div>
+                    <div className="holo-overview-metric-label">FLTS</div>
                   </div>
-                  <div className="text-center">
-                    <div className="holo-label-orbitron" style={{ fontSize: '13px', color: 'var(--holo-text-primary)' }}>
-                      {stats.shipUnits}
-                    </div>
-                    <div className="holo-label-orbitron" style={{ fontSize: '9px', color: 'var(--holo-text-muted)' }}>
-                      SHIPS
-                    </div>
+                  <div className="holo-overview-metric">
+                    <div className="holo-overview-metric-value">{stats.shipUnits}</div>
+                    <div className="holo-overview-metric-label">SHIPS</div>
                   </div>
                 </div>
               </div>
             );
           })}
         </div>
-      )}
+      </div>
     </div>
   );
 }

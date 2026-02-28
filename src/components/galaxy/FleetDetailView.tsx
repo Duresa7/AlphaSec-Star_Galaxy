@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { Html } from '@react-three/drei';
 import type { Fleet } from '@/types';
 import { useGalaxyUIStore } from '@/store/galaxyUIStore';
+import { useFactionStore } from '@/store/factionStore';
 import { ShipModel } from '@/components/three/ModelLoader';
 
 interface FleetDetailViewProps {
@@ -13,8 +14,9 @@ export function FleetDetailView({ fleet }: FleetDetailViewProps) {
   const showLabels = useGalaxyUIStore((s) => s.showLabels);
   const groupRef = useRef<THREE.Group>(null);
 
+  const getFactionMarkerColor = useFactionStore((s) => s.getFactionMarkerColor);
   const shipType = fleet.modelType;
-  const factionColor = fleet.faction === 'sith_empire' ? '#DC143C' : '#FFD700';
+  const factionColor = getFactionMarkerColor(fleet.faction);
   const shipScale = 8;
 
   return (

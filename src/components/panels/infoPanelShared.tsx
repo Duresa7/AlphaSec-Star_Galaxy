@@ -39,18 +39,16 @@ export function EditableInfoRow({
             onChange={(e) => onDraftChange(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') onSave(); if (e.key === 'Escape') onCancel(); }}
             autoFocus
-            className="holo-input w-28 text-right"
-            style={{ padding: '2px 6px', fontSize: '12px' }}
+            className="holo-input holo-field-input w-28 text-right"
           />
-          <button onClick={onSave} className="text-xs px-1" style={{ color: 'var(--holo-cyan)' }}>
+          <button onClick={onSave} className="holo-edit-action holo-edit-action-save px-1">
             &#10003;
           </button>
         </div>
       ) : (
         <span
           onClick={onStartEdit}
-          className="cursor-pointer hover:underline holo-value-inline"
-          style={{ textDecorationColor: 'var(--holo-cyan)' }}
+          className="cursor-pointer hover:underline holo-value-inline holo-editable-text"
           title="Click to edit"
         >
           {value || placeholder}
@@ -94,8 +92,7 @@ export function AddFactionControl({ existingFactions, onAdd }: { existingFaction
   ) : (
     <button
       onClick={() => setOpen(true)}
-      className="text-[9px] mt-1 hover:underline holo-label-orbitron"
-      style={{ color: 'var(--holo-cyan)' }}
+      className="holo-inline-link mt-1"
     >
       + Add Faction Influence
     </button>
