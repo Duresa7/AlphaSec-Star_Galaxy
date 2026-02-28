@@ -1,27 +1,20 @@
-import type { Faction } from '@/types';
 import { clamp } from '@/utils/math';
 
-const FACTION_ORDER: Faction[] = [
-  'sith_empire',
-  'galactic_republic',
-  'neutral',
-  'contested',
-  'hutt_cartel',
-];
-
 interface NormalizeFactionControlParams {
-  current: Partial<Record<Faction, number>>;
-  editedFaction: Faction;
+  current: Partial<Record<string, number>>;
+  editedFaction: string;
   editedValue: number;
+  factionOrder: string[];
 }
 
 export function normalizeFactionControl({
   current,
   editedFaction,
   editedValue,
-}: NormalizeFactionControlParams): Partial<Record<Faction, number>> {
+  factionOrder,
+}: NormalizeFactionControlParams): Partial<Record<string, number>> {
   const clampedEditedValue = clamp(Math.round(editedValue), 0, 100);
-  const activeOtherFactions = FACTION_ORDER.filter(
+  const activeOtherFactions = factionOrder.filter(
     (faction) => faction !== editedFaction && (current[faction] ?? 0) > 0,
   );
 
@@ -39,8 +32,8 @@ export function normalizeFactionControl({
     return { [editedFaction]: 100 };
   }
 
-  const baseAllocations = new Map<Faction, number>();
-  const fractionalParts = new Map<Faction, number>();
+  const baseAllocations = new Map<string, number>();
+  const fractionalParts = new Map<string, number>();
   let assigned = 0;
 
   for (const faction of activeOtherFactions) {
@@ -55,7 +48,7 @@ export function normalizeFactionControl({
   const remainderPriority = [...activeOtherFactions].sort((left, right) => {
     const fractionalDiff = (fractionalParts.get(right) ?? 0) - (fractionalParts.get(left) ?? 0);
     if (fractionalDiff !== 0) return fractionalDiff;
-    return FACTION_ORDER.indexOf(left) - FACTION_ORDER.indexOf(right);
+    return factionOrder.indexOf(left) - factionOrder.indexOf(right);
   });
 
   for (let i = 0; i < remainderPriority.length && remainder > 0; i += 1) {
@@ -64,7 +57,7 @@ export function normalizeFactionControl({
     remainder -= 1;
   }
 
-  const normalized: Partial<Record<Faction, number>> = { [editedFaction]: clampedEditedValue };
+  const normalized: Partial<Record<string, number>> = { [editedFaction]: clampedEditedValue };
   for (const faction of activeOtherFactions) {
     normalized[faction] = baseAllocations.get(faction) ?? 0;
   }

@@ -6,6 +6,8 @@ import { ControlsPanel } from '@/components/panels/ControlsPanel';
 import { LoadingScreen } from '@/components/panels/LoadingScreen';
 import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
 import { useGalaxyDataStore } from '@/store/galaxyDataStore';
+import { useGalaxyUIStore } from '@/store/galaxyUIStore';
+import { useFactionStore } from '@/store/factionStore';
 import { useAuth } from '@/hooks/useAuth';
 import { useRole } from '@/hooks/useRole';
 import { supabase, supabaseConfigured } from '@/lib/supabase';
@@ -22,6 +24,7 @@ export function MapPage() {
   const { isAdmin } = useRole();
   const [saving, setSaving] = useState(false);
   const realtimeRefreshTimeoutRef = useRef<number | null>(null);
+  const factionRefreshTimeoutRef = useRef<number | null>(null);
   const viewLabel = viewMode === 'topdown' ? 'Galaxy Map' : viewMode === 'system' ? 'Planet View' : 'Fleet View';
   const displayName =
     profile?.display_name
@@ -29,7 +32,13 @@ export function MapPage() {
     ?? session?.user?.email?.split('@')[0]
     ?? 'Signed In';
   useEffect(() => {
-    void initializeData();
+    const init = async () => {
+      const factionStore = useFactionStore.getState();
+      await factionStore.initializeFactions();
+      useGalaxyUIStore.getState().syncFactionFilters(factionStore.getFactionIds());
+      await initializeData();
+    };
+    void init();
 
     if (!supabaseConfigured) return;
 
@@ -43,6 +52,19 @@ export function MapPage() {
         const dataState = useGalaxyDataStore.getState();
         if (dataState.hasPendingChanges) return;
         void dataState.initializeData();
+      }, 300);
+    };
+
+    const scheduleFactionRefresh = () => {
+      if (factionRefreshTimeoutRef.current !== null) {
+        window.clearTimeout(factionRefreshTimeoutRef.current);
+      }
+
+      factionRefreshTimeoutRef.current = window.setTimeout(async () => {
+        factionRefreshTimeoutRef.current = null;
+        const factionStore = useFactionStore.getState();
+        await factionStore.initializeFactions();
+        useGalaxyUIStore.getState().syncFactionFilters(factionStore.getFactionIds());
       }, 300);
     };
 
@@ -63,12 +85,21 @@ export function MapPage() {
         { event: '*', schema: 'public', table: 'app_settings' },
         scheduleRealtimeRefresh,
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'custom_factions' },
+        scheduleFactionRefresh,
+      )
       .subscribe();
 
     return () => {
       if (realtimeRefreshTimeoutRef.current !== null) {
         window.clearTimeout(realtimeRefreshTimeoutRef.current);
         realtimeRefreshTimeoutRef.current = null;
+      }
+      if (factionRefreshTimeoutRef.current !== null) {
+        window.clearTimeout(factionRefreshTimeoutRef.current);
+        factionRefreshTimeoutRef.current = null;
       }
       void supabase.removeChannel(channel);
     };

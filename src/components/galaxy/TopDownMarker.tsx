@@ -4,7 +4,7 @@ import type { StarSystem } from '@/types';
 import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
 import { useGalaxyUIStore } from '@/store/galaxyUIStore';
 import { useGalaxyDataStore } from '@/store/galaxyDataStore';
-import { FACTION_MARKER_COLORS } from '@/constants/factions';
+import { useFactionStore } from '@/store/factionStore';
 import { useMarkerInteraction } from '@/hooks/useMarkerInteraction';
 import {
   TOPDOWN_SYSTEM_MARKER_SIZE_BY_IMPORTANCE,
@@ -28,10 +28,11 @@ const TopDownMarker = memo(function TopDownMarker({ system }: TopDownMarkerProps
   const setDraggingCustomPlanet = useGalaxyUIStore((s) => s.setDraggingCustomPlanet);
   const placementMode = useGalaxyUIStore((s) => s.placementMode);
 
+  const getFactionMarkerColor = useFactionStore((s) => s.getFactionMarkerColor);
   const primaryPlanetColor = system.planets[0]?.customColor;
   const factionColor = primaryPlanetColor
     || (system.isCustom && system.customColor ? system.customColor : null)
-    || FACTION_MARKER_COLORS[system.faction];
+    || getFactionMarkerColor(system.faction);
   const markerSize =
     system.markerSize ??
     TOPDOWN_SYSTEM_MARKER_SIZE_BY_IMPORTANCE[system.importance] ??

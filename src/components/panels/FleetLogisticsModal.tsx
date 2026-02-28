@@ -5,35 +5,8 @@ import * as THREE from 'three';
 import { ShipModel } from '@/components/three/ModelLoader';
 import { shipCatalog } from '@/data/shipCatalog';
 import type { ShipCatalogEntry } from '@/data/shipCatalog';
-import type { Faction, FleetShipEntry, ShipModelType } from '@/types';
-
-const FACTION_OPTIONS: { value: Faction; label: string; description: string }[] = [
-  {
-    value: 'galactic_republic',
-    label: 'Galactic Republic',
-    description: 'Versatile and resilient, the Republic relies on balanced tactics and heavy armor.',
-  },
-  {
-    value: 'sith_empire',
-    label: 'Sith Empire',
-    description: 'Aggressive and ruthless, the Empire overwhelms enemies with superior firepower.',
-  },
-  {
-    value: 'hutt_cartel',
-    label: 'Hutt Cartel',
-    description: 'Criminal enforcers using modified civilian craft and mercenary crews.',
-  },
-  {
-    value: 'neutral',
-    label: 'Neutral',
-    description: 'Independent forces unaligned to any major galactic power.',
-  },
-  {
-    value: 'contested',
-    label: 'Contested',
-    description: 'Disputed forces with mixed loyalties and uncertain allegiance.',
-  },
-];
+import type { FleetShipEntry, ShipModelType } from '@/types';
+import { useFactionStore } from '@/store/factionStore';
 
 interface ShipCardPreviewProps {
   modelType: ShipModelType;
@@ -71,23 +44,19 @@ function ShipCardPreview({ modelType }: ShipCardPreviewProps) {
 }
 
 interface FleetLogisticsModalProps {
-  onConfirm: (data: { name: string; faction: Faction; shipCount: number; modelType: ShipModelType }) => void;
+  onConfirm: (data: { name: string; faction: string; shipCount: number; modelType: ShipModelType }) => void;
   onCancel: () => void;
 }
 
 export function FleetLogisticsModal({ onConfirm, onCancel }: FleetLogisticsModalProps) {
   const [fleetName, setFleetName] = useState('Alpha Squadron');
-  const [faction, setFaction] = useState<Faction>('galactic_republic');
+  const allFactions = useFactionStore((s) => s.factions);
+  const [faction, setFaction] = useState(() => allFactions[0]?.id ?? 'galactic_republic');
   const [hangar, setHangar] = useState<FleetShipEntry[]>([]);
 
   const totalUnits = useMemo(
     () => hangar.reduce((sum, entry) => sum + entry.quantity, 0),
     [hangar],
-  );
-
-  const factionDescription = useMemo(
-    () => FACTION_OPTIONS.find((f) => f.value === faction)?.description ?? '',
-    [faction],
   );
 
   const addShipToHangar = (ship: ShipCatalogEntry) => {
@@ -204,17 +173,16 @@ export function FleetLogisticsModal({ onConfirm, onCancel }: FleetLogisticsModal
               <div className="fleet-config-select-wrap">
                 <select
                   value={faction}
-                  onChange={(e) => setFaction(e.target.value as Faction)}
+                  onChange={(e) => setFaction(e.target.value)}
                   className="holo-input fleet-config-select"
                 >
-                  {FACTION_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
+                  {allFactions.map((f) => (
+                    <option key={f.id} value={f.id}>
+                      {f.label}
                     </option>
                   ))}
                 </select>
               </div>
-              <p className="fleet-config-faction-desc">{factionDescription}</p>
             </div>
 
             {/* Deployable Units */}

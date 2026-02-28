@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useGalaxyUIStore } from '@/store/galaxyUIStore';
+import { useFactionStore } from '@/store/factionStore';
 import { FilterBox } from '@/components/panels/FilterBox';
 
 export function FilterControls() {
   const factionFilters = useGalaxyUIStore((s) => s.factionFilters);
   const toggleFactionFilter = useGalaxyUIStore((s) => s.toggleFactionFilter);
+  const factions = useFactionStore((s) => s.factions);
   const showFleets = useGalaxyUIStore((s) => s.showFleets);
   const showAnomalies = useGalaxyUIStore((s) => s.showAnomalies);
   const showLabels = useGalaxyUIStore((s) => s.showLabels);
@@ -45,11 +47,15 @@ export function FilterControls() {
       {!collapsed && (
         <>
           <div className="grid grid-cols-2 gap-2">
-            <FilterBox active={factionFilters.galactic_republic} onClick={() => toggleFactionFilter('galactic_republic')} label="Republic" color="yellow" />
-            <FilterBox active={factionFilters.sith_empire} onClick={() => toggleFactionFilter('sith_empire')} label="Empire" color="red" />
-            <FilterBox active={factionFilters.hutt_cartel} onClick={() => toggleFactionFilter('hutt_cartel')} label="Hutts" color="olive" />
-            <FilterBox active={factionFilters.neutral} onClick={() => toggleFactionFilter('neutral')} label="Neutral" color="gray" />
-            <FilterBox active={factionFilters.contested} onClick={() => toggleFactionFilter('contested')} label="Contested" color="orange" />
+            {factions.map((f) => (
+              <FilterBox
+                key={f.id}
+                active={factionFilters[f.id] ?? true}
+                onClick={() => toggleFactionFilter(f.id)}
+                label={f.label}
+                hexColor={f.barColor}
+              />
+            ))}
           </div>
 
           <div className="holo-divider" />

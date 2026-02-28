@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { GalaxyUIStore, Faction } from '@/types';
+import type { GalaxyUIStore } from '@/types';
 
 export const useGalaxyUIStore = create<GalaxyUIStore>((set) => ({
   showFleets: true,
@@ -14,20 +14,22 @@ export const useGalaxyUIStore = create<GalaxyUIStore>((set) => ({
   searchQuery: '',
   setSearchQuery: (query: string) => set({ searchQuery: query }),
 
-  factionFilters: {
-    galactic_republic: true,
-    sith_empire: true,
-    neutral: true,
-    contested: true,
-    hutt_cartel: true,
-  },
-  toggleFactionFilter: (faction: Faction) =>
+  factionFilters: {},
+  toggleFactionFilter: (faction: string) =>
     set((state) => ({
       factionFilters: {
         ...state.factionFilters,
-        [faction]: !state.factionFilters[faction],
+        [faction]: !(state.factionFilters[faction] ?? true),
       },
     })),
+  syncFactionFilters: (factionIds: string[]) =>
+    set((state) => {
+      const next: Record<string, boolean> = {};
+      for (const id of factionIds) {
+        next[id] = state.factionFilters[id] ?? true;
+      }
+      return { factionFilters: next };
+    }),
 
   placementMode: false,
   pendingCustomPlanet: null,

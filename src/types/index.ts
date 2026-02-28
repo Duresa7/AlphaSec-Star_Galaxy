@@ -1,8 +1,18 @@
 import * as THREE from 'three';
 export type ViewMode = 'topdown' | 'system' | 'fleet';
-export type Faction = 'sith_empire' | 'galactic_republic' | 'neutral' | 'contested' | 'hutt_cartel';
+export type Faction = string;
+export type BuiltinFactionId = 'sith_empire' | 'galactic_republic' | 'neutral' | 'contested' | 'hutt_cartel';
 export type ShipModelType = 'sith' | 'republic' | 'venator';
-export type FactionFilters = Record<Faction, boolean>;
+export type FactionFilters = Record<string, boolean>;
+
+export interface FactionConfig {
+  id: string;
+  label: string;
+  markerColor: string;
+  barColor: string;
+  sortOrder: number;
+  isBuiltin: boolean;
+}
 export type PlanetType =
   | 'terrestrial'
   | 'gas_giant'
@@ -127,13 +137,16 @@ export type AuditAction =
   | 'display_name_changed'
   | 'email_changed'
   | 'password_changed'
-  | 'account_deleted';
+  | 'account_deleted'
+  | 'faction_created'
+  | 'faction_updated'
+  | 'faction_deleted';
 
 export interface AuditLogEntry {
   id: number;
   user_id: string;
   action: AuditAction;
-  entity_type: 'system' | 'fleet' | 'user';
+  entity_type: 'system' | 'fleet' | 'user' | 'faction';
   entity_id: string;
   entity_name: string;
   details: Record<string, unknown> | null;
@@ -190,7 +203,8 @@ export interface GalaxyUIStore {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   factionFilters: FactionFilters;
-  toggleFactionFilter: (faction: Faction) => void;
+  toggleFactionFilter: (faction: string) => void;
+  syncFactionFilters: (factionIds: string[]) => void;
   placementMode: boolean;
   pendingCustomPlanet: { name: string; color: string; faction: Faction } | null;
   setPlacementMode: (mode: boolean, pending?: { name: string; color: string; faction: Faction } | null) => void;
@@ -229,7 +243,7 @@ export interface GalaxyDataStore {
   updateFleetStats: (id: string, updates: FleetStatsUpdate) => void;
   getFilteredSystems: () => StarSystem[];
   getSearchResults: () => SearchResult[];
-  getFactionStats: () => Record<Faction, { planets: number; fleets: number; shipUnits: number }>;
+  getFactionStats: () => Record<string, { planets: number; fleets: number; shipUnits: number }>;
   dirtySystemIds: Set<string>;
   dirtyFleetIds: Set<string>;
   dirtyTimeline: boolean;

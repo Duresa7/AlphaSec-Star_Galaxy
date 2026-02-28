@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import type { Fleet, Faction, ShipModelType } from '@/types';
+import type { Fleet, ShipModelType } from '@/types';
 import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
 import { useGalaxyDataStore } from '@/store/galaxyDataStore';
+import { useFactionStore } from '@/store/factionStore';
 import {
-  FACTION_LABELS,
   FLEET_STRENGTH_SEGMENTS,
   FLEET_STRENGTH_DIVISOR,
   FLEET_STRENGTH_LIGHT_THRESHOLD,
@@ -25,6 +25,9 @@ export function FleetInfo({ fleet, editable }: { fleet: Fleet; editable: boolean
   const updateFleetMarkerSize = useGalaxyDataStore((s) => s.updateFleetMarkerSize);
   const updateFleetStats = useGalaxyDataStore((s) => s.updateFleetStats);
   const viewMode = useGalaxySelectionStore((s) => s.viewMode);
+  const allFactions = useFactionStore((s) => s.factions);
+  const getFactionLabel = useFactionStore((s) => s.getFactionLabel);
+  const getFactionBarColor = useFactionStore((s) => s.getFactionBarColor);
 
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState(fleet.name);
@@ -33,7 +36,7 @@ export function FleetInfo({ fleet, editable }: { fleet: Fleet; editable: boolean
 
   const markerSize = fleet.markerSize ?? DEFAULT_TOPDOWN_FLEET_MARKER_SIZE;
   const filledSegments = Math.min(Math.ceil(fleet.shipCount / FLEET_STRENGTH_DIVISOR), FLEET_STRENGTH_SEGMENTS);
-  const segmentColor = fleet.faction === 'sith_empire' ? 'var(--holo-crimson)' : fleet.faction === 'hutt_cartel' ? '#8B9A46' : 'var(--holo-amber)';
+  const segmentColor = getFactionBarColor(fleet.faction);
 
   return (
     <div className="space-y-4">
@@ -42,20 +45,20 @@ export function FleetInfo({ fleet, editable }: { fleet: Fleet; editable: boolean
         <div className="flex items-center gap-2 mb-2">
           <div
             className="w-2.5 h-2.5 rounded-full animate-pulse"
-            style={{
-              backgroundColor: fleet.faction === 'sith_empire' ? '#DC143C' : fleet.faction === 'galactic_republic' ? '#C8AA6E' : fleet.faction === 'hutt_cartel' ? '#8B9A46' : '#808080',
-            }}
+            style={{ backgroundColor: getFactionBarColor(fleet.faction) }}
           />
           <h2 className="text-xl font-semibold holo-heading">{fleet.name}</h2>
         </div>
         <div className="flex items-center gap-2">
-          <span className={`holo-badge ${
-            fleet.faction === 'sith_empire' ? 'bg-red-500/20 text-red-300 border border-red-500/30' :
-            fleet.faction === 'galactic_republic' ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' :
-            fleet.faction === 'hutt_cartel' ? 'bg-green-500/20 text-green-300 border border-green-500/30' :
-            'bg-gray-500/20 text-gray-300 border border-gray-500/30'
-          }`}>
-            {FACTION_LABELS[fleet.faction]}
+          <span
+            className="holo-badge border"
+            style={{
+              backgroundColor: `${getFactionBarColor(fleet.faction)}33`,
+              color: getFactionBarColor(fleet.faction),
+              borderColor: `${getFactionBarColor(fleet.faction)}4D`,
+            }}
+          >
+            {getFactionLabel(fleet.faction)}
           </span>
           {fleet.isCustom && (
             <span className="holo-badge bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
@@ -105,12 +108,12 @@ export function FleetInfo({ fleet, editable }: { fleet: Fleet; editable: boolean
               <span className="holo-label-inline">Faction</span>
               <select
                 value={fleet.faction}
-                onChange={(e) => updateFleetStats(fleet.id, { faction: e.target.value as Faction })}
+                onChange={(e) => updateFleetStats(fleet.id, { faction: e.target.value })}
                 className="holo-input text-right"
                 style={{ padding: '2px 6px', fontSize: '12px' }}
               >
-                {(Object.keys(FACTION_LABELS) as Faction[]).map((f) => (
-                  <option key={f} value={f}>{FACTION_LABELS[f]}</option>
+                {allFactions.map((f) => (
+                  <option key={f.id} value={f.id}>{f.label}</option>
                 ))}
               </select>
             </div>
@@ -131,7 +134,7 @@ export function FleetInfo({ fleet, editable }: { fleet: Fleet; editable: boolean
         ) : (
           <>
             <InfoRow label="Ship Count" value={`${fleet.shipCount} Vessels`} />
-            <InfoRow label="Faction" value={FACTION_LABELS[fleet.faction]} />
+            <InfoRow label="Faction" value={getFactionLabel(fleet.faction)} />
             <InfoRow label="Model" value={MODEL_TYPE_LABELS[fleet.modelType] ?? fleet.modelType} />
           </>
         )}
