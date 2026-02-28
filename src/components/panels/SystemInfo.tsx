@@ -1,7 +1,7 @@
 import type { StarSystem } from '@/types';
 import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
 import { useGalaxyDataStore } from '@/store/galaxyDataStore';
-import { FACTION_LABELS } from '@/constants/factions';
+import { useFactionStore } from '@/store/factionStore';
 import { InfoRow, formatRegion, capitalizeFirst } from '@/components/panels/infoPanelShared';
 import {
   DEFAULT_TOPDOWN_SYSTEM_MARKER_SIZE,
@@ -14,6 +14,8 @@ export function SystemInfo({ system, editable }: { system: StarSystem; editable:
   const setSelectedPlanet = useGalaxySelectionStore((s) => s.setSelectedPlanet);
   const updateCustomSystemMarkerSize = useGalaxyDataStore((s) => s.updateCustomSystemMarkerSize);
   const viewMode = useGalaxySelectionStore((s) => s.viewMode);
+  const getFactionLabel = useFactionStore((s) => s.getFactionLabel);
+  const getFactionBarColor = useFactionStore((s) => s.getFactionBarColor);
 
   return (
     <div className="space-y-4">
@@ -21,13 +23,15 @@ export function SystemInfo({ system, editable }: { system: StarSystem; editable:
       <div className="pb-3">
         <h2 className="text-xl font-semibold mb-2 holo-heading holo-heading-accent">{system.name}</h2>
         <div className="flex items-center gap-2">
-          <span className={`holo-badge ${
-            system.faction === 'sith_empire' ? 'bg-red-500/20 text-red-300 border border-red-500/30' :
-            system.faction === 'galactic_republic' ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30' :
-            system.faction === 'hutt_cartel' ? 'bg-green-500/20 text-green-300 border border-green-500/30' :
-            'bg-gray-500/20 text-gray-300 border border-gray-500/30'
-          }`}>
-            {FACTION_LABELS[system.faction]}
+          <span
+            className="holo-badge border"
+            style={{
+              backgroundColor: `${getFactionBarColor(system.faction)}33`,
+              color: getFactionBarColor(system.faction),
+              borderColor: `${getFactionBarColor(system.faction)}4D`,
+            }}
+          >
+            {getFactionLabel(system.faction)}
           </span>
           {system.isCustom && (
             <span className="holo-badge bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
@@ -88,18 +92,20 @@ export function SystemInfo({ system, editable }: { system: StarSystem; editable:
         </div>
       )}
 
-      {system.planets.length > 0 && system.planets[0].notable && (
+      {system.planets.some((p) => p.notable && p.notable.length > 0) && (
         <div>
           <label className="holo-label" style={{ marginBottom: '8px' }}>Notable Locations</label>
           <div className="flex flex-wrap gap-2 mt-2">
-            {system.planets[0].notable.map((loc, i) => (
-              <span
-                key={i}
-                className="holo-badge bg-cyan-900/30 border border-cyan-500/30 text-cyan-200"
-              >
-                {loc}
-              </span>
-            ))}
+            {system.planets.flatMap((p) =>
+              (p.notable ?? []).map((loc) => (
+                <span
+                  key={`${p.id}-${loc}`}
+                  className="holo-badge bg-cyan-900/30 border border-cyan-500/30 text-cyan-200"
+                >
+                  {loc}
+                </span>
+              ))
+            )}
           </div>
         </div>
       )}
@@ -117,17 +123,9 @@ export function SystemInfo({ system, editable }: { system: StarSystem; editable:
             setInfoPanelData(null);
             setSelectedSystem(null);
           }}
-          className="w-full mt-2 px-4 py-2 border text-[12px] font-medium hover:bg-red-500/20 transition-colors"
-          style={{
-            borderColor: 'rgba(220, 20, 60, 0.25)',
-            background: 'rgba(220, 20, 60, 0.06)',
-            color: '#DC143C',
-            fontFamily: 'Oxanium, Orbitron, monospace',
-            fontSize: '12px',
-            borderRadius: '8px',
-          }}
+          className="holo-button holo-button-danger holo-button-sm w-full mt-2"
         >
-          Delete Custom Planet
+          Delete Custom System
         </button>
       )}
     </div>

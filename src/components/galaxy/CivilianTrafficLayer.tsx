@@ -190,7 +190,7 @@ export function CivilianTrafficLayer() {
   const filteredSystems = useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
     return allSystems.filter((system) => {
-      if (!factionFilters[system.faction]) return false;
+      if (factionFilters[system.faction] === false) return false;
       if (!query) return true;
 
       const matchesName = system.name.toLowerCase().includes(query);

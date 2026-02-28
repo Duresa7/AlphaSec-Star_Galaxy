@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { supabase, supabaseConfigured } from '@/lib/supabase';
 import { withTimeout } from '@/utils/withTimeout';
-import type { StarSystem, Fleet, Faction, Planet, AuditAction, AuditLogEntry, UserProfile, ShipModelType } from '@/types';
+import type { StarSystem, Fleet, Faction, Planet, AuditAction, AuditLogEntry, UserProfile, ShipModelType, FactionConfig } from '@/types';
 
 const AUTH_LOOKUP_TIMEOUT_MS = 8_000;
 
@@ -294,7 +294,7 @@ export async function updateSetting(key: string, value: unknown): Promise<void> 
 
 export async function logAction(
   action: AuditAction,
-  entityType: 'system' | 'fleet' | 'user',
+  entityType: 'system' | 'fleet' | 'user' | 'faction',
   entityId: string,
   entityName: string,
   details?: Record<string, unknown>,
@@ -394,4 +394,79 @@ export async function updateUserRole(userId: string, role: 'user' | 'admin' | 'b
 
   if (error) return { error: error.message };
   return { error: null };
+}
+
+// ── Faction CRUD ──────────────────────────────────────────────
+
+interface DbFaction {
+  id: string;
+  label: string;
+  marker_color: string;
+  bar_color: string;
+  sort_order: number;
+  is_builtin: boolean;
+}
+
+function dbToFactionConfig(row: DbFaction): FactionConfig {
+  return {
+    id: row.id,
+    label: row.label,
+    markerColor: row.marker_color,
+    barColor: row.bar_color,
+    sortOrder: row.sort_order,
+    isBuiltin: row.is_builtin,
+  };
+}
+
+export async function loadFactions(): Promise<FactionConfig[]> {
+  if (!supabaseConfigured) return [];
+  const { data, error } = await supabase
+    .from('custom_factions')
+    .select('*')
+    .order('sort_order', { ascending: true });
+  if (error) {
+    console.error('Failed to load factions:', error);
+    return [];
+  }
+  return (data as DbFaction[]).map(dbToFactionConfig);
+}
+
+export async function upsertFaction(faction: FactionConfig, userId: string): Promise<void> {
+  if (!supabaseConfigured) return;
+  const { error } = await supabase.from('custom_factions').upsert({
+    id: faction.id,
+    label: faction.label,
+    marker_color: faction.markerColor,
+    bar_color: faction.barColor,
+    sort_order: faction.sortOrder,
+    is_builtin: faction.isBuiltin,
+    created_by: userId,
+  }, { onConflict: 'id' });
+  if (error) {
+    console.error('Failed to upsert faction:', error);
+    throw error;
+  }
+}
+
+export async function updateFactionInDb(id: string, updates: Partial<Pick<FactionConfig, 'label' | 'markerColor' | 'barColor' | 'sortOrder'>>): Promise<void> {
+  if (!supabaseConfigured) return;
+  const dbUpdates: Record<string, unknown> = {};
+  if (updates.label !== undefined) dbUpdates.label = updates.label;
+  if (updates.markerColor !== undefined) dbUpdates.marker_color = updates.markerColor;
+  if (updates.barColor !== undefined) dbUpdates.bar_color = updates.barColor;
+  if (updates.sortOrder !== undefined) dbUpdates.sort_order = updates.sortOrder;
+  const { error } = await supabase.from('custom_factions').update(dbUpdates).eq('id', id);
+  if (error) {
+    console.error('Failed to update faction:', error);
+    throw error;
+  }
+}
+
+export async function deleteFactionFromDb(id: string): Promise<void> {
+  if (!supabaseConfigured) return;
+  const { error } = await supabase.from('custom_factions').delete().eq('id', id);
+  if (error) {
+    console.error('Failed to delete faction:', error);
+    throw error;
+  }
 }
