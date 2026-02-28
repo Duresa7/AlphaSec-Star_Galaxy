@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import type { Faction } from '@/types';
-import { FACTION_LABELS, FACTION_BAR_COLORS } from '@/constants/factions';
+import { useFactionStore } from '@/store/factionStore';
 
 export function EditableInfoRow({
   label,
@@ -70,22 +69,25 @@ export function InfoRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-export function AddFactionControl({ existingFactions, onAdd }: { existingFactions: Faction[]; onAdd: (faction: Faction) => void }) {
+export function AddFactionControl({ existingFactions, onAdd }: { existingFactions: string[]; onAdd: (faction: string) => void }) {
   const [open, setOpen] = useState(false);
-  const available = (Object.keys(FACTION_LABELS) as Faction[]).filter(f => !existingFactions.includes(f));
+  const factions = useFactionStore((s) => s.factions);
+  const getFactionLabel = useFactionStore((s) => s.getFactionLabel);
+  const getFactionBarColor = useFactionStore((s) => s.getFactionBarColor);
+  const available = factions.filter(f => !existingFactions.includes(f.id));
 
   if (available.length === 0) return null;
 
   return open ? (
     <div className="flex flex-wrap gap-1 mt-1">
-      {available.map(faction => (
+      {available.map(f => (
         <button
-          key={faction}
-          onClick={() => { onAdd(faction); setOpen(false); }}
+          key={f.id}
+          onClick={() => { onAdd(f.id); setOpen(false); }}
           className="holo-badge text-[9px] cursor-pointer hover:bg-amber-500/10 transition-colors"
-          style={{ borderColor: FACTION_BAR_COLORS[faction], color: FACTION_BAR_COLORS[faction] }}
+          style={{ borderColor: getFactionBarColor(f.id), color: getFactionBarColor(f.id) }}
         >
-          + {FACTION_LABELS[faction]}
+          + {getFactionLabel(f.id)}
         </button>
       ))}
     </div>

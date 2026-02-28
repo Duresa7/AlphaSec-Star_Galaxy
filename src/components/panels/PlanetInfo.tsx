@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import type { Planet, Faction, PlanetType } from '@/types';
+import type { Planet, PlanetType } from '@/types';
 import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
 import { useGalaxyDataStore } from '@/store/galaxyDataStore';
-import { FACTION_LABELS, FACTION_BAR_COLORS, FACTION_TEXT_CLASSES } from '@/constants/factions';
+import { useFactionStore } from '@/store/factionStore';
 import { EditableInfoRow, AddFactionControl } from '@/components/panels/infoPanelShared';
 import { PLANET_APPEARANCES } from '@/components/galaxy/SystemDetailView';
 import { normalizeFactionControl } from '@/utils/factionControl';
@@ -20,6 +20,10 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
   const setInfoPanelData = useGalaxySelectionStore((s) => s.setInfoPanelData);
   const setSelectedSystem = useGalaxySelectionStore((s) => s.setSelectedSystem);
   const setSelectedPlanet = useGalaxySelectionStore((s) => s.setSelectedPlanet);
+  const allFactions = useFactionStore((s) => s.factions);
+  const getFactionLabel = useFactionStore((s) => s.getFactionLabel);
+  const getFactionBarColor = useFactionStore((s) => s.getFactionBarColor);
+  const getFactionIds = useFactionStore((s) => s.getFactionIds);
 
   const [editingPopulation, setEditingPopulation] = useState(false);
   const [populationDraft, setPopulationDraft] = useState(planet.population || '');
@@ -58,20 +62,21 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
     setEditingPopulation(false);
   };
 
-  const handleControlChange = (faction: Faction, value: number) => {
+  const handleControlChange = (faction: string, value: number) => {
     const updated = normalizeFactionControl({
       current: factionControl,
       editedFaction: faction,
       editedValue: value,
+      factionOrder: getFactionIds(),
     });
-    const cleaned: Partial<Record<Faction, number>> = {};
+    const cleaned: Partial<Record<string, number>> = {};
     for (const [f, v] of Object.entries(updated)) {
-      if (v > 0) cleaned[f as Faction] = v;
+      if (v && v > 0) cleaned[f] = v;
     }
 
-    let dominantFaction: Faction = planet.faction;
+    let dominantFaction: string = planet.faction;
     let maxPct = 0;
-    for (const [f, v] of Object.entries(cleaned) as [Faction, number][]) {
+    for (const [f, v] of Object.entries(cleaned) as [string, number][]) {
       if (v > maxPct) {
         maxPct = v;
         dominantFaction = f;
@@ -96,9 +101,9 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
 
       <div className="holo-divider" />
 
-      <div className={`text-[14px] font-medium ${FACTION_TEXT_CLASSES[planet.faction]} flex items-center gap-2`} style={{ fontFamily: '"Spline Sans", Manrope, sans-serif' }}>
-        <span className="w-2 h-2 bg-current rounded-full"></span>
-        {FACTION_LABELS[planet.faction]} Territory
+      <div className="text-[14px] font-medium flex items-center gap-2" style={{ fontFamily: '"Spline Sans", Manrope, sans-serif', color: getFactionBarColor(planet.faction) }}>
+        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: getFactionBarColor(planet.faction) }}></span>
+        {getFactionLabel(planet.faction)} Territory
       </div>
 
       <div className="holo-info-grid space-y-2">
@@ -183,14 +188,14 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
         <label className="holo-label" style={{ marginBottom: '8px' }}>Faction Control</label>
 
         <div className="flex h-3 mt-2 overflow-hidden" style={{ borderRadius: '4px' }}>
-          {(Object.entries(factionControl) as [Faction, number][])
+          {(Object.entries(factionControl) as [string, number][])
             .filter(([, v]) => v > 0)
             .map(([faction, pct]) => (
               <div
                 key={faction}
                 style={{
                   width: `${pct}%`,
-                  backgroundColor: FACTION_BAR_COLORS[faction] || '#808080',
+                  backgroundColor: getFactionBarColor(faction),
                   boxShadow: 'inset 0 0 4px rgba(0,0,0,0.2)',
                 }}
               />
@@ -198,17 +203,17 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
         </div>
 
         <div className="space-y-2 mt-3">
-          {(Object.keys(FACTION_LABELS) as Faction[]).map((faction) => {
-            const pct = factionControl[faction] || 0;
-            if (pct === 0 && faction !== planet.faction) return null;
+          {allFactions.map((f) => {
+            const pct = factionControl[f.id] || 0;
+            if (pct === 0 && f.id !== planet.faction) return null;
             return (
-              <div key={faction} className="flex items-center gap-2">
+              <div key={f.id} className="flex items-center gap-2">
                 <span
                   className="w-2 h-2 flex-shrink-0"
-                  style={{ backgroundColor: FACTION_BAR_COLORS[faction], borderRadius: '50%' }}
+                  style={{ backgroundColor: getFactionBarColor(f.id), borderRadius: '50%' }}
                 />
                 <span className="text-[10px] flex-1 truncate holo-label-orbitron" style={{ color: 'var(--holo-text-muted)' }}>
-                  {FACTION_LABELS[faction]}
+                  {getFactionLabel(f.id)}
                 </span>
                 <input
                   type="range"
@@ -216,10 +221,10 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
                   max={100}
                   step={1}
                   value={pct}
-                  onChange={(e) => handleControlChange(faction, parseInt(e.target.value))}
+                  onChange={(e) => handleControlChange(f.id, parseInt(e.target.value))}
                   disabled={!editable}
                   className="holo-slider flex-shrink-0"
-                  style={{ width: '140px', accentColor: FACTION_BAR_COLORS[faction] }}
+                  style={{ width: '140px', accentColor: getFactionBarColor(f.id) }}
                 />
                 <span className="text-[10px] w-8 text-right holo-label-orbitron" style={{ color: 'var(--holo-text-primary)' }}>
                   {pct}%
@@ -228,9 +233,9 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
             );
           })}
 
-          {editable && Object.keys(FACTION_LABELS).filter(f => !factionControl[f as Faction]).length > 0 && (
+          {editable && allFactions.filter(f => !factionControl[f.id]).length > 0 && (
             <AddFactionControl
-              existingFactions={Object.keys(factionControl) as Faction[]}
+              existingFactions={Object.keys(factionControl)}
               onAdd={(faction) => handleControlChange(faction, 10)}
             />
           )}

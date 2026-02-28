@@ -6,6 +6,7 @@ import { TimelineControl } from '@/components/panels/TimelineControl';
 import { GalaxyOverview } from '@/components/panels/GalaxyOverview';
 import { CustomPlanetsPanel } from '@/components/panels/CustomPlanetsPanel';
 import { CustomFleetsPanel } from '@/components/panels/CustomFleetsPanel';
+import { FactionManagementPanel } from '@/components/panels/FactionManagementPanel';
 import { FilterControls } from '@/components/panels/FilterControls';
 
 function CurrentViewSection() {
@@ -79,6 +80,7 @@ export function ControlsPanel() {
       <GalaxyOverview />
       {isAdmin && viewMode === 'topdown' && <CustomPlanetsPanel />}
       {isAdmin && viewMode === 'topdown' && <CustomFleetsPanel />}
+      {isAdmin && viewMode === 'topdown' && <FactionManagementPanel />}
       <FilterControls />
     </div>
   );

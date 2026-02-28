@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react';
 import { useGalaxyDataStore } from '@/store/galaxyDataStore';
-import { FACTION_STAT_CONFIG } from '@/constants/factions';
+import { useFactionStore } from '@/store/factionStore';
 
 export function GalaxyOverview() {
   const systems = useGalaxyDataStore((s) => s.systems);
   const fleets = useGalaxyDataStore((s) => s.fleets);
   const getFactionStats = useGalaxyDataStore((s) => s.getFactionStats);
+  const factions = useFactionStore((s) => s.factions);
 
   const [collapsed, setCollapsed] = useState(false);
   // eslint-disable-next-line react-hooks/exhaustive-deps -- systems/fleets trigger recomputation via store
@@ -39,12 +40,13 @@ export function GalaxyOverview() {
 
       {!collapsed && (
         <div className="space-y-2">
-          {FACTION_STAT_CONFIG.map(({ key, label, color }) => {
-            const stats = factionStats[key];
+          {factions.map((f) => {
+            const stats = factionStats[f.id];
+            const color = f.barColor;
             if (!stats || (stats.planets === 0 && stats.fleets === 0 && stats.shipUnits === 0)) return null;
             return (
               <div
-                key={key}
+                key={f.id}
                 className="flex items-center gap-3 py-2 px-4"
                 style={{
                   background: 'rgba(200, 170, 110, 0.03)',
@@ -57,7 +59,7 @@ export function GalaxyOverview() {
                   style={{ backgroundColor: color, boxShadow: `0 0 0 3px ${color}40` }}
                 />
                 <span className="flex-1 text-[13px] font-medium holo-body-text" style={{ color }}>
-                  {label}
+                  {f.label}
                 </span>
                 <div className="flex gap-3 text-right">
                   <div className="text-center">

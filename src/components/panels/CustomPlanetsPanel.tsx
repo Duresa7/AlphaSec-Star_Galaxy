@@ -1,26 +1,19 @@
 import { useState } from 'react';
 import { useGalaxyUIStore } from '@/store/galaxyUIStore';
 import { useGalaxyDataStore } from '@/store/galaxyDataStore';
-import type { Faction } from '@/types';
-
-const PLANET_FACTION_OPTIONS: { value: Faction; label: string }[] = [
-  { value: 'galactic_republic', label: 'Galactic Republic' },
-  { value: 'sith_empire', label: 'Sith Empire' },
-  { value: 'hutt_cartel', label: 'Hutt Cartel' },
-  { value: 'neutral', label: 'Neutral' },
-  { value: 'contested', label: 'Contested' },
-];
+import { useFactionStore } from '@/store/factionStore';
 
 export function CustomPlanetsPanel() {
   const placementMode = useGalaxyUIStore((s) => s.placementMode);
   const setPlacementMode = useGalaxyUIStore((s) => s.setPlacementMode);
   const systems = useGalaxyDataStore((s) => s.systems);
+  const allFactions = useFactionStore((s) => s.factions);
 
   const [collapsed, setCollapsed] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newPlanetName, setNewPlanetName] = useState('');
   const [newPlanetColor, setNewPlanetColor] = useState('#4DD0E1');
-  const [newPlanetFaction, setNewPlanetFaction] = useState<Faction>('neutral');
+  const [newPlanetFaction, setNewPlanetFaction] = useState('neutral');
 
   const customCount = systems.filter(s => s.isCustom).length;
 
@@ -86,12 +79,12 @@ export function CustomPlanetsPanel() {
                 </label>
                 <select
                   value={newPlanetFaction}
-                  onChange={(e) => setNewPlanetFaction(e.target.value as Faction)}
+                  onChange={(e) => setNewPlanetFaction(e.target.value)}
                   className="holo-input w-full px-3 py-2 text-[13px]"
                 >
-                  {PLANET_FACTION_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
+                  {allFactions.map((f) => (
+                    <option key={f.id} value={f.id}>
+                      {f.label}
                     </option>
                   ))}
                 </select>
