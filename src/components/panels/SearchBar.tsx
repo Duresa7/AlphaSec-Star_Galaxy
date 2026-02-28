@@ -7,23 +7,49 @@ import type { SearchResult } from '@/types';
 export function SearchBar() {
   const searchQuery = useGalaxyUIStore((s) => s.searchQuery);
   const setSearchQuery = useGalaxyUIStore((s) => s.setSearchQuery);
-  const getSearchResults = useGalaxyDataStore((s) => s.getSearchResults);
   const systems = useGalaxyDataStore((s) => s.systems);
   const fleets = useGalaxyDataStore((s) => s.fleets);
   const setSelectedSystem = useGalaxySelectionStore((s) => s.setSelectedSystem);
   const setSelectedPlanet = useGalaxySelectionStore((s) => s.setSelectedPlanet);
   const setSelectedFleet = useGalaxySelectionStore((s) => s.setSelectedFleet);
   const setInfoPanelData = useGalaxySelectionStore((s) => s.setInfoPanelData);
+  const activeModule = useGalaxyUIStore((s) => s.activeModule);
 
-  const [collapsed, setCollapsed] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- systems/fleets/searchQuery trigger recomputation via store
-  const searchResults = useMemo(() => getSearchResults(), [searchQuery, systems, fleets, getSearchResults]);
+  const searchResults = useMemo(() => {
+    const query = searchQuery.toLowerCase().trim();
+    if (!query || query.length < 2) return [];
 
-  useEffect(() => {
-    if (collapsed) setIsSearchFocused(false);
-  }, [collapsed]);
+    const results: SearchResult[] = [];
+
+    systems.forEach((system) => {
+      if (system.name.toLowerCase().includes(query)) {
+        results.push({ type: 'system', id: system.id, name: system.name });
+      }
+
+      system.planets.forEach((planet) => {
+        if (planet.name.toLowerCase().includes(query)) {
+          results.push({
+            type: 'planet',
+            id: planet.id,
+            name: planet.name,
+            parentName: system.name,
+            parentSystemId: system.id,
+          });
+        }
+      });
+    });
+
+    fleets.forEach((fleet) => {
+      if (fleet.name.toLowerCase().includes(query)) {
+        results.push({ type: 'fleet', id: fleet.id, name: fleet.name });
+      }
+    });
+
+    return results.slice(0, 10);
+  }, [searchQuery, systems, fleets]);
+
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -65,34 +91,21 @@ export function SearchBar() {
     setIsSearchFocused(false);
   };
 
+  if (activeModule !== 'search') return null;
+
   return (
-    <div ref={searchRef} className="relative z-50">
+    <div ref={searchRef} className="absolute left-20 top-20 z-40 w-80 animate-slide-in-left">
       <div className="holo-panel">
-        <label
-          className="holo-label holo-section-header"
-          style={{ marginBottom: collapsed ? '0' : '12px' }}
-          onClick={() => setCollapsed(!collapsed)}
-        >
+        <label className="holo-label holo-section-header mb-3 pointer-events-none">
           <span className="flex items-center gap-2">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ opacity: 0.7 }}>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
-            Navigation
-          </span>
-          <span aria-hidden="true" style={{ color: 'var(--holo-amber)', opacity: 0.7 }}>
-            {collapsed ? (
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            ) : (
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            )}
+            Search Nav
           </span>
         </label>
-        {!collapsed && (
-          <div className="holo-search-wrapper">
+        
+        <div className="holo-search-wrapper">
             <svg className="holo-search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
@@ -101,14 +114,14 @@ export function SearchBar() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setIsSearchFocused(true)}
-              placeholder="Search systems, planets, fleets..."
-              className="holo-input w-full py-2.5 text-[14px]"
+              placeholder="System, planet, fleet..."
+              className="holo-input w-full py-2 text-[13px]"
+              autoFocus
             />
           </div>
-        )}
       </div>
 
-      {!collapsed && isSearchFocused && searchResults.length > 0 && (
+      {isSearchFocused && searchResults.length > 0 && (
         <div className="absolute top-full left-0 right-0 mt-2 z-50">
           <div className="holo-panel overflow-hidden">
             {searchResults.map((result) => (

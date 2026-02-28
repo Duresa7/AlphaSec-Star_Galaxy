@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useGalaxyDataStore } from '@/store/galaxyDataStore';
+import { useGalaxyUIStore } from '@/store/galaxyUIStore';
 import { useRole } from '@/hooks/useRole';
 
 export function TimelineControl() {
+  const activeModule = useGalaxyUIStore((s) => s.activeModule);
   const { isAdmin } = useRole();
   const currentYear = useGalaxyDataStore((s) => s.currentYear);
   const setCurrentYear = useGalaxyDataStore((s) => s.setCurrentYear);
 
-  const [collapsed, setCollapsed] = useState(false);
   const [yearDraft, setYearDraft] = useState(String(currentYear));
 
   useEffect(() => {
@@ -24,63 +25,47 @@ export function TimelineControl() {
     setYearDraft(String(parsed));
   }, [yearDraft, currentYear, setCurrentYear]);
 
+  if (activeModule !== 'timeline') return null;
+
   return (
-    <div className="holo-panel" style={{ marginTop: '0' }}>
-      <div>
-        <label
-          className="holo-label holo-section-header"
-          onClick={() => setCollapsed(!collapsed)}
-        >
-          <span className="flex items-center gap-2">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ opacity: 0.7 }}>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Timeline
-          </span>
-          <span aria-hidden="true" style={{ color: 'var(--holo-amber)', opacity: 0.7 }}>
-            {collapsed ? (
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+    <div className="absolute left-20 top-[60%] z-40 w-[240px] animate-slide-in-left">
+      <div className="holo-panel">
+        <div>
+          <label className="holo-label holo-section-header pointer-events-none">
+            <span className="flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ opacity: 0.7 }}>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-            ) : (
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            )}
-          </span>
-        </label>
-        {!collapsed && (
+              Timeline
+            </span>
+          </label>
           <p className="text-[14px] mt-1 holo-body-text">Old Republic Era</p>
-        )}
-      </div>
-      {!collapsed && (
-        <>
-          <div className="mt-3 flex items-center gap-2">
+        </div>
+
+        <div className="holo-year-card">
+          <div className="flex flex-col">
+            <span className="holo-year-label">Current Year</span>
             {isAdmin ? (
-              <input
-                type="number"
-                value={yearDraft}
-                onChange={(e) => setYearDraft(e.target.value)}
-                onBlur={commitYear}
-                onKeyDown={(e) => { if (e.key === 'Enter') commitYear(); }}
-                className="holo-input holo-number-input text-center"
-                style={{
-                  fontFamily: 'Orbitron, monospace',
-                  fontSize: '14px',
-                  width: '80px',
-                  padding: '4px 8px',
-                  color: 'var(--holo-amber)',
-                }}
-              />
+              <div className="holo-year-value">
+                <input
+                  type="number"
+                  value={yearDraft}
+                  onChange={(e) => setYearDraft(e.target.value)}
+                  onBlur={commitYear}
+                  onKeyDown={(e) => { if (e.key === 'Enter') commitYear(); }}
+                  className="holo-input holo-number-input holo-year-input"
+                />
+                <span className="holo-year-unit">BBY</span>
+              </div>
             ) : (
-              <span className="holo-label-orbitron" style={{ fontSize: '15px', color: 'var(--holo-amber)' }}>
-                {currentYear}
-              </span>
+              <div className="holo-year-value">
+                <span className="holo-year-number">{currentYear}</span>
+                <span className="holo-year-unit">BBY</span>
+              </div>
             )}
-            <span className="holo-label-orbitron" style={{ fontSize: '11px', color: 'var(--holo-text-muted)' }}>BBY</span>
           </div>
-        </>
-      )}
+        </div>
+      </div>
     </div>
   );
 }

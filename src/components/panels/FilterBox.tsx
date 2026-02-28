@@ -14,10 +14,11 @@ interface FilterBoxProps {
   onClick: () => void;
   label: string;
   color?: 'blue' | 'yellow' | 'red' | 'orange' | 'gray' | 'purple' | 'cyan' | 'olive';
+  hexColor?: string;
 }
 
-export function FilterBox({ active, onClick, label, color = 'blue' }: FilterBoxProps) {
-  const activeColor = FILTER_COLOR_MAP[color];
+export function FilterBox({ active, onClick, label, color = 'blue', hexColor }: FilterBoxProps) {
+  const activeColor = hexColor || FILTER_COLOR_MAP[color];
 
   return (
     <button

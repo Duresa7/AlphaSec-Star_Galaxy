@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import type {
   GalaxyDataStore,
   InfoPanelData,
-  Faction,
   SearchResult,
   Planet,
   PlanetStatsUpdate,
@@ -29,6 +28,7 @@ import { TOPDOWN_MARKER_MAX_SIZE, TOPDOWN_MARKER_MIN_SIZE } from '@/config/topDo
 import { clamp } from '@/utils/math';
 import { useGalaxySelectionStore } from './galaxySelectionStore';
 import { useGalaxyUIStore } from './galaxyUIStore';
+import { useFactionStore } from './factionStore';
 
 const cloneSystem = (system: StarSystem): StarSystem => ({
   ...system,
@@ -72,20 +72,6 @@ function getFleetsMap(fleets: Fleet[]): Map<string, Fleet> {
   return _fleetsMap;
 }
 const _pendingPlanetAudits: Map<string, { systemId: string; planetName: string; fields: Set<string> }> = new Map();
-const FACTION_KEYS: Faction[] = ['galactic_republic', 'sith_empire', 'neutral', 'contested', 'hutt_cartel'];
-const FACTION_SET = new Set<Faction>(FACTION_KEYS);
-const _unknownFactionWarnings = {
-  planet: new Set<string>(),
-  fleet: new Set<string>(),
-};
-
-const isKnownFaction = (value: string): value is Faction => FACTION_SET.has(value as Faction);
-
-const warnUnknownFaction = (kind: 'planet' | 'fleet', faction: string) => {
-  if (!import.meta.env.DEV || _unknownFactionWarnings[kind].has(faction)) return;
-  _unknownFactionWarnings[kind].add(faction);
-  console.warn(`[galaxyDataStore] Ignoring ${kind} with unknown faction "${faction}" in getFactionStats().`);
-};
 
 const shouldClearPanelForSystem = (panel: InfoPanelData | null, systemId: string): boolean => {
   if (!panel) return false;
@@ -207,7 +193,7 @@ export const useGalaxyDataStore = create<GalaxyDataStore>((set, get) => ({
     const query = searchQuery.toLowerCase().trim();
 
     return state.systems.filter((system) => {
-      if (!factionFilters[system.faction]) {
+      if (factionFilters[system.faction] === false) {
         return false;
       }
 
@@ -260,25 +246,20 @@ export const useGalaxyDataStore = create<GalaxyDataStore>((set, get) => ({
   },
   getFactionStats: () => {
     const state = get();
-    const stats = {} as Record<Faction, { planets: number; fleets: number; shipUnits: number }>;
-    for (const faction of FACTION_KEYS) {
-      stats[faction] = { planets: 0, fleets: 0, shipUnits: 0 };
+    const factionIds = useFactionStore.getState().getFactionIds();
+    const stats: Record<string, { planets: number; fleets: number; shipUnits: number }> = {};
+    for (const id of factionIds) {
+      stats[id] = { planets: 0, fleets: 0, shipUnits: 0 };
     }
     for (const system of state.systems) {
       for (const planet of system.planets) {
-        if (!isKnownFaction(planet.faction)) {
-          warnUnknownFaction('planet', planet.faction);
-          continue;
-        }
+        if (!stats[planet.faction]) stats[planet.faction] = { planets: 0, fleets: 0, shipUnits: 0 };
         stats[planet.faction].planets++;
       }
     }
     for (const fleet of state.fleets) {
-      if (!isKnownFaction(fleet.faction)) {
-        warnUnknownFaction('fleet', fleet.faction);
-        continue;
-      }
       if (!Number.isFinite(fleet.shipCount)) continue;
+      if (!stats[fleet.faction]) stats[fleet.faction] = { planets: 0, fleets: 0, shipUnits: 0 };
       stats[fleet.faction].fleets++;
       stats[fleet.faction].shipUnits += fleet.shipCount;
     }

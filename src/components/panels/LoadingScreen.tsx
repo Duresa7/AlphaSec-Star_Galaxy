@@ -7,8 +7,6 @@ export function LoadingScreen() {
 
   return (
     <div className="absolute inset-0 z-50 flex items-center justify-center" style={{ background: 'var(--holo-void)' }}>
-
-      {/* Ambient grid background */}
       <div
         className="absolute inset-0 opacity-[0.03]"
         style={{
@@ -21,8 +19,6 @@ export function LoadingScreen() {
       <div className="text-center relative z-10">
 
         <div className="relative w-28 h-28 mx-auto mb-8">
-
-          {/* Outer ring */}
           <div
             className="absolute inset-0 rounded-full"
             style={{
@@ -30,8 +26,6 @@ export function LoadingScreen() {
               animation: 'diamondSpin 6s linear infinite',
             }}
           />
-
-          {/* Second ring */}
           <div
             className="absolute rounded-full"
             style={{
@@ -40,8 +34,6 @@ export function LoadingScreen() {
               animation: 'diamondSpin 4s linear infinite reverse',
             }}
           />
-
-          {/* Third ring */}
           <div
             className="absolute rounded-full"
             style={{
@@ -50,8 +42,6 @@ export function LoadingScreen() {
               animation: 'diamondSpin 2.5s linear infinite',
             }}
           />
-
-          {/* Inner ring */}
           <div
             className="absolute rounded-full"
             style={{
@@ -60,8 +50,6 @@ export function LoadingScreen() {
               animation: 'diamondSpin 3s linear infinite reverse',
             }}
           />
-
-          {/* Center dot */}
           <div className="absolute inset-0 flex items-center justify-center">
             <div
               className="w-3 h-3 rounded-full"
@@ -73,7 +61,6 @@ export function LoadingScreen() {
           </div>
         </div>
 
-
         <h1
           className="text-2xl font-bold tracking-[0.3em] mb-2"
           style={{
@@ -83,15 +70,11 @@ export function LoadingScreen() {
         >
           GALAXY MAP
         </h1>
-
-        {/* Decorative line */}
         <div className="flex items-center justify-center gap-2 mb-4">
           <div className="h-px w-16" style={{ background: 'linear-gradient(90deg, transparent, rgba(200, 170, 110, 0.3))' }} />
           <div className="w-1 h-1 rounded-full" style={{ backgroundColor: 'var(--holo-amber)', opacity: 0.5 }} />
           <div className="h-px w-16" style={{ background: 'linear-gradient(90deg, rgba(200, 170, 110, 0.3), transparent)' }} />
         </div>
-
-        {/* Progress bar */}
         <div className="w-52 h-[2px] mx-auto mb-4 rounded-full overflow-hidden" style={{ background: 'rgba(200, 170, 110, 0.1)' }}>
           <div
             className="h-full rounded-full"

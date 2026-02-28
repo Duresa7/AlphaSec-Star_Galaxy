@@ -1,10 +1,10 @@
-import { memo, useState, useMemo } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { Html } from '@react-three/drei';
 import type { StarSystem } from '@/types';
 import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
 import { useGalaxyUIStore } from '@/store/galaxyUIStore';
 import { useGalaxyDataStore } from '@/store/galaxyDataStore';
-import { FACTION_MARKER_COLORS } from '@/constants/factions';
+import { useFactionStore } from '@/store/factionStore';
 import { useMarkerInteraction } from '@/hooks/useMarkerInteraction';
 import {
   TOPDOWN_SYSTEM_MARKER_SIZE_BY_IMPORTANCE,
@@ -28,10 +28,11 @@ const TopDownMarker = memo(function TopDownMarker({ system }: TopDownMarkerProps
   const setDraggingCustomPlanet = useGalaxyUIStore((s) => s.setDraggingCustomPlanet);
   const placementMode = useGalaxyUIStore((s) => s.placementMode);
 
+  const getFactionMarkerColor = useFactionStore((s) => s.getFactionMarkerColor);
   const primaryPlanetColor = system.planets[0]?.customColor;
   const factionColor = primaryPlanetColor
     || (system.isCustom && system.customColor ? system.customColor : null)
-    || FACTION_MARKER_COLORS[system.faction];
+    || getFactionMarkerColor(system.faction);
   const markerSize =
     system.markerSize ??
     TOPDOWN_SYSTEM_MARKER_SIZE_BY_IMPORTANCE[system.importance] ??
@@ -131,12 +132,27 @@ const TopDownMarker = memo(function TopDownMarker({ system }: TopDownMarkerProps
 export { TopDownMarker };
 
 export function TopDownMarkers() {
-  const getFilteredSystems = useGalaxyDataStore((s) => s.getFilteredSystems);
   const allSystems = useGalaxyDataStore((s) => s.systems);
   const searchQuery = useGalaxyUIStore((s) => s.searchQuery);
   const factionFilters = useGalaxyUIStore((s) => s.factionFilters);
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- allSystems/searchQuery/factionFilters trigger recomputation via store
-  const systems = useMemo(() => getFilteredSystems(), [getFilteredSystems, allSystems, searchQuery, factionFilters]);
+  const systems = useMemo(() => {
+    const query = searchQuery.toLowerCase().trim();
+
+    return allSystems.filter((system) => {
+      if (factionFilters[system.faction] === false) {
+        return false;
+      }
+
+      if (!query) {
+        return true;
+      }
+
+      const matchesName = system.name.toLowerCase().includes(query);
+      const matchesRegion = system.region.replace('_', ' ').toLowerCase().includes(query);
+      const matchesPlanet = system.planets.some((planet) => planet.name.toLowerCase().includes(query));
+      return matchesName || matchesRegion || matchesPlanet;
+    });
+  }, [allSystems, searchQuery, factionFilters]);
 
   return (
     <>

@@ -6,7 +6,7 @@ import type { Fleet } from '@/types';
 import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
 import { useGalaxyUIStore } from '@/store/galaxyUIStore';
 import { useGalaxyDataStore } from '@/store/galaxyDataStore';
-import { FACTION_MARKER_COLORS } from '@/constants/factions';
+import { useFactionStore } from '@/store/factionStore';
 import { useMarkerInteraction } from '@/hooks/useMarkerInteraction';
 import { ShipModel } from '@/components/three/ModelLoader';
 import { DEFAULT_TOPDOWN_FLEET_MARKER_SIZE } from '@/config/topDownMarkerConfig';
@@ -42,7 +42,8 @@ const FleetMarker = memo(function FleetMarker({ fleet }: FleetMarkerProps) {
   const setDraggingCustomFleet = useGalaxyUIStore((s) => s.setDraggingCustomFleet);
   const fleetPlacementMode = useGalaxyUIStore((s) => s.fleetPlacementMode);
 
-  const color = FACTION_MARKER_COLORS[fleet.faction];
+  const getFactionMarkerColor = useFactionStore((s) => s.getFactionMarkerColor);
+  const color = getFactionMarkerColor(fleet.faction);
   const shipType = fleet.modelType;
   const markerSize = fleet.markerSize ?? DEFAULT_TOPDOWN_FLEET_MARKER_SIZE;
   const markerScale = markerSize / DEFAULT_TOPDOWN_FLEET_MARKER_SIZE;
