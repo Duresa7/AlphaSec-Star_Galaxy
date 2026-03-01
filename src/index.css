@@ -218,8 +218,47 @@ body {
 .animate-slide-in-right {
   animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+@keyframes slideInRightSubtle {
+  from {
+    transform: translateX(8px);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-right-subtle {
+  animation: slideInRightSubtle 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
 .animate-slide-in-left {
   animation: slideInLeft 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideInLeftSubtle {
+  from {
+    transform: translateX(-8px);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-left-subtle {
+  animation: slideInLeftSubtle 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideUpSubtle {
+  from {
+    transform: translateX(-50%) translateY(8px);
+  }
+  to {
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.animate-slide-up-subtle {
+  animation: slideUpSubtle 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 .holo-panel {
   position: relative;
@@ -228,9 +267,9 @@ body {
   -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
-  padding: 20px;
+  padding: 24px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.5), 0 0 16px rgba(0, 0, 0, 0.2);
   transition: border-color 0.3s ease;
 }
 
@@ -579,6 +618,38 @@ body {
   gap: 6px;
 }
 
+.holo-stat-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  transition: all 0.2s ease;
+}
+
+.holo-stat-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.holo-stat-label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+}
+
+.holo-stat-value {
+  font-size: 16px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.2;
+}
+
 .holo-year-input {
   width: 70px;
   padding: 2px 6px;
@@ -768,6 +839,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
+  padding-right: 4px;
 }
 
 .holo-faction-name {
@@ -781,8 +853,8 @@ body {
 }
 
 .holo-faction-slider {
-  width: 140px;
-  flex-shrink: 0;
+  flex: 1;
+  min-width: 0;
 }
 
 .holo-faction-value {

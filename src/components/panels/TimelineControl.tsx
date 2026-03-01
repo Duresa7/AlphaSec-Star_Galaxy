@@ -28,7 +28,7 @@ export function TimelineControl() {
   if (activeModule !== 'timeline') return null;
 
   return (
-    <div className="absolute left-20 top-[60%] z-40 w-[240px] animate-slide-in-left">
+    <div className="absolute left-20 top-[60%] z-40 w-[240px] animate-slide-in-left-subtle">
       <div className="holo-panel">
         <div>
           <label className="holo-label holo-section-header pointer-events-none">

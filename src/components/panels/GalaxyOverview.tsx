@@ -38,7 +38,7 @@ export function GalaxyOverview() {
   if (activeModule !== 'overview') return null;
 
   return (
-    <div className="absolute left-20 top-20 z-40 w-80 animate-slide-in-left">
+    <div className="absolute left-20 top-20 z-40 w-80 animate-slide-in-left-subtle">
       <div className="holo-panel">
         <label className="holo-label holo-section-header mb-3 pointer-events-none">
           <span className="flex items-center gap-2">

@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import type { Planet, PlanetType } from '@/types';
 import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
 import { useGalaxyDataStore } from '@/store/galaxyDataStore';
 import { useFactionStore } from '@/store/factionStore';
-import { EditableInfoRow, AddFactionControl } from '@/components/panels/infoPanelShared';
+import { EditableStatCard, AddFactionControl } from '@/components/panels/infoPanelShared';
 import { PLANET_APPEARANCES } from '@/components/galaxy/SystemDetailView';
 import { normalizeFactionControl } from '@/utils/factionControl';
 import {
@@ -11,104 +11,175 @@ import {
   DEFAULT_TOPDOWN_SYSTEM_MARKER_SIZE,
 } from '@/config/topDownMarkerConfig';
 
-export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boolean }) {
+const PLANET_TYPE_COLORS: Record<string, string> = {
+  terrestrial: 'text-green-400',
+  gas_giant: 'text-orange-300',
+  ice: 'text-blue-200',
+  desert: 'text-yellow-600',
+  volcanic: 'text-red-500',
+  ocean: 'text-blue-400',
+  jungle: 'text-green-500',
+  city: 'text-gray-300',
+  barren: 'text-gray-500',
+  destroyed: 'text-red-400',
+};
+
+const DESCRIPTION_EXPAND_THRESHOLD = 100;
+
+const POI_EXPAND_THRESHOLD = 6;
+
+const SECTION_LABEL = 'holo-label tracking-widest text-white/50 text-[10px] uppercase';
+const EDIT_TOGGLE_BTN =
+  'text-[10px] uppercase tracking-wider text-white/30 hover:text-white/70 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100';
+const SAVE_BTN_BASE = 'px-3 py-1 text-[11px] border rounded transition-colors uppercase tracking-wider';
+const CANCEL_BTN = 'px-3 py-1 text-[11px] text-white/50 hover:text-white transition-colors uppercase tracking-wider';
+
+interface PlanetInfoProps {
+  planet: Planet;
+  editable: boolean;
+}
+
+export function PlanetInfo({ planet, editable }: PlanetInfoProps) {
   const updatePlanetStats = useGalaxyDataStore((s) => s.updatePlanetStats);
   const systems = useGalaxyDataStore((s) => s.systems);
   const updateCustomSystemMarkerSize = useGalaxyDataStore((s) => s.updateCustomSystemMarkerSize);
-  const viewMode = useGalaxySelectionStore((s) => s.viewMode);
   const removeCustomSystem = useGalaxyDataStore((s) => s.removeCustomSystem);
+
+  const viewMode = useGalaxySelectionStore((s) => s.viewMode);
   const setInfoPanelData = useGalaxySelectionStore((s) => s.setInfoPanelData);
   const setSelectedSystem = useGalaxySelectionStore((s) => s.setSelectedSystem);
   const setSelectedPlanet = useGalaxySelectionStore((s) => s.setSelectedPlanet);
+
   const allFactions = useFactionStore((s) => s.factions);
   const getFactionLabel = useFactionStore((s) => s.getFactionLabel);
   const getFactionBarColor = useFactionStore((s) => s.getFactionBarColor);
   const getFactionIds = useFactionStore((s) => s.getFactionIds);
 
-  const [editingPopulation, setEditingPopulation] = useState(false);
-  const [populationDraft, setPopulationDraft] = useState(planet.population || '');
-  const [editingDescription, setEditingDescription] = useState(false);
-  const [descriptionDraft, setDescriptionDraft] = useState(planet.description || '');
   const [editingClimate, setEditingClimate] = useState(false);
   const [climateDraft, setClimateDraft] = useState(planet.climate || '');
+
   const [editingTerrain, setEditingTerrain] = useState(false);
   const [terrainDraft, setTerrainDraft] = useState(planet.terrain || '');
+
   const [editingInhabitants, setEditingInhabitants] = useState(false);
   const [inhabitantsDraft, setInhabitantsDraft] = useState(planet.nativeInhabitants || '');
+
+  const [editingPopulation, setEditingPopulation] = useState(false);
+  const [populationDraft, setPopulationDraft] = useState(planet.population || '');
+
+  const [editingDescription, setEditingDescription] = useState(false);
+  const [descriptionDraft, setDescriptionDraft] = useState(planet.description || '');
+
   const [editingNotable, setEditingNotable] = useState(false);
   const [notableDraft, setNotableDraft] = useState((planet.notable || []).join(', '));
 
-  const planetTypeColors: Record<string, string> = {
-    terrestrial: 'text-green-400',
-    gas_giant: 'text-orange-300',
-    ice: 'text-blue-200',
-    desert: 'text-yellow-600',
-    volcanic: 'text-red-500',
-    ocean: 'text-blue-400',
-    jungle: 'text-green-500',
-    city: 'text-gray-300',
-    barren: 'text-gray-500',
-    destroyed: 'text-red-400',
-  };
+  const [expandedRecord, setExpandedRecord] = useState(false);
+  const [expandedPOI, setExpandedPOI] = useState(false);
+  const [editingFaction, setEditingFaction] = useState(false);
 
   const factionControl = planet.factionControl || { [planet.faction]: 100 };
   const system = systems.find((s) => s.id === planet.systemId);
+
   const markerSize =
     system?.markerSize ??
-    (system ? TOPDOWN_SYSTEM_MARKER_SIZE_BY_IMPORTANCE[system.importance] : DEFAULT_TOPDOWN_SYSTEM_MARKER_SIZE);
+    (system
+      ? TOPDOWN_SYSTEM_MARKER_SIZE_BY_IMPORTANCE[system.importance]
+      : DEFAULT_TOPDOWN_SYSTEM_MARKER_SIZE);
 
-  const handlePopulationSave = () => {
-    updatePlanetStats(planet.systemId, planet.id, { population: populationDraft });
-    setEditingPopulation(false);
-  };
+  const sortedFactions = useMemo(
+    () =>
+      (Object.entries(factionControl) as [string, number][])
+        .filter(([, v]) => v > 0)
+        .sort(([, a], [, b]) => b - a),
+    [factionControl],
+  );
 
-  const handleControlChange = (faction: string, value: number) => {
-    const updated = normalizeFactionControl({
-      current: factionControl,
-      editedFaction: faction,
-      editedValue: value,
-      factionOrder: getFactionIds(),
-    });
-    const cleaned: Partial<Record<string, number>> = {};
-    for (const [f, v] of Object.entries(updated)) {
-      if (v && v > 0) cleaned[f] = v;
-    }
+  const defaultPlanetColor = useMemo(
+    () => (PLANET_APPEARANCES[planet.type as PlanetType] || PLANET_APPEARANCES.terrestrial).color,
+    [planet.type],
+  );
 
-    let dominantFaction: string = planet.faction;
-    let maxPct = 0;
-    for (const [f, v] of Object.entries(cleaned) as [string, number][]) {
-      if (v > maxPct) {
-        maxPct = v;
-        dominantFaction = f;
+  const badgeColorClass = PLANET_TYPE_COLORS[planet.type] ?? 'text-gray-400';
+  const badgeBorderClass = PLANET_TYPE_COLORS[planet.type] ? 'border-current/30' : 'border-white/10';
+
+  const updateStats = useCallback(
+    (patch: Parameters<typeof updatePlanetStats>[2]) => {
+      updatePlanetStats(planet.systemId, planet.id, patch);
+    },
+    [updatePlanetStats, planet.systemId, planet.id],
+  );
+
+  const handleControlChange = useCallback(
+    (faction: string, value: number) => {
+      const updated = normalizeFactionControl({
+        current: factionControl,
+        editedFaction: faction,
+        editedValue: value,
+        factionOrder: getFactionIds(),
+      });
+
+      const cleaned: Partial<Record<string, number>> = {};
+      for (const [f, v] of Object.entries(updated)) {
+        if (v && v > 0) cleaned[f] = v;
       }
-    }
 
-    updatePlanetStats(planet.systemId, planet.id, {
-      factionControl: cleaned,
-      faction: dominantFaction,
-    });
-  };
+      let dominantFaction = planet.faction;
+      let maxPct = 0;
+      for (const [f, v] of Object.entries(cleaned) as [string, number][]) {
+        if (v > maxPct) {
+          maxPct = v;
+          dominantFaction = f;
+        }
+      }
+
+      updateStats({ factionControl: cleaned, faction: dominantFaction });
+    },
+    [factionControl, getFactionIds, planet.faction, updateStats],
+  );
+
+  const handleDeletePlanet = useCallback(() => {
+    removeCustomSystem(planet.systemId);
+    setInfoPanelData(null);
+    setSelectedPlanet(null);
+    setSelectedSystem(null);
+  }, [removeCustomSystem, planet.systemId, setInfoPanelData, setSelectedPlanet, setSelectedSystem]);
+
+  const parseNotable = (raw: string) =>
+    raw.split(',').map((s) => s.trim()).filter(Boolean);
 
   return (
     <div className="space-y-4">
 
-      <div className="pb-3">
-        <h2 className="text-xl font-semibold mb-2 holo-heading">{planet.name}</h2>
-        <span className={`holo-badge border border-white/10 bg-white/5 ${planetTypeColors[planet.type] || 'text-gray-400'}`}>
-          {planet.type.replace('_', ' ')} World
-        </span>
+      {/* ── 1. Header ────────────────────────────────────────────────────── */}
+      <div className="pb-8 pt-2">
+        <h2 className="text-3xl font-bold mb-3 tracking-wide text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
+          {planet.name}
+        </h2>
+        <div className="flex items-center gap-3">
+          <span
+            className={`holo-badge border px-3 py-1 font-semibold tracking-wider text-[11px] uppercase bg-white/5 ${badgeColorClass} ${badgeBorderClass}`}
+          >
+            {planet.type.replace('_', ' ')}
+          </span>
+          <div
+            className="holo-faction-territory text-[12px] font-medium tracking-wide flex items-center gap-2"
+            style={{ color: getFactionBarColor(planet.faction) }}
+          >
+            <span
+              className="w-2.5 h-2.5 rounded-full shadow-[0_0_8px_currentColor]"
+              style={{ backgroundColor: getFactionBarColor(planet.faction) }}
+            />
+            {getFactionLabel(planet.faction)}
+          </div>
+        </div>
       </div>
 
-      <div className="holo-divider" />
+      <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent mt-4 mb-6" />
 
-      <div className="holo-faction-territory" style={{ color: getFactionBarColor(planet.faction) }}>
-        <span className="holo-faction-dot" style={{ backgroundColor: getFactionBarColor(planet.faction) }} />
-        {getFactionLabel(planet.faction)} Territory
-      </div>
-
-      <div className="holo-info-grid space-y-2">
-        <EditableInfoRow
-          label="Climate"
+      {/* ── 2. Stats Grid ────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 gap-4 pb-8">
+        <EditableStatCard
+          label="CLIMATE"
           value={planet.climate || ''}
           placeholder="Unknown"
           editable={editable}
@@ -116,11 +187,11 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
           draft={climateDraft}
           onStartEdit={() => { setClimateDraft(planet.climate || ''); setEditingClimate(true); }}
           onDraftChange={setClimateDraft}
-          onSave={() => { updatePlanetStats(planet.systemId, planet.id, { climate: climateDraft }); setEditingClimate(false); }}
+          onSave={() => { updateStats({ climate: climateDraft }); setEditingClimate(false); }}
           onCancel={() => setEditingClimate(false)}
         />
-        <EditableInfoRow
-          label="Terrain"
+        <EditableStatCard
+          label="TERRAIN"
           value={planet.terrain || ''}
           placeholder="Unknown"
           editable={editable}
@@ -128,11 +199,11 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
           draft={terrainDraft}
           onStartEdit={() => { setTerrainDraft(planet.terrain || ''); setEditingTerrain(true); }}
           onDraftChange={setTerrainDraft}
-          onSave={() => { updatePlanetStats(planet.systemId, planet.id, { terrain: terrainDraft }); setEditingTerrain(false); }}
+          onSave={() => { updateStats({ terrain: terrainDraft }); setEditingTerrain(false); }}
           onCancel={() => setEditingTerrain(false)}
         />
-        <EditableInfoRow
-          label="Native Inhabitants"
+        <EditableStatCard
+          label="NATIVE INHABITANTS"
           value={planet.nativeInhabitants || ''}
           placeholder="Unknown"
           editable={editable}
@@ -140,11 +211,11 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
           draft={inhabitantsDraft}
           onStartEdit={() => { setInhabitantsDraft(planet.nativeInhabitants || ''); setEditingInhabitants(true); }}
           onDraftChange={setInhabitantsDraft}
-          onSave={() => { updatePlanetStats(planet.systemId, planet.id, { nativeInhabitants: inhabitantsDraft }); setEditingInhabitants(false); }}
+          onSave={() => { updateStats({ nativeInhabitants: inhabitantsDraft }); setEditingInhabitants(false); }}
           onCancel={() => setEditingInhabitants(false)}
         />
-        <EditableInfoRow
-          label="Population"
+        <EditableStatCard
+          label="POPULATION"
           value={planet.population || ''}
           placeholder="Unknown"
           editable={editable}
@@ -152,19 +223,20 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
           draft={populationDraft}
           onStartEdit={() => { setPopulationDraft(planet.population || ''); setEditingPopulation(true); }}
           onDraftChange={setPopulationDraft}
-          onSave={() => { handlePopulationSave(); }}
+          onSave={() => { updateStats({ population: populationDraft }); setEditingPopulation(false); }}
           onCancel={() => setEditingPopulation(false)}
         />
       </div>
 
+      {/* ── 3. Planet Color (admin-only) ─────────────────────────────────── */}
       {editable && (
-        <div>
-          <label className="holo-label holo-section-label">Planet Color</label>
-          <div className="flex items-center gap-3 mt-2">
+        <div className="pt-6">
+          <label className={SECTION_LABEL}>Planet Color</label>
+          <div className="flex items-center gap-3 mt-4">
             <input
               type="color"
-              value={planet.customColor || (PLANET_APPEARANCES[planet.type as PlanetType] || PLANET_APPEARANCES.terrestrial).color}
-              onChange={(e) => updatePlanetStats(planet.systemId, planet.id, { customColor: e.target.value })}
+              value={planet.customColor || defaultPlanetColor}
+              onChange={(e) => updateStats({ customColor: e.target.value })}
               className="holo-color-input"
             />
             <span className="holo-color-mode-label">
@@ -172,7 +244,7 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
             </span>
             {planet.customColor && (
               <button
-                onClick={() => updatePlanetStats(planet.systemId, planet.id, { customColor: null })}
+                onClick={() => updateStats({ customColor: null })}
                 className="holo-inline-link"
               >
                 Reset
@@ -182,66 +254,98 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
         </div>
       )}
 
-      <div>
-        <label className="holo-label holo-section-label">Faction Control</label>
-
-        <div className="holo-control-meter">
-          {(Object.entries(factionControl) as [string, number][])
-            .filter(([, v]) => v > 0)
-            .map(([faction, pct]) => (
-              <div
-                key={faction}
-                className="holo-control-segment"
-                style={{
-                  width: `${pct}%`,
-                  backgroundColor: getFactionBarColor(faction),
-                }}
-              />
-            ))}
-        </div>
-
-        <div className="space-y-2 mt-3">
-          {allFactions.map((f) => {
-            const pct = factionControl[f.id] || 0;
-            if (pct === 0 && f.id !== planet.faction) return null;
-            return (
-              <div key={f.id} className="holo-faction-row">
-                <span
-                  className="holo-faction-dot"
-                  style={{ backgroundColor: getFactionBarColor(f.id) }}
-                />
-                <span className="holo-faction-name">
-                  {getFactionLabel(f.id)}
-                </span>
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  step={1}
-                  value={pct}
-                  onChange={(e) => handleControlChange(f.id, parseInt(e.target.value))}
-                  disabled={!editable}
-                  className="holo-slider holo-faction-slider"
-                  style={{ accentColor: getFactionBarColor(f.id) }}
-                />
-                <span className="holo-faction-value">
-                  {pct}%
-                </span>
-              </div>
-            );
-          })}
-
-          {editable && allFactions.filter(f => !factionControl[f.id]).length > 0 && (
-            <AddFactionControl
-              existingFactions={Object.keys(factionControl)}
-              onAdd={(faction) => handleControlChange(faction, 10)}
-            />
+      {/* ── 4. Faction Control ───────────────────────────────────────────── */}
+      <div className="pt-8 pb-8 group">
+        <div className="flex justify-between items-center mb-8">
+          <h3 className={SECTION_LABEL}>Faction Control</h3>
+          {editable && (
+            <button onClick={() => setEditingFaction(!editingFaction)} className={EDIT_TOGGLE_BTN}>
+              {editingFaction ? 'Done' : 'Edit Influence'}
+            </button>
           )}
         </div>
+
+        {/* Influence bar */}
+        <div className="holo-control-meter h-1.5 rounded-full overflow-hidden bg-white/5 mb-3 flex">
+          {sortedFactions.map(([faction, pct]) => (
+            <div
+              key={faction}
+              className="h-full transition-all duration-500 ease-out shadow-[0_0_10px_currentColor]"
+              style={{
+                width: `${pct}%`,
+                backgroundColor: getFactionBarColor(faction),
+                color: getFactionBarColor(faction),
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Summary vs. Edit mode */}
+        {!editingFaction ? (
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
+            {sortedFactions.map(([faction, pct]) => (
+              <div key={faction} className="flex items-center gap-1.5 text-[12px]">
+                <span
+                  className="w-1.5 h-1.5 rounded-full shadow-[0_0_4px_currentColor]"
+                  style={{ backgroundColor: getFactionBarColor(faction), color: getFactionBarColor(faction) }}
+                />
+                <span className="text-white/60">{getFactionLabel(faction)}</span>
+                <span className="font-semibold" style={{ color: getFactionBarColor(faction) }}>{pct}%</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-3 mt-4">
+            {allFactions.map((f) => {
+              const pct = factionControl[f.id] || 0;
+              if (pct === 0 && f.id !== planet.faction) return null;
+
+              return (
+                <div key={f.id} className="flex flex-col gap-1.5">
+                  <div className="flex justify-between items-center text-[12px]">
+                    <span className="flex items-center gap-1.5">
+                      <span
+                        className="w-1.5 h-1.5 rounded-full shadow-[0_0_4px_currentColor]"
+                        style={{ backgroundColor: getFactionBarColor(f.id), color: getFactionBarColor(f.id) }}
+                      />
+                      <span className="text-white/80">{getFactionLabel(f.id)}</span>
+                    </span>
+                    <span className="font-bold" style={{ color: getFactionBarColor(f.id) }}>
+                      {pct}%
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    step={1}
+                    value={pct}
+                    onChange={(e) => handleControlChange(f.id, parseInt(e.target.value))}
+                    className="holo-slider w-full"
+                    style={{ accentColor: getFactionBarColor(f.id) }}
+                  />
+                </div>
+              );
+            })}
+
+            {allFactions.filter((f) => !factionControl[f.id]).length > 0 && (
+              <div className="pt-2">
+                <AddFactionControl
+                  existingFactions={Object.keys(factionControl)}
+                  onAdd={(faction) => handleControlChange(faction, 10)}
+                />
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
-      <div>
-        <label className="holo-label holo-section-label-tight">Description</label>
+      {/* ── 5. Planetary Record ──────────────────────────────────────────── */}
+      <div className="pt-8 group">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className={SECTION_LABEL}>Planetary Record</h3>
+        </div>
+
         {editable && editingDescription ? (
           <div className="mt-1">
             <textarea
@@ -250,47 +354,55 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
-                  updatePlanetStats(planet.systemId, planet.id, { description: descriptionDraft });
+                  updateStats({ description: descriptionDraft });
                   setEditingDescription(false);
                 }
                 if (e.key === 'Escape') setEditingDescription(false);
               }}
               autoFocus
-              rows={3}
-              className="holo-input holo-field-textarea w-full"
+              rows={4}
+              className="holo-input holo-field-textarea w-full text-[14px] leading-relaxed p-3 bg-white/[0.02] border-white/5 focus:border-white/20 transition-colors"
             />
-            <div className="holo-edit-actions">
-              <button
-                onClick={() => { updatePlanetStats(planet.systemId, planet.id, { description: descriptionDraft }); setEditingDescription(false); }}
-                className="holo-edit-action holo-edit-action-save"
-              >
-                Save
+            <div className="flex gap-2 justify-end mt-2">
+              <button onClick={() => setEditingDescription(false)} className={CANCEL_BTN}>
+                Cancel
               </button>
               <button
-                onClick={() => setEditingDescription(false)}
-                className="holo-edit-action holo-edit-action-cancel"
+                onClick={() => { updateStats({ description: descriptionDraft }); setEditingDescription(false); }}
+                className={`${SAVE_BTN_BASE} bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 border-amber-500/20`}
               >
-                Cancel
+                Save
               </button>
             </div>
           </div>
         ) : (
-          <p
-            onClick={editable ? () => {
-              setDescriptionDraft(planet.description || '');
-              setEditingDescription(true);
-            } : undefined}
-            className={`text-sm leading-relaxed holo-body-text holo-editable-text${editable ? ' cursor-pointer hover:underline' : ''}`}
-            title={editable ? 'Click to edit' : undefined}
-          >
-            {planet.description || 'No description'}
-          </p>
+          <div>
+            <div
+              onClick={editable ? () => { setDescriptionDraft(planet.description || ''); setEditingDescription(true); } : undefined}
+              className={`text-[13px] leading-relaxed text-white/80 ${
+                !expandedRecord ? 'line-clamp-2' : ''
+              } ${editable ? 'cursor-text hover:text-white transition-colors' : ''}`}
+              title={editable ? 'Click to edit' : undefined}
+            >
+              {planet.description || <span className="text-white/30 italic">No planetary records found.</span>}
+            </div>
+
+            {planet.description && planet.description.length > DESCRIPTION_EXPAND_THRESHOLD && (
+              <button
+                onClick={() => setExpandedRecord(!expandedRecord)}
+                className="text-[10px] text-amber-500/70 hover:text-amber-400 uppercase tracking-widest mt-1.5 transition-colors"
+              >
+                {expandedRecord ? 'Show Less' : 'Read More'}
+              </button>
+            )}
+          </div>
         )}
       </div>
 
+      {/* ── 6. Top-Down Marker Size (admin + topdown only) ───────────────── */}
       {editable && viewMode === 'topdown' && (
-        <div>
-          <label className="holo-label holo-section-label">Top-Down Marker Size</label>
+        <div className="pt-8">
+          <label className={`${SECTION_LABEL} mb-4 block`}>Top-Down Marker Size</label>
           <div className="flex items-center gap-2">
             <input
               type="range"
@@ -301,15 +413,17 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
               onChange={(e) => updateCustomSystemMarkerSize(planet.systemId, parseFloat(e.target.value))}
               className="holo-slider flex-1"
             />
-            <span className="holo-marker-value">
-              {markerSize.toFixed(1)}
-            </span>
+            <span className="holo-marker-value">{markerSize.toFixed(1)}</span>
           </div>
         </div>
       )}
 
-      <div>
-        <label className="holo-label holo-section-label">Points of Interest</label>
+      {/* ── 7. Points of Interest ────────────────────────────────────────── */}
+      <div className="pt-8 group">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className={SECTION_LABEL}>Points of Interest</h3>
+        </div>
+
         {editable && editingNotable ? (
           <div className="mt-1">
             <input
@@ -318,66 +432,71 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
               onChange={(e) => setNotableDraft(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
-                  const locations = notableDraft.split(',').map(s => s.trim()).filter(Boolean);
-                  updatePlanetStats(planet.systemId, planet.id, { notable: locations });
+                  updateStats({ notable: parseNotable(notableDraft) });
                   setEditingNotable(false);
                 }
                 if (e.key === 'Escape') setEditingNotable(false);
               }}
               autoFocus
-              placeholder="Location 1, Location 2, ..."
-              className="holo-input holo-field-input w-full text-sm"
+              placeholder="Coordinates / Locations (comma separated)"
+              className="holo-input holo-field-input w-full text-[13px] p-2 bg-white/[0.02] border-white/5 focus:border-white/20 transition-colors"
             />
-            <div className="holo-edit-actions">
-              <button
-                onClick={() => {
-                  const locations = notableDraft.split(',').map(s => s.trim()).filter(Boolean);
-                  updatePlanetStats(planet.systemId, planet.id, { notable: locations });
-                  setEditingNotable(false);
-                }}
-                className="holo-edit-action holo-edit-action-save"
-              >
-                Save
+            <div className="flex gap-2 justify-end mt-2">
+              <button onClick={() => setEditingNotable(false)} className={CANCEL_BTN}>
+                Cancel
               </button>
               <button
-                onClick={() => setEditingNotable(false)}
-                className="holo-edit-action holo-edit-action-cancel"
+                onClick={() => { updateStats({ notable: parseNotable(notableDraft) }); setEditingNotable(false); }}
+                className={`${SAVE_BTN_BASE} bg-cyan-500/10 text-cyan-500 hover:bg-cyan-500/20 border-cyan-500/20`}
               >
-                Cancel
+                Save
               </button>
             </div>
           </div>
         ) : (
-          <div
-            onClick={editable ? () => {
-              setNotableDraft((planet.notable || []).join(', '));
-              setEditingNotable(true);
-            } : undefined}
-            className={editable ? 'cursor-pointer' : ''}
-            title={editable ? 'Click to edit' : undefined}
-          >
-            {planet.notable && planet.notable.length > 0 ? (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {planet.notable.map((loc, i) => (
-                  <span
-                    key={i}
-                    className="holo-badge bg-cyan-900/30 border border-cyan-500/30 text-cyan-200"
-                  >
-                    {loc}
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <span className="text-[11px] holo-body-text">
-                {editable ? 'Click to add locations' : 'No known locations'}
-              </span>
+          <div>
+            <div
+              onClick={editable ? () => { setNotableDraft((planet.notable || []).join(', ')); setEditingNotable(true); } : undefined}
+              className={`min-h-[1.5rem] ${editable ? 'cursor-text' : ''}`}
+              title={editable ? 'Click to edit' : undefined}
+            >
+              {planet.notable && planet.notable.length > 0 ? (
+                <div className={`flex flex-wrap gap-2 ${!expandedPOI ? 'max-h-[56px] overflow-hidden' : ''}`}>
+                  {planet.notable.map((loc, i) => (
+                    <span
+                      key={i}
+                      className="px-2.5 py-1 text-[12px] rounded bg-white/[0.03] border border-white/5 text-white/70 flex items-center gap-1.5 transition-colors hover:text-white hover:bg-white/[0.06]"
+                    >
+                      <svg className="w-3 h-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      {loc}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <span className="text-white/30 italic text-[13px]">
+                  {editable ? 'Click to register locations...' : 'No surface data available.'}
+                </span>
+              )}
+            </div>
+
+            {planet.notable && planet.notable.length > POI_EXPAND_THRESHOLD && (
+              <button
+                onClick={() => setExpandedPOI(!expandedPOI)}
+                className="text-[10px] text-cyan-500/70 hover:text-cyan-400 uppercase tracking-widest mt-2 transition-colors"
+              >
+                {expandedPOI ? 'Show Less' : `View All ${planet.notable.length} Locations`}
+              </button>
             )}
           </div>
         )}
       </div>
 
+      {/* ── 8. Alerts ────────────────────────────────────────────────────── */}
       {planet.type === 'destroyed' && (
-        <div className="holo-info-grid holo-info-grid-danger">
+        <div className="holo-info-grid holo-info-grid-danger mt-4">
           <div className="holo-alert-row holo-alert-danger">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -390,7 +509,7 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
       )}
 
       {planet.type === 'volcanic' && (
-        <div className="holo-info-grid holo-info-grid-warning">
+        <div className="holo-info-grid holo-info-grid-warning mt-4">
           <div className="holo-alert-row holo-alert-warning">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -402,18 +521,16 @@ export function PlanetInfo({ planet, editable }: { planet: Planet; editable: boo
         </div>
       )}
 
+      {/* ── 9. Danger Zone (admin + custom only) ─────────────────────────── */}
       {editable && system?.isCustom && (
-        <button
-          onClick={() => {
-            removeCustomSystem(planet.systemId);
-            setInfoPanelData(null);
-            setSelectedPlanet(null);
-            setSelectedSystem(null);
-          }}
-          className="holo-button holo-button-danger holo-button-sm w-full mt-2"
-        >
-          Delete Custom Planet
-        </button>
+        <div className="mt-12 pt-8 pb-4 text-center opacity-30 hover:opacity-100 transition-opacity duration-300">
+          <button
+            onClick={handleDeletePlanet}
+            className="text-[10px] text-red-500 hover:text-red-400 uppercase tracking-widest font-semibold"
+          >
+            Delete Custom Planet
+          </button>
+        </div>
       )}
     </div>
   );

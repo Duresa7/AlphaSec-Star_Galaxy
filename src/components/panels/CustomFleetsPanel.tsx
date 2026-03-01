@@ -9,7 +9,6 @@ export function CustomFleetsPanel() {
   const setFleetPlacementMode = useGalaxyUIStore((s) => s.setFleetPlacementMode);
   const fleets = useGalaxyDataStore((s) => s.fleets);
 
-  const [collapsed, setCollapsed] = useState(false);
   const [showFleetModal, setShowFleetModal] = useState(false);
 
   const customCount = fleets.filter(f => f.isCustom).length;
@@ -18,7 +17,6 @@ export function CustomFleetsPanel() {
     <div className="holo-panel holo-panel-reset">
       <label
         className="holo-label holo-section-header"
-        onClick={() => setCollapsed(!collapsed)}
       >
         <span className="flex items-center gap-2">
           <svg className="w-4 h-4 holo-icon-dim" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -26,21 +24,8 @@ export function CustomFleetsPanel() {
           </svg>
           Custom Fleets
         </span>
-        <span aria-hidden="true" className="holo-chevron-crimson">
-          {collapsed ? (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          ) : (
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          )}
-        </span>
       </label>
 
-      {!collapsed && (
-        <>
           {fleetPlacementMode && (
             <div className="holo-placement-notice">
               <p className="holo-placement-notice-text animate-pulse">
@@ -88,8 +73,6 @@ export function CustomFleetsPanel() {
               {customCount} custom fleet{customCount !== 1 ? 's' : ''} placed
             </p>
           )}
-        </>
-      )}
     </div>
   );
 }

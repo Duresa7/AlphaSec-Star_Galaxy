@@ -23,7 +23,7 @@ export function MapControlsPanel() {
   if (activeModule !== 'mapControls') return null;
 
   return (
-    <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-40 w-96 animate-slide-in-right">
+    <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-40 w-96 animate-slide-up-subtle">
       <div className="holo-panel">
         <label className="holo-label holo-section-header mb-4 pointer-events-none">
           <span className="flex items-center gap-2">
