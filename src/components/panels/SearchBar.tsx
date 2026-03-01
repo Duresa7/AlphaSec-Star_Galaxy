@@ -50,7 +50,6 @@ export function SearchBar() {
     return results.slice(0, 10);
   }, [searchQuery, systems, fleets]);
 
-
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
@@ -94,7 +93,7 @@ export function SearchBar() {
   if (activeModule !== 'search') return null;
 
   return (
-    <div ref={searchRef} className="absolute left-20 top-20 z-40 w-80 animate-slide-in-left">
+    <div ref={searchRef} className="absolute left-20 top-20 z-40 w-80 animate-slide-in-left-subtle">
       <div className="holo-panel">
         <label className="holo-label holo-section-header mb-3 pointer-events-none">
           <span className="flex items-center gap-2">
