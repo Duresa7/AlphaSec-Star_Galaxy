@@ -128,7 +128,7 @@ export function InfoPanel() {
   };
 
   return (
-    <div className="absolute right-4 top-4 z-50 w-96 max-h-[calc(100vh-2rem)] animate-slide-in-right">
+    <div className="absolute right-4 top-4 z-50 w-[30rem] max-h-[calc(100vh-2rem)] animate-slide-in-right-subtle">
       <div className="holo-panel max-h-[calc(100vh-2rem)] overflow-y-auto">
 
         <button
