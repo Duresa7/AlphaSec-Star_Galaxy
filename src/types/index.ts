@@ -2,7 +2,7 @@ import * as THREE from 'three';
 export type ViewMode = 'topdown' | 'system' | 'fleet';
 export type Faction = string;
 export type BuiltinFactionId = 'sith_empire' | 'galactic_republic' | 'neutral' | 'contested' | 'hutt_cartel';
-export type ShipModelType = 'sith' | 'republic' | 'venator';
+export type ShipModelType = 'sith' | 'republic' | 'venator' | 'valor';
 export type FactionFilters = Record<string, boolean>;
 
 export interface FactionConfig {

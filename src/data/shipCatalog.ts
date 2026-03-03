@@ -3,7 +3,7 @@ import type { ShipModelType } from '@/types';
 export interface ShipCatalogEntry {
   id: string;
   name: string;
-  shipClass: 'Frigate' | 'Dreadnought';
+  shipClass: 'Frigate' | 'Cruiser' | 'Dreadnought';
   modelType: ShipModelType;
   description: string;
 }
@@ -22,6 +22,13 @@ export const shipCatalog: ShipCatalogEntry[] = [
     shipClass: 'Dreadnought',
     modelType: 'venator',
     description: 'Republic capital ship configured for carrier operations, fleet command, and orbital assault.',
+  },
+  {
+    id: 'republic-valor',
+    name: 'Valor-class Cruiser',
+    shipClass: 'Cruiser',
+    modelType: 'valor',
+    description: 'Republic Valor-class cruiser adapted for frontline fleet actions and rapid-response command roles.',
   },
   {
     id: 'sith-dreadnought',
