@@ -45,6 +45,7 @@ export interface Planet {
   systemId: string;
   factionControl?: Partial<Record<Faction, number>>;
   customColor?: string;
+  customType?: string;
 }
 export interface StarSystem {
   id: string;
@@ -164,6 +165,7 @@ export interface PlanetStatsUpdate {
   notable?: string[] | null;
   nativeInhabitants?: string | null;
   customColor?: string | null;
+  customType?: string | null;
 }
 export interface FleetStatsUpdate {
   name?: string;

@@ -50,6 +50,7 @@ interface DbPlanet {
   nativeInhabitants?: string;
   factionControl?: Partial<Record<Faction, number>>;
   customColor?: string;
+  customType?: string;
 }
 
 interface DbFleet {
@@ -83,6 +84,7 @@ function dbToSystem(row: DbSystem): StarSystem {
         systemId: row.id,
         factionControl: p.factionControl,
         customColor: p.customColor,
+        customType: p.customType,
       }))
     : [{
         id: `${row.id}-prime`,
@@ -147,6 +149,7 @@ function serializeSystemForDb(system: StarSystem, userId: string) {
       nativeInhabitants: p.nativeInhabitants,
       factionControl: p.factionControl,
       customColor: p.customColor,
+      customType: p.customType,
     })),
     created_by: userId,
   };
