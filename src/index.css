@@ -262,9 +262,10 @@ body {
 }
 .holo-panel {
   position: relative;
-  background: rgba(10, 10, 16, 0.4);
+  background: rgba(10, 10, 16, 0.75);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
+  will-change: backdrop-filter;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 24px;

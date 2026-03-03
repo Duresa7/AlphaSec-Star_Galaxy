@@ -75,6 +75,9 @@ export function PlanetInfo({ planet, editable }: PlanetInfoProps) {
 
   const [expandedRecord, setExpandedRecord] = useState(false);
   const [expandedPOI, setExpandedPOI] = useState(false);
+  const [editingType, setEditingType] = useState(false);
+  const [typeDraft, setTypeDraft] = useState(planet.customType || '');
+
   const [editingFaction, setEditingFaction] = useState(false);
 
   const factionControl = planet.factionControl || { [planet.faction]: 100 };
@@ -156,11 +159,33 @@ export function PlanetInfo({ planet, editable }: PlanetInfoProps) {
           {planet.name}
         </h2>
         <div className="flex items-center gap-3">
-          <span
-            className={`holo-badge border px-3 py-1 font-semibold tracking-wider text-[11px] uppercase bg-white/5 ${badgeColorClass} ${badgeBorderClass}`}
-          >
-            {planet.type.replace('_', ' ')}
-          </span>
+          {editable && editingType ? (
+            <input
+              type="text"
+              value={typeDraft}
+              onChange={(e) => setTypeDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  const trimmed = typeDraft.trim();
+                  updateStats({ customType: trimmed || null });
+                  setEditingType(false);
+                }
+                if (e.key === 'Escape') setEditingType(false);
+              }}
+              onBlur={() => setEditingType(false)}
+              autoFocus
+              placeholder={planet.type.replace('_', ' ')}
+              className="holo-input holo-field-input text-[11px] uppercase tracking-wider font-semibold px-3 py-1 bg-white/[0.02] border-white/10 focus:border-white/20 transition-colors w-36"
+            />
+          ) : (
+            <span
+              onClick={editable ? () => { setTypeDraft(planet.customType || ''); setEditingType(true); } : undefined}
+              className={`holo-badge border px-3 py-1 font-semibold tracking-wider text-[11px] uppercase bg-white/5 ${badgeColorClass} ${badgeBorderClass} ${editable ? 'cursor-pointer hover:bg-white/10 transition-colors' : ''}`}
+              title={editable ? 'Click to edit type' : undefined}
+            >
+              {planet.customType || planet.type.replace('_', ' ')}
+            </span>
+          )}
           <div
             className="holo-faction-territory text-[12px] font-medium tracking-wide flex items-center gap-2"
             style={{ color: getFactionBarColor(planet.faction) }}

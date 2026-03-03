@@ -136,11 +136,13 @@ function PanelTriggerWrapper({
   useEffect(() => {
     if (!open) return;
     const handleClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
       if (
         panelRef.current &&
-        !panelRef.current.contains(e.target as Node) &&
+        !panelRef.current.contains(target) &&
         buttonRef.current &&
-        !buttonRef.current.contains(e.target as Node)
+        !buttonRef.current.contains(target) &&
+        !target.closest('.fleet-modal-overlay')
       ) {
         setOpen(false);
       }
