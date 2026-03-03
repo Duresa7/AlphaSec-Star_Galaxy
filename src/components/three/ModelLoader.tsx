@@ -10,6 +10,7 @@ const MODEL_PATHS = {
   republicFrigate: '/models/ships/republic_frigate.glb',
   republicVenator: '/models/ships/venator_destroyer.glb',
   republicValor: '/models/ships/valor_class_cruiser.glb',
+  sithTerminus: '/models/ships/terminus_destroyer.glb',
   civilianFreighter: '/models/ships/civilian_freighter.glb',
   civilianCorvette: '/models/ships/civilian_corvette.glb',
   civilianTransport: '/models/ships/civilian_transport.glb',
@@ -74,6 +75,8 @@ export function ShipModel({ type, position, scale = 0.5, rotation = [0, 0, 0] }:
         return MODEL_PATHS.republicVenator;
       case 'valor':
         return MODEL_PATHS.republicValor;
+      case 'terminus':
+        return MODEL_PATHS.sithTerminus;
       case 'republic':
       default:
         return MODEL_PATHS.republicFrigate;
@@ -166,6 +169,7 @@ useGLTF.preload(MODEL_PATHS.sithDreadnought);
 useGLTF.preload(MODEL_PATHS.republicFrigate);
 useGLTF.preload(MODEL_PATHS.republicVenator);
 useGLTF.preload(MODEL_PATHS.republicValor);
+useGLTF.preload(MODEL_PATHS.sithTerminus);
 useGLTF.preload(MODEL_PATHS.nebula);
 useGLTF.preload(MODEL_PATHS.blackHole);
 useGLTF.preload(MODEL_PATHS.spaceStation);

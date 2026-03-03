@@ -86,7 +86,7 @@ create table if not exists public.custom_fleets (
   position_z   double precision not null default 0,
   faction      text not null default 'neutral',
   model_type   text not null default 'republic'
-               check (model_type in ('sith', 'republic', 'venator', 'valor')),
+               check (model_type in ('sith', 'republic', 'venator', 'valor', 'terminus')),
   ship_count   integer not null default 10,
   marker_size  double precision,
   created_by   uuid references public.profiles(id),
@@ -120,7 +120,7 @@ begin
   end if;
   alter table public.custom_fleets
     add constraint custom_fleets_model_type_check
-    check (model_type in ('sith', 'republic', 'venator', 'valor'));
+    check (model_type in ('sith', 'republic', 'venator', 'valor', 'terminus'));
 end
 $$;
 

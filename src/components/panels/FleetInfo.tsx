@@ -17,6 +17,7 @@ const MODEL_TYPE_LABELS: Record<ShipModelType, string> = {
   sith: 'Sith',
   venator: 'Venator',
   valor: 'Valor',
+  terminus: 'Terminus',
 };
 
 export function FleetInfo({ fleet, editable }: { fleet: Fleet; editable: boolean }) {
