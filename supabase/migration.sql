@@ -351,6 +351,10 @@ create trigger custom_factions_updated_at
   before update on public.custom_factions
   for each row execute function public.update_updated_at();
 
+-- Fleet composition column
+alter table public.custom_fleets
+  add column if not exists composition jsonb not null default '[]'::jsonb;
+
 -- Seed built-in factions
 insert into public.custom_factions (id, label, marker_color, bar_color, sort_order, is_builtin)
 values

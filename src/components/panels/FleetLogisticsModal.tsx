@@ -7,6 +7,7 @@ import { shipCatalog } from '@/data/shipCatalog';
 import type { ShipCatalogEntry } from '@/data/shipCatalog';
 import type { FleetShipEntry, ShipModelType } from '@/types';
 import { useFactionStore } from '@/store/factionStore';
+import { FactionEmblem } from '@/components/panels/FactionEmblem';
 
 interface ShipCardPreviewProps {
   modelType: ShipModelType;
@@ -43,8 +44,10 @@ function ShipCardPreview({ modelType }: ShipCardPreviewProps) {
   );
 }
 
+const CUSTOM_SHIP_CLASSES = ['Corvette', 'Frigate', 'Cruiser', 'Destroyer', 'Dreadnought', 'Fighter Wing', 'Transport'] as const;
+
 interface FleetLogisticsModalProps {
-  onConfirm: (data: { name: string; faction: string; shipCount: number; modelType: ShipModelType }) => void;
+  onConfirm: (data: { name: string; faction: string; shipCount: number; modelType: ShipModelType; composition: FleetShipEntry[] }) => void;
   onCancel: () => void;
 }
 
@@ -53,6 +56,8 @@ export function FleetLogisticsModal({ onConfirm, onCancel }: FleetLogisticsModal
   const allFactions = useFactionStore((s) => s.factions);
   const [faction, setFaction] = useState(() => allFactions[0]?.id ?? 'galactic_republic');
   const [hangar, setHangar] = useState<FleetShipEntry[]>([]);
+  const [customShipName, setCustomShipName] = useState('');
+  const [customShipClass, setCustomShipClass] = useState<string>(CUSTOM_SHIP_CLASSES[0]);
 
   const totalUnits = useMemo(
     () => hangar.reduce((sum, entry) => sum + entry.quantity, 0),
@@ -87,18 +92,32 @@ export function FleetLogisticsModal({ onConfirm, onCancel }: FleetLogisticsModal
     });
   };
 
+  const addCustomShipToHangar = () => {
+    const name = customShipName.trim();
+    if (!name) return;
+    const catalogId = `custom-${Date.now()}`;
+    setHangar((prev) => [
+      ...prev,
+      { catalogId, name, shipClass: customShipClass, modelType: null, quantity: 1, isCustomEntry: true },
+    ]);
+    setCustomShipName('');
+  };
+
   const handleConfirm = () => {
     if (!fleetName.trim() || totalUnits === 0) return;
-    const primaryShip = hangar.reduce<FleetShipEntry | null>((selected, entry) => {
+    const catalogEntries = hangar.filter((e) => !e.isCustomEntry);
+    const primaryShip = catalogEntries.reduce<FleetShipEntry | null>((selected, entry) => {
       if (!selected || entry.quantity > selected.quantity) return entry;
       return selected;
     }, null);
-    if (!primaryShip) return;
+    const modelType: ShipModelType = primaryShip?.modelType as ShipModelType
+      ?? (faction === 'sith_empire' ? 'sith' : 'republic');
     onConfirm({
       name: fleetName.trim(),
       faction,
       shipCount: totalUnits,
-      modelType: primaryShip.modelType,
+      modelType,
+      composition: hangar,
     });
   };
 
@@ -146,6 +165,38 @@ export function FleetLogisticsModal({ onConfirm, onCancel }: FleetLogisticsModal
                   </div>
                 </div>
               ))}
+              <div className="fleet-ship-card fleet-ship-card-custom">
+                <div className="fleet-ship-card-preview fleet-custom-emblem-preview">
+                  <FactionEmblem factionId={faction} size={64} />
+                  <span className="fleet-ship-class-badge">Custom</span>
+                </div>
+                <div className="fleet-ship-card-info">
+                  <input
+                    type="text"
+                    value={customShipName}
+                    onChange={(e) => setCustomShipName(e.target.value)}
+                    className="holo-input fleet-custom-name-input"
+                    placeholder="Ship name..."
+                    maxLength={30}
+                  />
+                  <select
+                    value={customShipClass}
+                    onChange={(e) => setCustomShipClass(e.target.value)}
+                    className="holo-input fleet-custom-class-select"
+                  >
+                    {CUSTOM_SHIP_CLASSES.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                  <button
+                    className="fleet-ship-add-btn"
+                    onClick={addCustomShipToHangar}
+                    disabled={!customShipName.trim()}
+                  >
+                    Add Custom Ship
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -198,6 +249,7 @@ export function FleetLogisticsModal({ onConfirm, onCancel }: FleetLogisticsModal
                   {hangar.map((entry) => (
                     <div key={entry.catalogId} className="fleet-hangar-entry">
                       <div className="fleet-hangar-entry-info">
+                        {entry.isCustomEntry && <FactionEmblem factionId={faction} size={16} />}
                         <span className="fleet-hangar-entry-name">{entry.name}</span>
                         <span className="fleet-hangar-entry-class">{entry.shipClass}</span>
                       </div>

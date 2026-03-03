@@ -60,6 +60,7 @@ export function CustomFleetsPanel() {
                   faction: data.faction,
                   shipCount: data.shipCount,
                   modelType: data.modelType,
+                  composition: data.composition,
                 });
                 setShowFleetModal(false);
               }}
