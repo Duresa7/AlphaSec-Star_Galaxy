@@ -86,7 +86,7 @@ create table if not exists public.custom_fleets (
   position_z   double precision not null default 0,
   faction      text not null default 'neutral',
   model_type   text not null default 'republic'
-               check (model_type in ('sith', 'republic', 'venator')),
+               check (model_type in ('sith', 'republic', 'venator', 'valor')),
   ship_count   integer not null default 10,
   marker_size  double precision,
   created_by   uuid references public.profiles(id),
@@ -110,15 +110,17 @@ alter table public.custom_fleets
 
 do $$
 begin
-  if not exists (
+  if exists (
     select 1
     from pg_constraint
     where conname = 'custom_fleets_model_type_check'
   ) then
     alter table public.custom_fleets
-      add constraint custom_fleets_model_type_check
-      check (model_type in ('sith', 'republic', 'venator'));
+      drop constraint custom_fleets_model_type_check;
   end if;
+  alter table public.custom_fleets
+    add constraint custom_fleets_model_type_check
+    check (model_type in ('sith', 'republic', 'venator', 'valor'));
 end
 $$;
 
