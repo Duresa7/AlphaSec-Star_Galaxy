@@ -90,13 +90,15 @@ export interface Fleet {
   commander?: string;
   systemId?: string;
   isCustom?: boolean;
+  composition?: FleetShipEntry[];
 }
 export interface FleetShipEntry {
   catalogId: string;
   name: string;
   shipClass: string;
-  modelType: ShipModelType;
+  modelType: ShipModelType | null;
   quantity: number;
+  isCustomEntry?: boolean;
 }
 export type InfoPanelData =
   | { type: 'system'; data: StarSystem }
@@ -172,6 +174,7 @@ export interface FleetStatsUpdate {
   shipCount?: number;
   faction?: Faction;
   modelType?: ShipModelType;
+  composition?: FleetShipEntry[];
 }
 export interface GalaxySelectionStore {
   viewMode: ViewMode;
@@ -213,10 +216,10 @@ export interface GalaxyUIStore {
   draggingCustomPlanet: boolean;
   setDraggingCustomPlanet: (dragging: boolean) => void;
   fleetPlacementMode: boolean;
-  pendingCustomFleet: { name: string; faction: Faction; shipCount: number; modelType: ShipModelType } | null;
+  pendingCustomFleet: { name: string; faction: Faction; shipCount: number; modelType: ShipModelType; composition?: FleetShipEntry[] } | null;
   setFleetPlacementMode: (
     mode: boolean,
-    pending?: { name: string; faction: Faction; shipCount: number; modelType: ShipModelType } | null,
+    pending?: { name: string; faction: Faction; shipCount: number; modelType: ShipModelType; composition?: FleetShipEntry[] } | null,
   ) => void;
   draggingCustomFleet: boolean;
   setDraggingCustomFleet: (dragging: boolean) => void;
