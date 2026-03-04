@@ -8,6 +8,12 @@ import type { ShipCatalogEntry } from '@/data/shipCatalog';
 import type { FleetShipEntry, ShipModelType } from '@/types';
 import { useFactionStore } from '@/store/factionStore';
 import { FactionEmblem } from '@/components/panels/FactionEmblem';
+import {
+  addOrIncrementCustomShipEntry,
+  clampCustomShipQuantity,
+  CUSTOM_SHIP_QUANTITY_MAX,
+  CUSTOM_SHIP_QUANTITY_MIN,
+} from '@/utils/fleetComposition';
 
 interface ShipCardPreviewProps {
   modelType: ShipModelType;
@@ -58,6 +64,7 @@ export function FleetLogisticsModal({ onConfirm, onCancel }: FleetLogisticsModal
   const [hangar, setHangar] = useState<FleetShipEntry[]>([]);
   const [customShipName, setCustomShipName] = useState('');
   const [customShipClass, setCustomShipClass] = useState<string>(CUSTOM_SHIP_CLASSES[0]);
+  const [customShipQuantity, setCustomShipQuantity] = useState(CUSTOM_SHIP_QUANTITY_MIN);
 
   const totalUnits = useMemo(
     () => hangar.reduce((sum, entry) => sum + entry.quantity, 0),
@@ -93,14 +100,13 @@ export function FleetLogisticsModal({ onConfirm, onCancel }: FleetLogisticsModal
   };
 
   const addCustomShipToHangar = () => {
-    const name = customShipName.trim();
-    if (!name) return;
-    const catalogId = `custom-${Date.now()}`;
-    setHangar((prev) => [
-      ...prev,
-      { catalogId, name, shipClass: customShipClass, modelType: null, quantity: 1, isCustomEntry: true },
-    ]);
-    setCustomShipName('');
+    if (!customShipName.trim()) return;
+    setHangar((prev) => addOrIncrementCustomShipEntry(prev, {
+      name: customShipName,
+      shipClass: customShipClass,
+      quantityToAdd: customShipQuantity,
+    }));
+    setCustomShipQuantity(CUSTOM_SHIP_QUANTITY_MIN);
   };
 
   const handleConfirm = () => {
@@ -188,6 +194,38 @@ export function FleetLogisticsModal({ onConfirm, onCancel }: FleetLogisticsModal
                       <option key={c} value={c}>{c}</option>
                     ))}
                   </select>
+                  <div className="fleet-custom-qty-row">
+                    <button
+                      className="fleet-custom-qty-btn"
+                      onClick={() => setCustomShipQuantity((prev) => clampCustomShipQuantity(prev - 1))}
+                      disabled={customShipQuantity <= CUSTOM_SHIP_QUANTITY_MIN}
+                      title="Decrease quantity"
+                    >
+                      <svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                        <path d="M20 12H4" />
+                      </svg>
+                    </button>
+                    <input
+                      type="number"
+                      min={CUSTOM_SHIP_QUANTITY_MIN}
+                      max={CUSTOM_SHIP_QUANTITY_MAX}
+                      step={1}
+                      value={customShipQuantity}
+                      onChange={(e) => setCustomShipQuantity(clampCustomShipQuantity(Number(e.target.value)))}
+                      className="holo-input fleet-custom-qty-input"
+                      aria-label="Custom ship quantity"
+                    />
+                    <button
+                      className="fleet-custom-qty-btn"
+                      onClick={() => setCustomShipQuantity((prev) => clampCustomShipQuantity(prev + 1))}
+                      disabled={customShipQuantity >= CUSTOM_SHIP_QUANTITY_MAX}
+                      title="Increase quantity"
+                    >
+                      <svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                        <path d="M12 4v16m8-8H4" />
+                      </svg>
+                    </button>
+                  </div>
                   <button
                     className="fleet-ship-add-btn"
                     onClick={addCustomShipToHangar}
