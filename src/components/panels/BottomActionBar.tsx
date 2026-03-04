@@ -42,7 +42,6 @@ export function BottomActionBar() {
             <PanelTriggerWrapper
               component={<CustomPlanetsPanel />}
               label="Create Planet"
-              offsetX={-150}
               activeModule={activeModule}
               onOpen={() => setActiveModule(null)}
               icon={
@@ -64,7 +63,6 @@ export function BottomActionBar() {
             <PanelTriggerWrapper
               component={<CustomFleetsPanel />}
               label="Create Fleet"
-              offsetX={-300}
               activeModule={activeModule}
               onOpen={() => setActiveModule(null)}
               icon={
@@ -94,14 +92,12 @@ function PanelTriggerWrapper({
   component,
   label,
   icon,
-  offsetX = 0,
   activeModule,
   onOpen,
 }: {
   component: React.ReactNode;
   label: string;
   icon: React.ReactNode;
-  offsetX?: number;
   activeModule: string | null;
   onOpen: () => void;
 }) {
@@ -115,20 +111,24 @@ function PanelTriggerWrapper({
 
   const buttonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState({ left: 0, bottom: 0 });
+  const [pos, setPos] = useState<{ left: number; bottom: number } | null>(null);
 
-  const updatePosition = useCallback(() => {
-    if (!buttonRef.current) return;
+  const computePosition = useCallback(() => {
+    if (!buttonRef.current) return null;
     const rect = buttonRef.current.getBoundingClientRect();
-    setPos({
+    return {
       left: rect.left + rect.width / 2,
       bottom: window.innerHeight - rect.top + 16,
-    });
+    };
   }, []);
+
+  const updatePosition = useCallback(() => {
+    const p = computePosition();
+    if (p) setPos(p);
+  }, [computePosition]);
 
   useEffect(() => {
     if (!open) return;
-    updatePosition();
     window.addEventListener("resize", updatePosition);
     return () => window.removeEventListener("resize", updatePosition);
   }, [open, updatePosition]);
@@ -157,8 +157,11 @@ function PanelTriggerWrapper({
         ref={buttonRef}
         onClick={() => {
           const next = !open;
+          if (next) {
+            setPos(computePosition());
+            onOpen();
+          }
           setOpen(next);
-          if (next) onOpen();
         }}
         className={`holo-button holo-button-sm${open ? " is-active" : ""}`}
       >
@@ -168,18 +171,20 @@ function PanelTriggerWrapper({
         </span>
       </button>
 
-      {open &&
+      {open && pos &&
         createPortal(
           <div
             ref={panelRef}
-            className="fixed w-72 z-50 animate-slide-up-subtle"
+            className="fixed w-72 z-50"
             style={{
-              left: pos.left + offsetX,
+              left: pos.left,
               bottom: pos.bottom,
               transform: "translateX(-50%)",
             }}
           >
+            <div className="animate-slide-up-subtle">
               {component}
+            </div>
           </div>,
           document.body,
         )}
