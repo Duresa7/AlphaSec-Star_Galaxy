@@ -3917,6 +3917,126 @@ body {
   color: #1a4a9e;
 }
 
+/* ── Legal page accordion (credits) ─────────────────────────────── */
+.legal-accordion {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.legal-accordion__item {
+  border: 1px solid rgba(17, 17, 17, 0.12);
+  border-radius: 10px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.5);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.legal-accordion__item[open] {
+  border-color: rgba(59, 111, 192, 0.35);
+  box-shadow: 0 2px 12px rgba(59, 111, 192, 0.08);
+}
+
+.legal-accordion__summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  font-family: "Manrope", "Spline Sans", sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #111;
+  transition: background 0.15s ease;
+}
+
+.legal-accordion__summary::-webkit-details-marker {
+  display: none;
+}
+
+.legal-accordion__summary:hover {
+  background: rgba(59, 111, 192, 0.05);
+}
+
+.legal-accordion__summary::after {
+  content: '';
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid rgba(17, 17, 17, 0.4);
+  border-bottom: 2px solid rgba(17, 17, 17, 0.4);
+  transform: rotate(-45deg);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.legal-accordion__item[open] > .legal-accordion__summary::after {
+  transform: rotate(45deg);
+  border-color: #3b6fc0;
+}
+
+.legal-accordion__item[open] > .legal-accordion__summary {
+  color: #3b6fc0;
+  border-bottom: 1px solid rgba(59, 111, 192, 0.15);
+}
+
+.legal-accordion__body {
+  padding: 12px 16px 14px;
+}
+
+.legal-accordion__body ul {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.legal-accordion__body li {
+  font-family: "Manrope", "Spline Sans", sans-serif;
+  font-size: 0.86rem;
+  line-height: 1.55;
+  color: rgba(17, 17, 17, 0.72);
+}
+
+.legal-accordion__body a {
+  color: #3b6fc0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.2s ease;
+}
+
+.legal-accordion__body a:hover {
+  color: #1a4a9e;
+}
+
+.legal-accordion__tag {
+  display: inline-block;
+  margin-left: auto;
+  padding: 1px 7px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: "Manrope", "Spline Sans", sans-serif;
+  letter-spacing: 0.04em;
+  vertical-align: middle;
+  background: rgba(17, 17, 17, 0.07);
+  color: rgba(17, 17, 17, 0.5);
+}
+
+.legal-accordion__tag--modified {
+  background: rgba(59, 111, 192, 0.1);
+  color: #3b6fc0;
+}
+
+.legal-accordion__tag--nc {
+  background: rgba(180, 100, 20, 0.1);
+  color: #a0600a;
+}
+
 /* ========================================
    Fleet Logistics Interface Modal
    ======================================== */
