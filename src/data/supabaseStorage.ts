@@ -63,6 +63,7 @@ interface DbFleet {
   ship_count: number;
   model_type: ShipModelType;
   marker_size: number | null;
+  commander: string | null;
   composition: FleetShipEntry[];
   created_by: string | null;
 }
@@ -126,6 +127,7 @@ function dbToFleet(row: DbFleet): Fleet {
     shipCount: row.ship_count,
     modelType: row.model_type,
     markerSize: row.marker_size ?? undefined,
+    commander: row.commander ?? undefined,
     isCustom: true,
     composition,
   };
@@ -171,6 +173,7 @@ function serializeFleetForDb(fleet: Fleet, userId: string) {
     ship_count: fleet.shipCount,
     model_type: fleet.modelType,
     marker_size: fleet.markerSize ?? null,
+    commander: fleet.commander?.trim() || null,
     composition: fleet.composition ?? [],
     created_by: userId,
   };

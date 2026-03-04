@@ -139,6 +139,7 @@ function TopDownView() {
         faction: pendingCustomFleet.faction,
         shipCount: pendingCustomFleet.shipCount,
         modelType: pendingCustomFleet.modelType,
+        commander: pendingCustomFleet.commander,
         isCustom: true,
         composition: pendingCustomFleet.composition,
       });

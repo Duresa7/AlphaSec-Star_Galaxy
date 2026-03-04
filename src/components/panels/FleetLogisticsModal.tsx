@@ -54,12 +54,13 @@ function ShipCardPreview({ modelType }: ShipCardPreviewProps) {
 const CUSTOM_SHIP_CLASSES = ['Corvette', 'Frigate', 'Cruiser', 'Destroyer', 'Dreadnought', 'Fighter Wing', 'Transport'] as const;
 
 interface FleetLogisticsModalProps {
-  onConfirm: (data: { name: string; faction: string; shipCount: number; modelType: ShipModelType; composition: FleetShipEntry[] }) => void;
+  onConfirm: (data: { name: string; faction: string; shipCount: number; modelType: ShipModelType; commander?: string; composition: FleetShipEntry[] }) => void;
   onCancel: () => void;
 }
 
 export function FleetLogisticsModal({ onConfirm, onCancel }: FleetLogisticsModalProps) {
   const [fleetName, setFleetName] = useState('Alpha Squadron');
+  const [commander, setCommander] = useState('');
   const allFactions = useFactionStore((s) => s.factions);
   const [faction, setFaction] = useState(() => allFactions[0]?.id ?? 'galactic_republic');
   const [hangar, setHangar] = useState<FleetShipEntry[]>([]);
@@ -125,6 +126,7 @@ export function FleetLogisticsModal({ onConfirm, onCancel }: FleetLogisticsModal
       faction,
       shipCount: totalUnits,
       modelType,
+      commander: commander.trim() || undefined,
       composition: hangar,
     });
   };
@@ -226,6 +228,18 @@ export function FleetLogisticsModal({ onConfirm, onCancel }: FleetLogisticsModal
                 className="holo-input fleet-config-input"
                 placeholder="Enter fleet name..."
                 maxLength={30}
+              />
+            </div>
+
+            <div className="fleet-config-section">
+              <label className="fleet-config-label">Commander</label>
+              <input
+                type="text"
+                value={commander}
+                onChange={(e) => setCommander(e.target.value)}
+                className="holo-input fleet-config-input"
+                placeholder="Enter commander name..."
+                maxLength={40}
               />
             </div>
 

@@ -174,6 +174,7 @@ export interface FleetStatsUpdate {
   shipCount?: number;
   faction?: Faction;
   modelType?: ShipModelType;
+  commander?: string;
   composition?: FleetShipEntry[];
 }
 export interface GalaxySelectionStore {
@@ -216,10 +217,10 @@ export interface GalaxyUIStore {
   draggingCustomPlanet: boolean;
   setDraggingCustomPlanet: (dragging: boolean) => void;
   fleetPlacementMode: boolean;
-  pendingCustomFleet: { name: string; faction: Faction; shipCount: number; modelType: ShipModelType; composition?: FleetShipEntry[] } | null;
+  pendingCustomFleet: { name: string; faction: Faction; shipCount: number; modelType: ShipModelType; commander?: string; composition?: FleetShipEntry[] } | null;
   setFleetPlacementMode: (
     mode: boolean,
-    pending?: { name: string; faction: Faction; shipCount: number; modelType: ShipModelType; composition?: FleetShipEntry[] } | null,
+    pending?: { name: string; faction: Faction; shipCount: number; modelType: ShipModelType; commander?: string; composition?: FleetShipEntry[] } | null,
   ) => void;
   draggingCustomFleet: boolean;
   setDraggingCustomFleet: (dragging: boolean) => void;
