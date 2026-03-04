@@ -55,12 +55,12 @@ export function TimelineControl() {
                   onKeyDown={(e) => { if (e.key === 'Enter') commitYear(); }}
                   className="holo-input holo-number-input holo-year-input"
                 />
-                <span className="holo-year-unit">BBY</span>
+                <span className="holo-year-unit">ATC</span>
               </div>
             ) : (
               <div className="holo-year-value">
                 <span className="holo-year-number">{currentYear}</span>
-                <span className="holo-year-unit">BBY</span>
+                <span className="holo-year-unit">ATC</span>
               </div>
             )}
           </div>

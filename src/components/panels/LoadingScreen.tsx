@@ -118,7 +118,7 @@ export function LoadingScreen() {
             letterSpacing: '0.12em',
           }}
         >
-          Old Republic Era &middot; 3956 BBY
+          Old Republic Era &middot; 3956 ATC
         </p>
       </div>
     </div>
