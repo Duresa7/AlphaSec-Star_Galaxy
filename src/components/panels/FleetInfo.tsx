@@ -17,7 +17,6 @@ import { shipCatalog } from '@/data/shipCatalog';
 const MODEL_TYPE_LABELS: Record<ShipModelType, string> = {
   republic: 'Republic',
   sith: 'Sith',
-  venator: 'Venator',
   valor: 'Valor',
   terminus: 'Terminus',
 };
@@ -25,7 +24,6 @@ const MODEL_TYPE_LABELS: Record<ShipModelType, string> = {
 const MODEL_BADGES: Record<ShipModelType, string> = {
   republic: 'REP',
   sith: 'SIT',
-  venator: 'VEN',
   valor: 'VAL',
   terminus: 'TER',
 };
