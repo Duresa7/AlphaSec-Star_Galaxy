@@ -3224,7 +3224,8 @@ body {
   margin-top: 12px;
 }
 
-.admin-page__page-btn {
+.admin-page__page-btn,
+.admin-page__refresh-btn {
   min-height: 32px;
   border-radius: 8px;
   border: 1px solid var(--admin-border);
@@ -3236,14 +3237,20 @@ body {
   cursor: pointer;
 }
 
-.admin-page__page-btn:hover:not(:disabled) {
+.admin-page__page-btn:hover:not(:disabled),
+.admin-page__refresh-btn:hover:not(:disabled) {
   background: var(--admin-hover);
   color: var(--admin-text);
 }
 
-.admin-page__page-btn:disabled {
+.admin-page__page-btn:disabled,
+.admin-page__refresh-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+.admin-page__refresh-btn {
+  white-space: nowrap;
 }
 
 .admin-page__page-info {

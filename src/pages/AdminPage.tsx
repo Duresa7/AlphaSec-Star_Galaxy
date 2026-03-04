@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useRole } from '@/hooks/useRole';
-import { fetchAuditLogs, fetchAllProfiles, updateUserRole, logAction } from '@/data/supabaseStorage';
+import { fetchAuditLogPage, fetchAuditLogTotal, fetchAllProfiles, updateUserRole, logAction } from '@/data/supabaseStorage';
 import type { AuditLogEntry, UserProfile, UserRole } from '@/types';
 
 const PAGE_SIZE = 40;
@@ -38,21 +38,6 @@ function getActionTone(action: string): 'create' | 'move' | 'update' {
   return 'update';
 }
 
-function matchesAuditLog(log: AuditLogEntry, query: string): boolean {
-  if (!query) return true;
-  const text = [
-    formatTime(log.created_at),
-    log.display_name || 'Unknown',
-    ACTION_LABELS[log.action] || log.action,
-    log.entity_name || log.entity_id,
-    log.entity_id,
-    log.details ? JSON.stringify(log.details) : '',
-  ]
-    .join(' ')
-    .toLowerCase();
-  return text.includes(query);
-}
-
 function matchesUser(user: UserProfile, query: string): boolean {
   if (!query) return true;
   const text = [user.display_name, user.email, user.role, formatTime(user.created_at)]
@@ -73,19 +58,10 @@ export function AdminPage() {
   const [usersLoading, setUsersLoading] = useState(true);
   const [roleUpdating, setRoleUpdating] = useState<string | null>(null);
   const [searchInput, setSearchInput] = useState('');
-  const [allLogsForSearch, setAllLogsForSearch] = useState<AuditLogEntry[] | null>(null);
-  const [allLogsLoading, setAllLogsLoading] = useState(false);
+  const [debouncedAuditQuery, setDebouncedAuditQuery] = useState('');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const isUsersView = location.pathname.startsWith('/admin/users');
   const isAuditView = !isUsersView;
-
-  const loadLogs = useCallback(async (page: number) => {
-    setLogsLoading(true);
-    const { logs: fetched, total } = await fetchAuditLogs(PAGE_SIZE, page * PAGE_SIZE);
-    setLogs(fetched);
-    setLogTotal(total);
-    setLogsLoading(false);
-  }, []);
 
   const loadUsers = useCallback(async () => {
     setUsersLoading(true);
@@ -95,12 +71,59 @@ export function AdminPage() {
   }, []);
 
   useEffect(() => {
-    loadLogs(logPage);
-  }, [loadLogs, logPage]);
+    if (!isAuditView) {
+      setDebouncedAuditQuery('');
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      const nextQuery = searchInput.trim();
+      setDebouncedAuditQuery((prevQuery) => {
+        if (prevQuery !== nextQuery) setLogPage(0);
+        return nextQuery;
+      });
+    }, 300);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [isAuditView, searchInput]);
 
   useEffect(() => {
-    if (isBossman) loadUsers();
-  }, [isBossman, loadUsers]);
+    if (!isAuditView) return;
+    let cancelled = false;
+
+    async function loadAuditLogs() {
+      setLogsLoading(true);
+      const offset = logPage * PAGE_SIZE;
+
+      if (logPage === 0) {
+        const [fetchedLogs, total] = await Promise.all([
+          fetchAuditLogPage(PAGE_SIZE, offset, debouncedAuditQuery),
+          fetchAuditLogTotal(debouncedAuditQuery),
+        ]);
+        if (!cancelled) {
+          setLogs(fetchedLogs);
+          setLogTotal(total);
+          setLogsLoading(false);
+        }
+        return;
+      }
+
+      const fetchedLogs = await fetchAuditLogPage(PAGE_SIZE, offset, debouncedAuditQuery);
+      if (!cancelled) {
+        setLogs(fetchedLogs);
+        setLogsLoading(false);
+      }
+    }
+
+    loadAuditLogs();
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuditView, logPage, debouncedAuditQuery]);
+
+  useEffect(() => {
+    if (isUsersView && isBossman) loadUsers();
+  }, [isUsersView, isBossman, loadUsers]);
 
   useEffect(() => {
     if (!isDrawerOpen) return;
@@ -113,32 +136,25 @@ export function AdminPage() {
 
   useEffect(() => {
     setSearchInput('');
-    setAllLogsForSearch(null);
-    setAllLogsLoading(false);
+    setDebouncedAuditQuery('');
+    setLogPage(0);
   }, [location.pathname]);
 
   const searchQuery = searchInput.trim().toLowerCase();
   const isSearchActive = searchQuery.length > 0;
+  const isAuditSearchActive = debouncedAuditQuery.length > 0;
 
-  useEffect(() => {
-    if (!isAuditView || !isSearchActive) return;
-    let cancelled = false;
-
-    async function loadAllLogsForSearch() {
-      setAllLogsLoading(true);
-      const fetchSize = Math.max(logTotal, PAGE_SIZE);
-      const { logs: fetched } = await fetchAuditLogs(fetchSize, 0);
-      if (!cancelled) {
-        setAllLogsForSearch(fetched);
-        setAllLogsLoading(false);
-      }
-    }
-
-    loadAllLogsForSearch();
-    return () => {
-      cancelled = true;
-    };
-  }, [isAuditView, isSearchActive, logTotal]);
+  const handleAuditRefresh = useCallback(async () => {
+    if (!isAuditView) return;
+    setLogsLoading(true);
+    const [fetchedLogs, total] = await Promise.all([
+      fetchAuditLogPage(PAGE_SIZE, logPage * PAGE_SIZE, debouncedAuditQuery),
+      fetchAuditLogTotal(debouncedAuditQuery),
+    ]);
+    setLogs(fetchedLogs);
+    setLogTotal(total);
+    setLogsLoading(false);
+  }, [isAuditView, logPage, debouncedAuditQuery]);
 
   const handleRoleChange = async (userId: string, newRole: UserRole, userName: string) => {
     if (!currentProfile) return;
@@ -147,16 +163,14 @@ export function AdminPage() {
     if (!error) {
       setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u)));
       await logAction('role_changed', 'user', userId, userName, { newRole });
-      setAllLogsForSearch(null);
-      loadLogs(logPage);
     }
     setRoleUpdating(null);
   };
 
   const totalPages = Math.max(1, Math.ceil(logTotal / PAGE_SIZE));
-  const auditLogsToRender = (isSearchActive ? (allLogsForSearch ?? logs) : logs).filter((log) => matchesAuditLog(log, searchQuery));
+  const auditLogsToRender = logs;
   const usersToRender = users.filter((user) => matchesUser(user, searchQuery));
-  const showAuditLoading = logsLoading || (isSearchActive && allLogsLoading && !allLogsForSearch);
+  const showAuditLoading = logsLoading;
 
   return (
     <div className={`admin-page${isDrawerOpen ? ' admin-page--drawer-open' : ''}`}>
@@ -233,6 +247,16 @@ export function AdminPage() {
                   placeholder={isUsersView ? 'Search users' : 'Search audit logs'}
                 />
               </label>
+              {isAuditView && (
+                <button
+                  type="button"
+                  className="admin-page__refresh-btn"
+                  onClick={() => void handleAuditRefresh()}
+                  disabled={logsLoading}
+                >
+                  Refresh
+                </button>
+              )}
               {currentProfile && (
                 <div className="admin-page__user-pill">
                   <span className="admin-page__user-meta">
@@ -253,7 +277,7 @@ export function AdminPage() {
                   <p className="admin-page__loading">Loading audit logs...</p>
                 ) : auditLogsToRender.length === 0 ? (
                   <p className="admin-page__empty">
-                    {isSearchActive ? 'No matching audit entries.' : 'No audit entries yet.'}
+                    {isAuditSearchActive ? 'No matching audit entries.' : 'No audit entries yet.'}
                   </p>
                 ) : (
                   <>
@@ -288,29 +312,28 @@ export function AdminPage() {
                       </table>
                     </div>
 
-                    {!isSearchActive ? (
-                      <div className="admin-page__pagination">
-                        <button
-                          disabled={logPage === 0}
-                          onClick={() => setLogPage((p) => Math.max(0, p - 1))}
-                          className="admin-page__page-btn"
-                        >
-                          Prev
-                        </button>
-                        <span className="admin-page__page-info">
-                          Page {logPage + 1} of {totalPages}
-                        </span>
-                        <button
-                          disabled={logPage + 1 >= totalPages}
-                          onClick={() => setLogPage((p) => p + 1)}
-                          className="admin-page__page-btn"
-                        >
-                          Next
-                        </button>
-                      </div>
-                    ) : (
+                    <div className="admin-page__pagination">
+                      <button
+                        disabled={logPage === 0 || showAuditLoading}
+                        onClick={() => setLogPage((p) => Math.max(0, p - 1))}
+                        className="admin-page__page-btn"
+                      >
+                        Prev
+                      </button>
+                      <span className="admin-page__page-info">
+                        Page {logPage + 1} of {totalPages}
+                      </span>
+                      <button
+                        disabled={logPage + 1 >= totalPages || showAuditLoading}
+                        onClick={() => setLogPage((p) => p + 1)}
+                        className="admin-page__page-btn"
+                      >
+                        Next
+                      </button>
+                    </div>
+                    {isAuditSearchActive && (
                       <p className="admin-page__search-meta">
-                        {auditLogsToRender.length} result{auditLogsToRender.length === 1 ? '' : 's'}
+                        Showing {auditLogsToRender.length} of {logTotal} matching result{logTotal === 1 ? '' : 's'}
                       </p>
                     )}
                   </>
