@@ -13,6 +13,12 @@ import { EditableInfoRow, InfoRow } from '@/components/panels/infoPanelShared';
 import { DEFAULT_TOPDOWN_FLEET_MARKER_SIZE } from '@/config/topDownMarkerConfig';
 import { FactionEmblem } from '@/components/panels/FactionEmblem';
 import { shipCatalog } from '@/data/shipCatalog';
+import {
+  addOrIncrementCustomShipEntry,
+  clampCustomShipQuantity,
+  CUSTOM_SHIP_QUANTITY_MAX,
+  CUSTOM_SHIP_QUANTITY_MIN,
+} from '@/utils/fleetComposition';
 
 const MODEL_TYPE_LABELS: Record<ShipModelType, string> = {
   republic: 'Republic',
@@ -98,6 +104,7 @@ export function FleetInfo({ fleet, editable }: { fleet: Fleet; editable: boolean
   const [addCatalogId, setAddCatalogId] = useState(shipCatalog[0]?.id ?? '');
   const [addCustomName, setAddCustomName] = useState('');
   const [addCustomClass, setAddCustomClass] = useState<string>(CUSTOM_SHIP_CLASSES[0]);
+  const [addCustomQuantity, setAddCustomQuantity] = useState(CUSTOM_SHIP_QUANTITY_MIN);
 
   const markerSize = fleet.markerSize ?? DEFAULT_TOPDOWN_FLEET_MARKER_SIZE;
   const filledSegments = Math.min(Math.ceil(fleet.shipCount / FLEET_STRENGTH_DIVISOR), FLEET_STRENGTH_SEGMENTS);
@@ -141,14 +148,17 @@ export function FleetInfo({ fleet, editable }: { fleet: Fleet; editable: boolean
   };
 
   const addCustomEntry = () => {
-    const name = addCustomName.trim();
-    if (!name) return;
+    if (!addCustomName.trim()) return;
     const current = composition ?? [];
-    const catalogId = `custom-${Date.now()}`;
-    const updated = [...current, { catalogId, name, shipClass: addCustomClass, modelType: null, quantity: 1, isCustomEntry: true } as FleetShipEntry];
+    const updated = addOrIncrementCustomShipEntry(current, {
+      name: addCustomName,
+      shipClass: addCustomClass,
+      quantityToAdd: addCustomQuantity,
+    });
     const newTotal = updated.reduce((sum, e) => sum + e.quantity, 0);
     updateFleetStats(fleet.id, { composition: updated, shipCount: newTotal });
     setAddCustomName('');
+    setAddCustomQuantity(CUSTOM_SHIP_QUANTITY_MIN);
     setAddMode(null);
   };
 
@@ -322,6 +332,38 @@ export function FleetInfo({ fleet, editable }: { fleet: Fleet; editable: boolean
                       <option key={c} value={c}>{c}</option>
                     ))}
                   </select>
+                  <div className="fleet-custom-qty-row">
+                    <button
+                      className="fleet-custom-qty-btn"
+                      onClick={() => setAddCustomQuantity((prev) => clampCustomShipQuantity(prev - 1))}
+                      disabled={addCustomQuantity <= CUSTOM_SHIP_QUANTITY_MIN}
+                      title="Decrease quantity"
+                    >
+                      <svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                        <path d="M20 12H4" />
+                      </svg>
+                    </button>
+                    <input
+                      type="number"
+                      min={CUSTOM_SHIP_QUANTITY_MIN}
+                      max={CUSTOM_SHIP_QUANTITY_MAX}
+                      step={1}
+                      value={addCustomQuantity}
+                      onChange={(e) => setAddCustomQuantity(clampCustomShipQuantity(Number(e.target.value)))}
+                      className="holo-input fleet-custom-qty-input"
+                      aria-label="Custom ship quantity"
+                    />
+                    <button
+                      className="fleet-custom-qty-btn"
+                      onClick={() => setAddCustomQuantity((prev) => clampCustomShipQuantity(prev + 1))}
+                      disabled={addCustomQuantity >= CUSTOM_SHIP_QUANTITY_MAX}
+                      title="Increase quantity"
+                    >
+                      <svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+                        <path d="M12 4v16m8-8H4" />
+                      </svg>
+                    </button>
+                  </div>
                   <div className="fleet-composition-add-form-actions">
                     <button className="fleet-composition-add-confirm" onClick={addCustomEntry} disabled={!addCustomName.trim()}>Add</button>
                     <button className="fleet-composition-add-cancel" onClick={() => setAddMode(null)}>Cancel</button>
