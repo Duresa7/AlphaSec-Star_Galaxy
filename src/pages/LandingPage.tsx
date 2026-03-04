@@ -29,6 +29,7 @@ type SocialLink = {
   href: string;
   ariaLabel: string;
   Icon: ComponentType;
+  hoverLabel?: string;
 };
 
 const DESKTOP_RADIUS = 160;
@@ -45,6 +46,17 @@ const getMediaMatch = (query: string, fallback: boolean) => {
   return window.matchMedia(query).matches;
 };
 const centerOf = (bounds: Bounds): Point => ({ x: bounds.width / 2, y: bounds.height / 2 });
+
+function PayPalIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path
+        fill="currentColor"
+        d="M7.08 20.77h3.1a.85.85 0 0 0 .84-.7l.03-.16.59-3.75.04-.2a.85.85 0 0 1 .84-.71h.53c3.42 0 6.1-1.4 6.88-5.44.32-1.69.15-3.1-.73-4.1-.97-1.1-2.7-1.57-4.91-1.57h-6.7a.93.93 0 0 0-.92.78L3.9 19.84a.56.56 0 0 0 .55.66h4.13l1.03-6.52-.03.2a.85.85 0 0 1 .83-.7h1.73c3.41 0 6.08-1.39 6.86-5.4.03-.17.06-.33.08-.49.1-.63.1-1.2 0-1.7-.88 4.03-3.55 5.42-6.96 5.42H10.4a.85.85 0 0 0-.83.7l-.04.2-1.02 6.56-.29 1.8a.47.47 0 0 0 .46.56Z"
+      />
+    </svg>
+  );
+}
 
 function GitHubIcon() {
   return (
@@ -102,6 +114,12 @@ function BlogIcon() {
 }
 
 const SOCIAL_LINKS: SocialLink[] = [
+  {
+    href: 'https://www.paypal.com/donate/?hosted_button_id=ECEV6VL4Q8F8C',
+    ariaLabel: 'Donate via PayPal',
+    Icon: PayPalIcon,
+    hoverLabel: 'Donate here!',
+  },
   {
     href: 'https://github.com/Duresa7',
     ariaLabel: 'GitHub profile',
@@ -323,7 +341,7 @@ export function LandingPage() {
   }, []);
 
   const renderSocialLinks = (interactive: boolean) =>
-    SOCIAL_LINKS.map(({ href, ariaLabel, Icon }) =>
+    SOCIAL_LINKS.map(({ href, ariaLabel, Icon, hoverLabel }) =>
       interactive ? (
         <a
           key={href}
@@ -332,11 +350,12 @@ export function LandingPage() {
           target="_blank"
           rel="noopener noreferrer"
           aria-label={ariaLabel}
+          data-hover-label={hoverLabel}
         >
           <Icon />
         </a>
       ) : (
-        <span key={href} className="portfolio-hero__social-link">
+        <span key={href} className="portfolio-hero__social-link" data-hover-label={hoverLabel}>
           <Icon />
         </span>
       )
