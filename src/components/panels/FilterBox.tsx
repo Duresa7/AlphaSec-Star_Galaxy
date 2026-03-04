@@ -23,7 +23,7 @@ export function FilterBox({ active, onClick, label, color = 'blue', hexColor }: 
   return (
     <button
       onClick={onClick}
-      className="relative flex flex-col items-center justify-center p-3 border transition-all duration-250 cursor-pointer overflow-hidden"
+      className="relative flex flex-col items-center justify-center p-3.5 border transition-all duration-250 cursor-pointer overflow-hidden"
       style={{
         background: active ? `rgba(200, 170, 110, 0.06)` : 'rgba(5, 5, 8, 0.4)',
         borderColor: active ? `${activeColor}50` : 'rgba(200, 170, 110, 0.08)',
@@ -31,7 +31,7 @@ export function FilterBox({ active, onClick, label, color = 'blue', hexColor }: 
       }}
     >
       <span
-        className="text-[11px] font-medium tracking-wider uppercase holo-label-orbitron"
+        className="text-[12px] font-medium tracking-wider uppercase holo-label-orbitron"
         style={{
           color: active ? activeColor : 'rgba(200, 170, 110, 0.3)',
         }}
