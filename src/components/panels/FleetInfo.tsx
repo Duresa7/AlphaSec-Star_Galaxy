@@ -12,6 +12,7 @@ import {
 import { EditableInfoRow, InfoRow } from '@/components/panels/infoPanelShared';
 import { DEFAULT_TOPDOWN_FLEET_MARKER_SIZE } from '@/config/topDownMarkerConfig';
 import { FactionEmblem } from '@/components/panels/FactionEmblem';
+import { CustomShipQuantityControl } from '@/components/panels/CustomShipQuantityControl';
 import { shipCatalog } from '@/data/shipCatalog';
 import {
   addOrIncrementCustomShipEntry,
@@ -332,38 +333,14 @@ export function FleetInfo({ fleet, editable }: { fleet: Fleet; editable: boolean
                       <option key={c} value={c}>{c}</option>
                     ))}
                   </select>
-                  <div className="fleet-custom-qty-row">
-                    <button
-                      className="fleet-custom-qty-btn"
-                      onClick={() => setAddCustomQuantity((prev) => clampCustomShipQuantity(prev - 1))}
-                      disabled={addCustomQuantity <= CUSTOM_SHIP_QUANTITY_MIN}
-                      title="Decrease quantity"
-                    >
-                      <svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
-                        <path d="M20 12H4" />
-                      </svg>
-                    </button>
-                    <input
-                      type="number"
-                      min={CUSTOM_SHIP_QUANTITY_MIN}
-                      max={CUSTOM_SHIP_QUANTITY_MAX}
-                      step={1}
-                      value={addCustomQuantity}
-                      onChange={(e) => setAddCustomQuantity(clampCustomShipQuantity(Number(e.target.value)))}
-                      className="holo-input fleet-custom-qty-input"
-                      aria-label="Custom ship quantity"
-                    />
-                    <button
-                      className="fleet-custom-qty-btn"
-                      onClick={() => setAddCustomQuantity((prev) => clampCustomShipQuantity(prev + 1))}
-                      disabled={addCustomQuantity >= CUSTOM_SHIP_QUANTITY_MAX}
-                      title="Increase quantity"
-                    >
-                      <svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
-                        <path d="M12 4v16m8-8H4" />
-                      </svg>
-                    </button>
-                  </div>
+                  <CustomShipQuantityControl
+                    ariaLabel="Custom ship quantity"
+                    clamp={clampCustomShipQuantity}
+                    max={CUSTOM_SHIP_QUANTITY_MAX}
+                    min={CUSTOM_SHIP_QUANTITY_MIN}
+                    onChange={setAddCustomQuantity}
+                    value={addCustomQuantity}
+                  />
                   <div className="fleet-composition-add-form-actions">
                     <button className="fleet-composition-add-confirm" onClick={addCustomEntry} disabled={!addCustomName.trim()}>Add</button>
                     <button className="fleet-composition-add-cancel" onClick={() => setAddMode(null)}>Cancel</button>
