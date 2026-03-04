@@ -229,7 +229,7 @@ body {
 }
 
 .animate-slide-in-right-subtle {
-  animation: slideInRightSubtle 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slideInRightSubtle 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .animate-slide-in-left {
   animation: slideInLeft 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -245,27 +245,26 @@ body {
 }
 
 .animate-slide-in-left-subtle {
-  animation: slideInLeftSubtle 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slideInLeftSubtle 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes slideUpSubtle {
   from {
-    transform: translateX(-50%) translateY(8px);
+    transform: translateY(8px);
   }
   to {
-    transform: translateX(-50%) translateY(0);
+    transform: translateY(0);
   }
 }
 
 .animate-slide-up-subtle {
-  animation: slideUpSubtle 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slideUpSubtle 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .holo-panel {
   position: relative;
   background: rgba(10, 10, 16, 0.75);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  will-change: backdrop-filter;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 24px;
