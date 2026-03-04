@@ -355,6 +355,10 @@ create trigger custom_factions_updated_at
 alter table public.custom_fleets
   add column if not exists composition jsonb not null default '[]'::jsonb;
 
+-- Optional fleet commander metadata
+alter table public.custom_fleets
+  add column if not exists commander text;
+
 -- Seed built-in factions
 insert into public.custom_factions (id, label, marker_color, bar_color, sort_order, is_builtin)
 values

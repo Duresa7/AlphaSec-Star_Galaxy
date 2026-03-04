@@ -97,6 +97,8 @@ export function FleetInfo({ fleet, editable }: { fleet: Fleet; editable: boolean
 
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState(fleet.name);
+  const [editingCommander, setEditingCommander] = useState(false);
+  const [commanderDraft, setCommanderDraft] = useState(fleet.commander ?? '');
   const [editingShipCount, setEditingShipCount] = useState(false);
   const [shipCountDraft, setShipCountDraft] = useState(String(fleet.shipCount));
 
@@ -212,6 +214,22 @@ export function FleetInfo({ fleet, editable }: { fleet: Fleet; editable: boolean
                 setEditingName(false);
               }}
               onCancel={() => setEditingName(false)}
+            />
+            <EditableInfoRow
+              label="Commander"
+              value={fleet.commander ?? ''}
+              placeholder="Unknown Commander"
+              editable
+              editing={editingCommander}
+              draft={commanderDraft}
+              onStartEdit={() => { setEditingCommander(true); setCommanderDraft(fleet.commander ?? ''); }}
+              onDraftChange={setCommanderDraft}
+              onSave={() => {
+                const trimmed = commanderDraft.trim();
+                updateFleetStats(fleet.id, { commander: trimmed || undefined });
+                setEditingCommander(false);
+              }}
+              onCancel={() => setEditingCommander(false)}
             />
             <EditableInfoRow
               label="Ships"
