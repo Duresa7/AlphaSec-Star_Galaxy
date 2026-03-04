@@ -322,36 +322,58 @@ export async function logAction(
   if (error) console.error('Failed to log audit action:', error);
 }
 
-export async function fetchAuditLogs(limit = 50, offset = 0): Promise<{ logs: AuditLogEntry[]; total: number }> {
-  if (!supabaseConfigured) return { logs: [], total: 0 };
-  const { data, error } = await supabase
-    .rpc('fetch_audit_logs_with_display_names', {
-      p_limit: limit,
-      p_offset: offset,
-    });
-
-  if (error) {
-    console.error('Failed to fetch audit logs:', error);
-    return { logs: [], total: 0 };
-  }
-
-  const rows = (data || []) as Record<string, unknown>[];
-  const logs: AuditLogEntry[] = rows.map((row) => ({
+function mapAuditLogRow(row: Record<string, unknown>): AuditLogEntry {
+  return {
     id: Number(row.id),
     user_id: row.user_id as string,
     action: row.action as AuditAction,
-    entity_type: row.entity_type as 'system' | 'fleet' | 'user',
+    entity_type: row.entity_type as 'system' | 'fleet' | 'user' | 'faction',
     entity_id: row.entity_id as string,
     entity_name: row.entity_name as string,
     details: row.details as Record<string, unknown> | null,
     created_at: row.created_at as string,
     display_name: (row.display_name as string | null) ?? undefined,
-  }));
+  };
+}
 
-  const firstRowTotal = rows.length > 0 ? Number(rows[0].total_count ?? 0) : 0;
-  const total = Number.isFinite(firstRowTotal) ? firstRowTotal : 0;
+export async function fetchAuditLogPage(limit = 40, offset = 0, query = ''): Promise<AuditLogEntry[]> {
+  if (!supabaseConfigured) return [];
+  const normalizedQuery = query.trim();
+  const { data, error } = await supabase
+    .rpc('fetch_audit_logs_page', {
+      p_limit: limit,
+      p_offset: offset,
+      p_query: normalizedQuery.length > 0 ? normalizedQuery : null,
+    });
 
-  return { logs, total };
+  if (error) {
+    console.error('Failed to fetch audit log page:', error);
+    return [];
+  }
+
+  const rows = (data || []) as Record<string, unknown>[];
+  return rows.map(mapAuditLogRow);
+}
+
+export async function fetchAuditLogTotal(query = ''): Promise<number> {
+  if (!supabaseConfigured) return 0;
+  const normalizedQuery = query.trim();
+  const { data, error } = await supabase
+    .rpc('fetch_audit_logs_total', {
+      p_query: normalizedQuery.length > 0 ? normalizedQuery : null,
+    });
+
+  if (error) {
+    console.error('Failed to fetch audit log total:', error);
+    return 0;
+  }
+
+  const raw = Array.isArray(data) ? data[0] : data;
+  const candidate = raw && typeof raw === 'object'
+    ? Object.values(raw as Record<string, unknown>)[0]
+    : raw;
+  const total = Number(candidate ?? 0);
+  return Number.isFinite(total) ? total : 0;
 }
 
 export async function fetchAllProfiles(): Promise<UserProfile[]> {
