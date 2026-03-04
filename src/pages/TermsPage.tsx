@@ -7,17 +7,17 @@ export function TermsPage() {
 
   return (
     <main
-      className="resume-page"
+      className="legal-shell"
       aria-label="Terms of Service"
       style={{ '--portfolio-hero-bg-image': `url("${heroImageUrl}")` } as CSSProperties}
     >
-      <div className="resume-page__layer resume-page__layer--base" aria-hidden="true" />
-      <div className="resume-page__layer resume-page__layer--grid" aria-hidden="true" />
-      <div className="resume-page__layer resume-page__layer--veil" aria-hidden="true" />
+      <div className="legal-shell__layer legal-shell__layer--base" aria-hidden="true" />
+      <div className="legal-shell__layer legal-shell__layer--grid" aria-hidden="true" />
+      <div className="legal-shell__layer legal-shell__layer--veil" aria-hidden="true" />
 
-      <div className="resume-page__content">
-        <header className="resume-page__topbar">
-          <Link to="/" className="resume-page__back-link">Back to Frontpage</Link>
+      <div className="legal-shell__content">
+        <header className="legal-shell__topbar">
+          <Link to="/" className="legal-shell__back-link">Back to Frontpage</Link>
         </header>
 
         <div className="legal-page">
@@ -161,7 +161,7 @@ export function TermsPage() {
             <ul>
               <li><strong>Entity:</strong> Alpha Sec</li>
               <li><strong>Email:</strong>{' '}
-                <a href="mailto:duresakadi@gmail.com">duresakadi@gmail.com</a>
+                <a href="mailto:alphasecunited@gmail.com">alphasecunited@gmail.com</a>
               </li>
             </ul>
           </section>
