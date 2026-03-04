@@ -8,6 +8,7 @@ const MapPage = lazy(() => import('@/pages/MapPage').then(m => ({ default: m.Map
 const MapLoadingPage = lazy(() => import('@/pages/MapLoadingPage').then(m => ({ default: m.MapLoadingPage })));
 const PrivacyPolicyPage = lazy(() => import('@/pages/PrivacyPolicyPage').then(m => ({ default: m.PrivacyPolicyPage })));
 const TermsPage = lazy(() => import('@/pages/TermsPage').then(m => ({ default: m.TermsPage })));
+const CreditsPage = lazy(() => import('@/pages/CreditsPage').then(m => ({ default: m.CreditsPage })));
 const AdminPage = lazy(() => import('@/pages/AdminPage').then(m => ({ default: m.AdminPage })));
 const SettingsPage = lazy(() => import('@/pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
 
@@ -18,6 +19,7 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/privacy" element={<PrivacyPolicyPage />} />
         <Route path="/terms" element={<TermsPage />} />
+        <Route path="/credits" element={<CreditsPage />} />
         <Route path="/map-loading" element={
           <ProtectedRoute>
             <MapLoadingPage />
