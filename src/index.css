@@ -264,7 +264,6 @@ body {
   position: relative;
   background: rgba(10, 10, 16, 0.75);
   backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 24px;
@@ -460,7 +459,6 @@ body {
   border-radius: 12px;
   background: rgba(10, 10, 16, 0.6);
   backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
@@ -478,7 +476,6 @@ body {
   border-radius: 12px;
   background: rgba(10, 10, 16, 0.6);
   backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.8);
   transition: all 0.25s ease;
@@ -678,7 +675,6 @@ body {
   border-radius: 12px;
   background: rgba(12, 12, 18, 0.88);
   backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
   border: 1px solid rgba(200, 170, 110, 0.15);
 }
 
@@ -943,7 +939,6 @@ body {
 .holo-tooltip {
   background: rgba(5, 5, 8, 0.95);
   backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(200, 170, 110, 0.15);
   border-radius: 8px;
   padding: 10px 14px;
@@ -1002,7 +997,6 @@ body {
   cursor: pointer;
   transition: all 0.25s ease;
   backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
 }
 
 .holo-close-button:hover {
@@ -1163,7 +1157,6 @@ body {
   padding: 10px 28px 12px;
   background: rgba(8, 8, 14, 0.5);
   backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
@@ -3663,7 +3656,6 @@ body {
   flex-direction: column;
   background: rgba(8, 8, 14, 0.92);
   backdrop-filter: blur(32px);
-  -webkit-backdrop-filter: blur(32px);
   border: 1px solid rgba(200, 170, 110, 0.12);
   border-radius: 16px;
   overflow: hidden;
