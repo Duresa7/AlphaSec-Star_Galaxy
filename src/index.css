@@ -229,7 +229,7 @@ body {
 }
 
 .animate-slide-in-right-subtle {
-  animation: slideInRightSubtle 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slideInRightSubtle 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .animate-slide-in-left {
   animation: slideInLeft 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -245,27 +245,26 @@ body {
 }
 
 .animate-slide-in-left-subtle {
-  animation: slideInLeftSubtle 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slideInLeftSubtle 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes slideUpSubtle {
   from {
-    transform: translateX(-50%) translateY(8px);
+    transform: translateY(8px);
   }
   to {
-    transform: translateX(-50%) translateY(0);
+    transform: translateY(0);
   }
 }
 
 .animate-slide-up-subtle {
-  animation: slideUpSubtle 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slideUpSubtle 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .holo-panel {
   position: relative;
   background: rgba(10, 10, 16, 0.75);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  will-change: backdrop-filter;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 24px;
@@ -1533,9 +1532,10 @@ body {
 }
 
 .portfolio-hero__social-link {
-  width: 46px;
-  height: 46px;
+  width: 54px;
+  height: 54px;
   border-radius: 999px;
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1551,9 +1551,33 @@ body {
     box-shadow var(--portfolio-transition);
 }
 
+.portfolio-hero__social-link[data-hover-label]::after {
+  content: attr(data-hover-label);
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 10px);
+  transform: translate(-50%, 8px);
+  border-radius: 999px;
+  border: 1px solid rgba(12, 12, 12, 0.38);
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #111;
+  font-family: "Manrope", "Spline Sans", sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
 .portfolio-hero__social-link svg {
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   display: block;
 }
 
@@ -1566,6 +1590,12 @@ body {
 .portfolio-hero__content--base .portfolio-hero__social-link:hover {
   transform: translateY(-2px);
   background: rgba(255, 255, 255, 0.92);
+}
+
+.portfolio-hero__content--base .portfolio-hero__social-link[data-hover-label]:hover::after,
+.portfolio-hero__content--base .portfolio-hero__social-link[data-hover-label]:focus-visible::after {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }
 
 .portfolio-hero__content--base .portfolio-hero__social-link:focus-visible {
@@ -1678,13 +1708,13 @@ body {
   }
 
   .portfolio-hero__social-link {
-    width: 42px;
-    height: 42px;
+    width: 48px;
+    height: 48px;
   }
 
   .portfolio-hero__social-link svg {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
   }
 }
 
@@ -1724,6 +1754,12 @@ body {
   }
 
   .portfolio-hero__nav-link--icon::after {
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    padding: 5px 8px;
+  }
+
+  .portfolio-hero__social-link[data-hover-label]::after {
     font-size: 9px;
     letter-spacing: 0.1em;
     padding: 5px 8px;
@@ -4061,6 +4097,210 @@ body {
   color: var(--holo-text-primary);
   border-color: rgba(200, 170, 110, 0.3);
   background: rgba(200, 170, 110, 0.04);
+}
+
+/* Custom ship card in fleet modal */
+.fleet-ship-card-custom .fleet-custom-emblem-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at center, rgba(200, 170, 110, 0.06) 0%, transparent 70%);
+}
+
+.fleet-custom-name-input {
+  width: 100%;
+  font-size: 12px;
+  padding: 4px 8px;
+  margin-bottom: 6px;
+}
+
+.fleet-custom-class-select {
+  width: 100%;
+  font-size: 11px;
+  padding: 3px 6px;
+  margin-bottom: 8px;
+  background: rgba(200, 170, 110, 0.06);
+  border: 1px solid rgba(200, 170, 110, 0.15);
+  color: var(--holo-text-primary);
+  border-radius: 4px;
+}
+
+/* Fleet Composition List (FleetInfo panel) */
+.fleet-composition-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.fleet-composition-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  background: rgba(200, 170, 110, 0.04);
+  border: 1px solid rgba(200, 170, 110, 0.1);
+  border-radius: 4px;
+  transition: border-color 0.2s ease;
+}
+
+.fleet-composition-entry:hover {
+  border-color: rgba(200, 170, 110, 0.2);
+}
+
+.fleet-composition-entry-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.fleet-composition-model-badge {
+  font-family: "Orbitron", monospace;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 2px 5px;
+  border-radius: 3px;
+  background: rgba(0, 240, 255, 0.1);
+  color: var(--holo-cyan);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  flex-shrink: 0;
+}
+
+.fleet-composition-entry-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.fleet-composition-entry-name {
+  font-family: "Forum", serif;
+  font-size: 13px;
+  color: var(--holo-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fleet-composition-entry-class {
+  font-family: "Orbitron", monospace;
+  font-size: 9px;
+  color: var(--holo-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.fleet-composition-entry-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.fleet-composition-entry-qty {
+  font-family: "Orbitron", monospace;
+  font-size: 12px;
+  color: var(--holo-amber);
+  min-width: 18px;
+  text-align: center;
+}
+
+.fleet-composition-qty-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  border: 1px solid rgba(200, 170, 110, 0.2);
+  background: rgba(200, 170, 110, 0.06);
+  color: var(--holo-amber);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.fleet-composition-qty-btn:hover {
+  background: rgba(200, 170, 110, 0.12);
+  border-color: rgba(200, 170, 110, 0.35);
+}
+
+.fleet-composition-add-section {
+  margin-top: 8px;
+}
+
+.fleet-composition-add-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.fleet-composition-add-btn {
+  flex: 1;
+  padding: 4px 8px;
+  font-family: "Orbitron", monospace;
+  font-size: 10px;
+  letter-spacing: 0.3px;
+  color: var(--holo-cyan);
+  background: rgba(0, 240, 255, 0.06);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.fleet-composition-add-btn:hover {
+  background: rgba(0, 240, 255, 0.12);
+  border-color: rgba(0, 240, 255, 0.35);
+}
+
+.fleet-composition-add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fleet-composition-add-form-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.fleet-composition-add-confirm {
+  flex: 1;
+  padding: 4px 8px;
+  font-family: "Orbitron", monospace;
+  font-size: 10px;
+  color: #050508;
+  background: var(--holo-cyan);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.fleet-composition-add-confirm:hover:not(:disabled) {
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+}
+
+.fleet-composition-add-confirm:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.fleet-composition-add-cancel {
+  padding: 4px 8px;
+  font-family: "Orbitron", monospace;
+  font-size: 10px;
+  color: var(--holo-text-muted);
+  background: transparent;
+  border: 1px solid rgba(200, 170, 110, 0.15);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.fleet-composition-add-cancel:hover {
+  color: var(--holo-text-primary);
+  border-color: rgba(200, 170, 110, 0.3);
 }
 
 /* Responsive */

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Fleet, ShipModelType } from '@/types';
+import type { Fleet, FleetShipEntry, ShipModelType } from '@/types';
 import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
 import { useGalaxyDataStore } from '@/store/galaxyDataStore';
 import { useFactionStore } from '@/store/factionStore';
@@ -11,12 +11,71 @@ import {
 } from '@/constants/factions';
 import { EditableInfoRow, InfoRow } from '@/components/panels/infoPanelShared';
 import { DEFAULT_TOPDOWN_FLEET_MARKER_SIZE } from '@/config/topDownMarkerConfig';
+import { FactionEmblem } from '@/components/panels/FactionEmblem';
+import { shipCatalog } from '@/data/shipCatalog';
 
 const MODEL_TYPE_LABELS: Record<ShipModelType, string> = {
   republic: 'Republic',
   sith: 'Sith',
-  venator: 'Venator',
+  valor: 'Valor',
+  terminus: 'Terminus',
 };
+
+const MODEL_BADGES: Record<ShipModelType, string> = {
+  republic: 'REP',
+  sith: 'SIT',
+  valor: 'VAL',
+  terminus: 'TER',
+};
+
+const CUSTOM_SHIP_CLASSES = ['Corvette', 'Frigate', 'Cruiser', 'Destroyer', 'Dreadnought', 'Fighter Wing', 'Transport'] as const;
+
+function CompositionEntry({
+  entry,
+  factionId,
+  editable,
+  onAdd,
+  onRemove,
+}: {
+  entry: FleetShipEntry;
+  factionId: string;
+  editable: boolean;
+  onAdd: () => void;
+  onRemove: () => void;
+}) {
+  return (
+    <div className="fleet-composition-entry">
+      <div className="fleet-composition-entry-left">
+        {entry.isCustomEntry || !entry.modelType ? (
+          <FactionEmblem factionId={factionId} size={20} />
+        ) : (
+          <span className="fleet-composition-model-badge">{MODEL_BADGES[entry.modelType]}</span>
+        )}
+        <div className="fleet-composition-entry-text">
+          <span className="fleet-composition-entry-name">{entry.name}</span>
+          <span className="fleet-composition-entry-class">{entry.shipClass}</span>
+        </div>
+      </div>
+      <div className="fleet-composition-entry-right">
+        {editable && (
+          <button className="fleet-composition-qty-btn" onClick={onRemove}>
+            <svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+              <path d="M20 12H4" />
+            </svg>
+          </button>
+        )}
+        <span className="fleet-composition-entry-qty">{entry.quantity}</span>
+        {editable && (
+          <button className="fleet-composition-qty-btn" onClick={onAdd}>
+            <svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5}>
+              <path d="M12 4v16m8-8H4" />
+            </svg>
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export function FleetInfo({ fleet, editable }: { fleet: Fleet; editable: boolean }) {
   const removeCustomFleet = useGalaxyDataStore((s) => s.removeCustomFleet);
@@ -34,9 +93,64 @@ export function FleetInfo({ fleet, editable }: { fleet: Fleet; editable: boolean
   const [editingShipCount, setEditingShipCount] = useState(false);
   const [shipCountDraft, setShipCountDraft] = useState(String(fleet.shipCount));
 
+  // Inline add form state
+  const [addMode, setAddMode] = useState<'catalog' | 'custom' | null>(null);
+  const [addCatalogId, setAddCatalogId] = useState(shipCatalog[0]?.id ?? '');
+  const [addCustomName, setAddCustomName] = useState('');
+  const [addCustomClass, setAddCustomClass] = useState<string>(CUSTOM_SHIP_CLASSES[0]);
+
   const markerSize = fleet.markerSize ?? DEFAULT_TOPDOWN_FLEET_MARKER_SIZE;
   const filledSegments = Math.min(Math.ceil(fleet.shipCount / FLEET_STRENGTH_DIVISOR), FLEET_STRENGTH_SEGMENTS);
   const segmentColor = getFactionBarColor(fleet.faction);
+
+  const composition = fleet.composition;
+
+  const updateCompositionEntry = (catalogId: string, delta: number) => {
+    if (!composition) return;
+    let updated: FleetShipEntry[];
+    const entry = composition.find((e) => e.catalogId === catalogId);
+    if (!entry) return;
+    const newQty = entry.quantity + delta;
+    if (newQty <= 0) {
+      updated = composition.filter((e) => e.catalogId !== catalogId);
+    } else {
+      updated = composition.map((e) =>
+        e.catalogId === catalogId ? { ...e, quantity: newQty } : e,
+      );
+    }
+    const newTotal = updated.reduce((sum, e) => sum + e.quantity, 0);
+    updateFleetStats(fleet.id, { composition: updated, shipCount: Math.max(newTotal, 1) });
+  };
+
+  const addCatalogEntry = () => {
+    const ship = shipCatalog.find((s) => s.id === addCatalogId);
+    if (!ship) return;
+    const current = composition ?? [];
+    const existing = current.find((e) => e.catalogId === ship.id);
+    let updated: FleetShipEntry[];
+    if (existing) {
+      updated = current.map((e) =>
+        e.catalogId === ship.id ? { ...e, quantity: e.quantity + 1 } : e,
+      );
+    } else {
+      updated = [...current, { catalogId: ship.id, name: ship.name, shipClass: ship.shipClass, modelType: ship.modelType, quantity: 1 }];
+    }
+    const newTotal = updated.reduce((sum, e) => sum + e.quantity, 0);
+    updateFleetStats(fleet.id, { composition: updated, shipCount: newTotal });
+    setAddMode(null);
+  };
+
+  const addCustomEntry = () => {
+    const name = addCustomName.trim();
+    if (!name) return;
+    const current = composition ?? [];
+    const catalogId = `custom-${Date.now()}`;
+    const updated = [...current, { catalogId, name, shipClass: addCustomClass, modelType: null, quantity: 1, isCustomEntry: true } as FleetShipEntry];
+    const newTotal = updated.reduce((sum, e) => sum + e.quantity, 0);
+    updateFleetStats(fleet.id, { composition: updated, shipCount: newTotal });
+    setAddCustomName('');
+    setAddMode(null);
+  };
 
   return (
     <div className="space-y-4">
@@ -141,6 +255,83 @@ export function FleetInfo({ fleet, editable }: { fleet: Fleet; editable: boolean
         {fleet.flagship && <InfoRow label="Flagship" value={fleet.flagship} />}
         {fleet.commander && <InfoRow label="Commander" value={fleet.commander} />}
       </div>
+
+      {composition && composition.length > 0 && (
+        <div>
+          <label className="holo-label" style={{ marginBottom: '8px' }}>Fleet Composition</label>
+          <div className="fleet-composition-list">
+            {composition.map((entry) => (
+              <CompositionEntry
+                key={entry.catalogId}
+                entry={entry}
+                factionId={fleet.faction}
+                editable={editable && !!fleet.isCustom}
+                onAdd={() => updateCompositionEntry(entry.catalogId, 1)}
+                onRemove={() => updateCompositionEntry(entry.catalogId, -1)}
+              />
+            ))}
+          </div>
+          {editable && fleet.isCustom && (
+            <div className="fleet-composition-add-section">
+              {!addMode && (
+                <div className="fleet-composition-add-buttons">
+                  <button className="fleet-composition-add-btn" onClick={() => setAddMode('catalog')}>
+                    + Catalog Ship
+                  </button>
+                  <button className="fleet-composition-add-btn" onClick={() => setAddMode('custom')}>
+                    + Custom Ship
+                  </button>
+                </div>
+              )}
+              {addMode === 'catalog' && (
+                <div className="fleet-composition-add-form">
+                  <select
+                    value={addCatalogId}
+                    onChange={(e) => setAddCatalogId(e.target.value)}
+                    className="holo-input"
+                    style={{ fontSize: '11px', padding: '3px 6px' }}
+                  >
+                    {shipCatalog.map((s) => (
+                      <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
+                  </select>
+                  <div className="fleet-composition-add-form-actions">
+                    <button className="fleet-composition-add-confirm" onClick={addCatalogEntry}>Add</button>
+                    <button className="fleet-composition-add-cancel" onClick={() => setAddMode(null)}>Cancel</button>
+                  </div>
+                </div>
+              )}
+              {addMode === 'custom' && (
+                <div className="fleet-composition-add-form">
+                  <input
+                    type="text"
+                    value={addCustomName}
+                    onChange={(e) => setAddCustomName(e.target.value)}
+                    className="holo-input"
+                    placeholder="Ship name..."
+                    maxLength={30}
+                    style={{ fontSize: '11px', padding: '3px 6px' }}
+                  />
+                  <select
+                    value={addCustomClass}
+                    onChange={(e) => setAddCustomClass(e.target.value)}
+                    className="holo-input"
+                    style={{ fontSize: '11px', padding: '3px 6px' }}
+                  >
+                    {CUSTOM_SHIP_CLASSES.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                  <div className="fleet-composition-add-form-actions">
+                    <button className="fleet-composition-add-confirm" onClick={addCustomEntry} disabled={!addCustomName.trim()}>Add</button>
+                    <button className="fleet-composition-add-cancel" onClick={() => setAddMode(null)}>Cancel</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {editable && viewMode === 'topdown' && (
         <div>

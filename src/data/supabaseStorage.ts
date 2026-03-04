@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { supabase, supabaseConfigured } from '@/lib/supabase';
 import { withTimeout } from '@/utils/withTimeout';
-import type { StarSystem, Fleet, Faction, Planet, AuditAction, AuditLogEntry, UserProfile, ShipModelType, FactionConfig } from '@/types';
+import type { StarSystem, Fleet, Faction, Planet, AuditAction, AuditLogEntry, UserProfile, ShipModelType, FactionConfig, FleetShipEntry } from '@/types';
 
 const AUTH_LOOKUP_TIMEOUT_MS = 8_000;
 
@@ -63,6 +63,7 @@ interface DbFleet {
   ship_count: number;
   model_type: ShipModelType;
   marker_size: number | null;
+  composition: FleetShipEntry[];
   created_by: string | null;
 }
 
@@ -114,6 +115,9 @@ function dbToSystem(row: DbSystem): StarSystem {
 }
 
 function dbToFleet(row: DbFleet): Fleet {
+  const composition = Array.isArray(row.composition) && row.composition.length > 0
+    ? row.composition
+    : undefined;
   return {
     id: row.id,
     name: row.name,
@@ -123,6 +127,7 @@ function dbToFleet(row: DbFleet): Fleet {
     modelType: row.model_type,
     markerSize: row.marker_size ?? undefined,
     isCustom: true,
+    composition,
   };
 }
 
@@ -166,6 +171,7 @@ function serializeFleetForDb(fleet: Fleet, userId: string) {
     ship_count: fleet.shipCount,
     model_type: fleet.modelType,
     marker_size: fleet.markerSize ?? null,
+    composition: fleet.composition ?? [],
     created_by: userId,
   };
 }

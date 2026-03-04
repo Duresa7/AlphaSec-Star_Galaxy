@@ -140,6 +140,7 @@ function TopDownView() {
         shipCount: pendingCustomFleet.shipCount,
         modelType: pendingCustomFleet.modelType,
         isCustom: true,
+        composition: pendingCustomFleet.composition,
       });
     }
   };
