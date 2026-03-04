@@ -17,13 +17,6 @@ export const shipCatalog: ShipCatalogEntry[] = [
     description: 'Versatile Hammerhead-class cruiser, the backbone of the Republic Navy.',
   },
   {
-    id: 'republic-venator',
-    name: 'Venator-class Star Destroyer',
-    shipClass: 'Dreadnought',
-    modelType: 'venator',
-    description: 'Republic capital ship configured for carrier operations, fleet command, and orbital assault.',
-  },
-  {
     id: 'republic-valor',
     name: 'Valor-class Cruiser',
     shipClass: 'Cruiser',

@@ -1533,9 +1533,10 @@ body {
 }
 
 .portfolio-hero__social-link {
-  width: 46px;
-  height: 46px;
+  width: 54px;
+  height: 54px;
   border-radius: 999px;
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1551,9 +1552,33 @@ body {
     box-shadow var(--portfolio-transition);
 }
 
+.portfolio-hero__social-link[data-hover-label]::after {
+  content: attr(data-hover-label);
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 10px);
+  transform: translate(-50%, 8px);
+  border-radius: 999px;
+  border: 1px solid rgba(12, 12, 12, 0.38);
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #111;
+  font-family: "Manrope", "Spline Sans", sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
 .portfolio-hero__social-link svg {
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   display: block;
 }
 
@@ -1566,6 +1591,12 @@ body {
 .portfolio-hero__content--base .portfolio-hero__social-link:hover {
   transform: translateY(-2px);
   background: rgba(255, 255, 255, 0.92);
+}
+
+.portfolio-hero__content--base .portfolio-hero__social-link[data-hover-label]:hover::after,
+.portfolio-hero__content--base .portfolio-hero__social-link[data-hover-label]:focus-visible::after {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }
 
 .portfolio-hero__content--base .portfolio-hero__social-link:focus-visible {
@@ -1678,13 +1709,13 @@ body {
   }
 
   .portfolio-hero__social-link {
-    width: 42px;
-    height: 42px;
+    width: 48px;
+    height: 48px;
   }
 
   .portfolio-hero__social-link svg {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
   }
 }
 
@@ -1724,6 +1755,12 @@ body {
   }
 
   .portfolio-hero__nav-link--icon::after {
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    padding: 5px 8px;
+  }
+
+  .portfolio-hero__social-link[data-hover-label]::after {
     font-size: 9px;
     letter-spacing: 0.1em;
     padding: 5px 8px;
