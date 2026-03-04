@@ -91,17 +91,6 @@ function InstagramIcon() {
   );
 }
 
-function ResumeIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path
-        fill="currentColor"
-        d="M7.75 2.5A2.25 2.25 0 0 0 5.5 4.75v14.5A2.25 2.25 0 0 0 7.75 21.5h8.5a2.25 2.25 0 0 0 2.25-2.25V8.78a2.25 2.25 0 0 0-.66-1.59l-3.03-3.03a2.25 2.25 0 0 0-1.59-.66H7.75Zm5.5 1.7v3.55c0 .55.45 1 1 1h3.55v10.5a1.55 1.55 0 0 1-1.55 1.55h-8.5a1.55 1.55 0 0 1-1.55-1.55V4.75c0-.86.7-1.55 1.55-1.55h5.5Zm1.7.5 2.85 2.85H14.95V4.7ZM8.5 11.2c0-.2.16-.35.35-.35h6.3a.35.35 0 0 1 0 .7h-6.3a.35.35 0 0 1-.35-.35Zm0 3.1c0-.2.16-.35.35-.35h6.3a.35.35 0 1 1 0 .7h-6.3a.35.35 0 0 1-.35-.35Zm0 3.1c0-.2.16-.35.35-.35h3.7a.35.35 0 1 1 0 .7h-3.7a.35.35 0 0 1-.35-.35Z"
-      />
-    </svg>
-  );
-}
-
 function BlogIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -370,13 +359,6 @@ export function LandingPage() {
 
       <div className="portfolio-hero__nav-block portfolio-hero__parallax">
         <div className="portfolio-hero__nav-actions">
-          <span
-            className="portfolio-hero__nav-link portfolio-hero__nav-link--icon portfolio-hero__nav-link--disabled"
-            aria-label="Resume Coming Soon"
-            data-hover-label="Resume Coming Soon"
-          >
-            <ResumeIcon />
-          </span>
           {interactive ? (
             session ? (
               <Link
