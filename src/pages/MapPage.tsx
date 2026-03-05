@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { GalaxyScene } from '@/components/galaxy/GalaxyScene';
 import { InfoPanel } from '@/components/panels/InfoPanel';
@@ -32,6 +32,97 @@ export function MapPage() {
   const realtimeRefreshTimeoutRef = useRef<number | null>(null);
   const factionRefreshTimeoutRef = useRef<number | null>(null);
   const viewLabel = viewMode === 'topdown' ? 'Galaxy Map' : viewMode === 'system' ? 'Planet View' : 'Fleet View';
+
+  const handleDownloadMap = useCallback(() => {
+    const canvas = document.querySelector('canvas');
+    if (!canvas) return;
+
+    const canvasRect = canvas.getBoundingClientRect();
+    const offscreen = document.createElement('canvas');
+    offscreen.width = canvas.width;
+    offscreen.height = canvas.height;
+    const ctx = offscreen.getContext('2d');
+    if (!ctx) return;
+
+    ctx.drawImage(canvas, 0, 0);
+
+    const scaleX = canvas.width / canvasRect.width;
+    const scaleY = canvas.height / canvasRect.height;
+
+    const labelEls = document.querySelectorAll<HTMLElement>('[data-map-label]');
+    labelEls.forEach((el) => {
+      const text = el.textContent?.trim();
+      if (!text) return;
+
+      const rect = el.getBoundingClientRect();
+      const x = (rect.left - canvasRect.left + rect.width / 2) * scaleX;
+      const y = (rect.top - canvasRect.top + rect.height / 2) * scaleY;
+
+      const computed = window.getComputedStyle(el);
+      const fontSize = parseFloat(computed.fontSize) * scaleX;
+      const fontWeight = computed.fontWeight;
+      const color = computed.color;
+      const bgColor = computed.backgroundColor;
+
+      const paddingX = 6 * scaleX;
+      const paddingY = 3 * scaleY;
+
+      ctx.font = `${fontWeight} ${fontSize}px sans-serif`;
+      const textWidth = ctx.measureText(text).width;
+      const textHeight = fontSize;
+
+      const boxX = x - textWidth / 2 - paddingX;
+      const boxY = y - textHeight / 2 - paddingY;
+      const boxW = textWidth + paddingX * 2;
+      const boxH = textHeight + paddingY * 2;
+      const r = 4 * scaleX;
+
+      ctx.fillStyle = bgColor;
+      ctx.beginPath();
+      ctx.moveTo(boxX + r, boxY);
+      ctx.lineTo(boxX + boxW - r, boxY);
+      ctx.quadraticCurveTo(boxX + boxW, boxY, boxX + boxW, boxY + r);
+      ctx.lineTo(boxX + boxW, boxY + boxH - r);
+      ctx.quadraticCurveTo(boxX + boxW, boxY + boxH, boxX + boxW - r, boxY + boxH);
+      ctx.lineTo(boxX + r, boxY + boxH);
+      ctx.quadraticCurveTo(boxX, boxY + boxH, boxX, boxY + boxH - r);
+      ctx.lineTo(boxX, boxY + r);
+      ctx.quadraticCurveTo(boxX, boxY, boxX + r, boxY);
+      ctx.closePath();
+      ctx.fill();
+
+      const borderColor = computed.borderBottomColor;
+      if (borderColor && borderColor !== 'transparent') {
+        ctx.strokeStyle = borderColor;
+        ctx.lineWidth = 2 * scaleX;
+        ctx.beginPath();
+        ctx.moveTo(boxX, boxY + boxH);
+        ctx.lineTo(boxX + boxW, boxY + boxH);
+        ctx.stroke();
+      }
+
+      const textShadow = computed.textShadow;
+      if (textShadow && textShadow !== 'none') {
+        const parenEnd = textShadow.indexOf(')');
+        if (parenEnd !== -1) {
+          ctx.shadowColor = textShadow.slice(0, parenEnd + 1);
+          ctx.shadowBlur = 10 * scaleX;
+        }
+      }
+
+      ctx.fillStyle = color;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, x, y);
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+    });
+
+    const link = document.createElement('a');
+    link.download = 'galaxy-map.png';
+    link.href = offscreen.toDataURL('image/png');
+    link.click();
+  }, []);
   const displayName =
     profile?.display_name
     ?? (typeof session?.user?.user_metadata?.display_name === 'string' ? session.user.user_metadata.display_name : null)
@@ -115,23 +206,36 @@ export function MapPage() {
     <div className="w-full h-full relative overflow-hidden">
       <GalaxyScene />
 
-      <button
-        onClick={() => setUiHidden((prev) => !prev)}
-        className="absolute top-5 left-5 z-50 flex items-center justify-center w-10 h-10 rounded-lg border border-white/20 text-white/80 hover:text-amber-300 hover:border-amber-400/50 transition-all duration-200 cursor-pointer"
-        style={{ background: 'rgba(10, 10, 16, 0.7)', backdropFilter: 'blur(12px)' }}
-        title={uiHidden ? 'Show UI' : 'Hide UI'}
-      >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
-          {uiHidden ? (
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L6.59 6.59m7.532 7.532l3.29 3.29M3 3l18 18" />
-          ) : (
-            <>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </>
-          )}
-        </svg>
-      </button>
+      <div className="absolute top-5 left-5 z-50 flex items-center gap-2">
+        <button
+          onClick={() => setUiHidden((prev) => !prev)}
+          className="flex items-center justify-center w-10 h-10 rounded-lg border border-white/20 text-white/80 hover:text-amber-300 hover:border-amber-400/50 transition-all duration-200 cursor-pointer"
+          style={{ background: 'rgba(10, 10, 16, 0.7)', backdropFilter: 'blur(12px)' }}
+          title={uiHidden ? 'Show UI' : 'Hide UI'}
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
+            {uiHidden ? (
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L6.59 6.59m7.532 7.532l3.29 3.29M3 3l18 18" />
+            ) : (
+              <>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </>
+            )}
+          </svg>
+        </button>
+
+        <button
+          onClick={handleDownloadMap}
+          className="flex items-center justify-center w-10 h-10 rounded-lg border border-white/20 text-white/80 hover:text-amber-300 hover:border-amber-400/50 transition-all duration-200 cursor-pointer"
+          style={{ background: 'rgba(10, 10, 16, 0.7)', backdropFilter: 'blur(12px)' }}
+          title="Download map as PNG"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V3" />
+          </svg>
+        </button>
+      </div>
 
       {!uiHidden && (
         <>
