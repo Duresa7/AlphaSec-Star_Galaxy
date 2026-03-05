@@ -111,6 +111,7 @@ const TopDownMarker = memo(function TopDownMarker({ system }: TopDownMarkerProps
           style={{ pointerEvents: 'none', userSelect: 'none' }}
         >
           <div
+            data-map-label
             className="text-center whitespace-nowrap px-3 py-1 rounded"
             style={{
               color: '#FFFFFF',

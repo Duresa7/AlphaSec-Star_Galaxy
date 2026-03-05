@@ -214,6 +214,7 @@ export function GalaxyScene() {
       gl={{
         antialias: true,
         alpha: false,
+        preserveDrawingBuffer: true,
         toneMapping: THREE.ACESFilmicToneMapping,
         toneMappingExposure: 1.0,
       }}
