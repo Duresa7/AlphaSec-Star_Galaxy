@@ -2,6 +2,7 @@ import { useGalaxyDataStore } from '@/store/galaxyDataStore';
 
 export function LoadingScreen() {
   const isLoading = useGalaxyDataStore((s) => s.isLoading);
+  const currentYear = useGalaxyDataStore((s) => s.currentYear);
 
   if (!isLoading) return null;
 
@@ -48,7 +49,7 @@ export function LoadingScreen() {
 
         <p className="map-loading-overlay__status">HOLONET UPLINK ESTABLISHED</p>
         <p className="map-loading-overlay__copy">Initializing Navicomputer...</p>
-        <p className="map-loading-overlay__meta">Old Republic Era &middot; 3956 ATC</p>
+        <p className="map-loading-overlay__meta">Old Republic Era &middot; {currentYear} ATC</p>
       </div>
     </section>
   );

@@ -49,7 +49,7 @@ const cloneFleets = (fleetArr: Fleet[]): Fleet[] =>
 
 let _systemsSnapshot: StarSystem[] = [];
 let _fleetsSnapshot: Fleet[] = [];
-let _yearSnapshot: number = 3956;
+let _yearSnapshot: number = 180;
 
 let _systemsArrRef: StarSystem[] = [];
 let _systemsMap = new Map<string, StarSystem>();
@@ -187,7 +187,7 @@ export const useGalaxyDataStore = create<GalaxyDataStore>((set, get) => ({
   fleets: [...fleets],
   isLoading: true,
   setIsLoading: (loading: boolean) => set({ isLoading: loading }),
-  currentYear: 3956,
+  currentYear: 180,
   setCurrentYear: (year: number) => set({ currentYear: year, dirtyTimeline: true, hasPendingChanges: true }),
 
   getFilteredSystems: () => {
@@ -277,7 +277,7 @@ export const useGalaxyDataStore = create<GalaxyDataStore>((set, get) => ({
         loadSetting('current_year'),
       ]);
 
-      const loadedYear = typeof yearSetting === 'number' ? yearSetting : 3956;
+      const loadedYear = typeof yearSetting === 'number' ? yearSetting : 180;
       set(() => ({
         systems: mergeById([...starSystems], customSystems),
         fleets: mergeById([...fleets], customFleets),
