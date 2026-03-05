@@ -30,6 +30,8 @@ import { useGalaxySelectionStore } from './galaxySelectionStore';
 import { useGalaxyUIStore } from './galaxyUIStore';
 import { useFactionStore } from './factionStore';
 
+const DEFAULT_TIMELINE_YEAR = 180;
+
 const cloneSystem = (system: StarSystem): StarSystem => ({
   ...system,
   position: system.position.clone(),
@@ -49,7 +51,7 @@ const cloneFleets = (fleetArr: Fleet[]): Fleet[] =>
 
 let _systemsSnapshot: StarSystem[] = [];
 let _fleetsSnapshot: Fleet[] = [];
-let _yearSnapshot: number = 180;
+let _yearSnapshot: number = DEFAULT_TIMELINE_YEAR;
 
 let _systemsArrRef: StarSystem[] = [];
 let _systemsMap = new Map<string, StarSystem>();
@@ -187,7 +189,7 @@ export const useGalaxyDataStore = create<GalaxyDataStore>((set, get) => ({
   fleets: [...fleets],
   isLoading: true,
   setIsLoading: (loading: boolean) => set({ isLoading: loading }),
-  currentYear: 180,
+  currentYear: DEFAULT_TIMELINE_YEAR,
   setCurrentYear: (year: number) => set({ currentYear: year, dirtyTimeline: true, hasPendingChanges: true }),
 
   getFilteredSystems: () => {
@@ -277,7 +279,7 @@ export const useGalaxyDataStore = create<GalaxyDataStore>((set, get) => ({
         loadSetting('current_year'),
       ]);
 
-      const loadedYear = typeof yearSetting === 'number' ? yearSetting : 180;
+      const loadedYear = typeof yearSetting === 'number' ? yearSetting : DEFAULT_TIMELINE_YEAR;
       set(() => ({
         systems: mergeById([...starSystems], customSystems),
         fleets: mergeById([...fleets], customFleets),

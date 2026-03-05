@@ -17,6 +17,145 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRole } from '@/hooks/useRole';
 import { supabase, supabaseConfigured } from '@/lib/supabase';
 
+const TOOLBAR_BUTTON_STYLE: React.CSSProperties = {
+  background: 'rgba(10, 10, 16, 0.7)',
+  backdropFilter: 'blur(12px)',
+};
+
+function drawLabelToCanvas(
+  ctx: CanvasRenderingContext2D,
+  el: HTMLElement,
+  text: string,
+  canvasRect: DOMRect,
+  scaleX: number,
+  scaleY: number,
+) {
+  const elRect = el.getBoundingClientRect();
+  const x = (elRect.left - canvasRect.left + elRect.width / 2) * scaleX;
+  const y = (elRect.top - canvasRect.top + elRect.height / 2) * scaleY;
+
+  const styles = window.getComputedStyle(el);
+  const fontSize = parseFloat(styles.fontSize) * scaleX;
+
+  const paddingX = 6 * scaleX;
+  const paddingY = 3 * scaleY;
+  const radius = 4 * scaleX;
+
+  ctx.font = `${styles.fontWeight} ${fontSize}px sans-serif`;
+  const textWidth = ctx.measureText(text).width;
+
+  const boxX = x - textWidth / 2 - paddingX;
+  const boxY = y - fontSize / 2 - paddingY;
+  const boxW = textWidth + paddingX * 2;
+  const boxH = fontSize + paddingY * 2;
+
+  ctx.fillStyle = styles.backgroundColor;
+  ctx.beginPath();
+  ctx.moveTo(boxX + radius, boxY);
+  ctx.lineTo(boxX + boxW - radius, boxY);
+  ctx.quadraticCurveTo(boxX + boxW, boxY, boxX + boxW, boxY + radius);
+  ctx.lineTo(boxX + boxW, boxY + boxH - radius);
+  ctx.quadraticCurveTo(boxX + boxW, boxY + boxH, boxX + boxW - radius, boxY + boxH);
+  ctx.lineTo(boxX + radius, boxY + boxH);
+  ctx.quadraticCurveTo(boxX, boxY + boxH, boxX, boxY + boxH - radius);
+  ctx.lineTo(boxX, boxY + radius);
+  ctx.quadraticCurveTo(boxX, boxY, boxX + radius, boxY);
+  ctx.closePath();
+  ctx.fill();
+
+  const borderColor = styles.borderBottomColor;
+  if (borderColor && borderColor !== 'transparent') {
+    ctx.strokeStyle = borderColor;
+    ctx.lineWidth = 2 * scaleX;
+    ctx.beginPath();
+    ctx.moveTo(boxX, boxY + boxH);
+    ctx.lineTo(boxX + boxW, boxY + boxH);
+    ctx.stroke();
+  }
+
+  const shadow = styles.textShadow;
+  if (shadow && shadow !== 'none') {
+    const match = shadow.match(/^(rgba?\([^)]+\))/);
+    if (match) {
+      ctx.shadowColor = match[1];
+      ctx.shadowBlur = 10 * scaleX;
+    }
+  }
+
+  ctx.fillStyle = styles.color;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, x, y);
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+}
+
+function drawTitleToCanvas(
+  ctx: CanvasRenderingContext2D,
+  canvasWidth: number,
+  scaleX: number,
+  scaleY: number,
+  label: string,
+) {
+  const cx = canvasWidth / 2;
+  const titleFontSize = 20 * scaleX;
+  const labelFontSize = 12 * scaleX;
+  const titleY = 30 * scaleY;
+  const labelY = titleY + titleFontSize + 8 * scaleY;
+  const textColor = 'rgba(255, 255, 255, 0.8)';
+  const amberColor = 'rgba(200, 170, 110, 0.5)';
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  ctx.font = `900 ${titleFontSize}px Orbitron, monospace`;
+  ctx.letterSpacing = `${0.3 * titleFontSize}px`;
+  ctx.fillStyle = textColor;
+  ctx.fillText('ALPHASEC', cx, titleY);
+  ctx.letterSpacing = '0px';
+
+  ctx.font = `700 ${labelFontSize}px Oxanium, Orbitron, monospace`;
+  ctx.letterSpacing = `${0.3 * labelFontSize}px`;
+  const labelText = label.toUpperCase();
+  const labelWidth = ctx.measureText(labelText).width;
+  ctx.fillStyle = textColor;
+  ctx.fillText(labelText, cx, labelY);
+  ctx.letterSpacing = '0px';
+
+  const dotRadius = 3 * scaleX;
+  const dotGap = 6 * scaleX;
+  const lineLen = 48 * scaleX;
+
+  ctx.fillStyle = amberColor;
+  ctx.beginPath();
+  ctx.arc(cx - labelWidth / 2 - dotGap, labelY, dotRadius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(cx + labelWidth / 2 + dotGap, labelY, dotRadius, 0, Math.PI * 2);
+  ctx.fill();
+
+  const lineStart = cx - labelWidth / 2 - dotGap * 2 - dotRadius;
+  const grad1 = ctx.createLinearGradient(lineStart - lineLen, 0, lineStart, 0);
+  grad1.addColorStop(0, 'transparent');
+  grad1.addColorStop(1, 'rgba(200, 170, 110, 0.3)');
+  ctx.strokeStyle = grad1;
+  ctx.lineWidth = 1 * scaleX;
+  ctx.beginPath();
+  ctx.moveTo(lineStart - lineLen, labelY);
+  ctx.lineTo(lineStart, labelY);
+  ctx.stroke();
+
+  const lineEnd = cx + labelWidth / 2 + dotGap * 2 + dotRadius;
+  const grad2 = ctx.createLinearGradient(lineEnd, 0, lineEnd + lineLen, 0);
+  grad2.addColorStop(0, 'rgba(200, 170, 110, 0.3)');
+  grad2.addColorStop(1, 'transparent');
+  ctx.strokeStyle = grad2;
+  ctx.beginPath();
+  ctx.moveTo(lineEnd, labelY);
+  ctx.lineTo(lineEnd + lineLen, labelY);
+  ctx.stroke();
+}
+
 export function MapPage() {
   const viewMode = useGalaxySelectionStore((s) => s.viewMode);
   const requestCameraReset = useGalaxySelectionStore((s) => s.requestCameraReset);
@@ -49,80 +188,19 @@ export function MapPage() {
     const scaleX = canvas.width / canvasRect.width;
     const scaleY = canvas.height / canvasRect.height;
 
-    const labelEls = document.querySelectorAll<HTMLElement>('[data-map-label]');
-    labelEls.forEach((el) => {
+    document.querySelectorAll<HTMLElement>('[data-map-label]').forEach((el) => {
       const text = el.textContent?.trim();
       if (!text) return;
-
-      const rect = el.getBoundingClientRect();
-      const x = (rect.left - canvasRect.left + rect.width / 2) * scaleX;
-      const y = (rect.top - canvasRect.top + rect.height / 2) * scaleY;
-
-      const computed = window.getComputedStyle(el);
-      const fontSize = parseFloat(computed.fontSize) * scaleX;
-      const fontWeight = computed.fontWeight;
-      const color = computed.color;
-      const bgColor = computed.backgroundColor;
-
-      const paddingX = 6 * scaleX;
-      const paddingY = 3 * scaleY;
-
-      ctx.font = `${fontWeight} ${fontSize}px sans-serif`;
-      const textWidth = ctx.measureText(text).width;
-      const textHeight = fontSize;
-
-      const boxX = x - textWidth / 2 - paddingX;
-      const boxY = y - textHeight / 2 - paddingY;
-      const boxW = textWidth + paddingX * 2;
-      const boxH = textHeight + paddingY * 2;
-      const r = 4 * scaleX;
-
-      ctx.fillStyle = bgColor;
-      ctx.beginPath();
-      ctx.moveTo(boxX + r, boxY);
-      ctx.lineTo(boxX + boxW - r, boxY);
-      ctx.quadraticCurveTo(boxX + boxW, boxY, boxX + boxW, boxY + r);
-      ctx.lineTo(boxX + boxW, boxY + boxH - r);
-      ctx.quadraticCurveTo(boxX + boxW, boxY + boxH, boxX + boxW - r, boxY + boxH);
-      ctx.lineTo(boxX + r, boxY + boxH);
-      ctx.quadraticCurveTo(boxX, boxY + boxH, boxX, boxY + boxH - r);
-      ctx.lineTo(boxX, boxY + r);
-      ctx.quadraticCurveTo(boxX, boxY, boxX + r, boxY);
-      ctx.closePath();
-      ctx.fill();
-
-      const borderColor = computed.borderBottomColor;
-      if (borderColor && borderColor !== 'transparent') {
-        ctx.strokeStyle = borderColor;
-        ctx.lineWidth = 2 * scaleX;
-        ctx.beginPath();
-        ctx.moveTo(boxX, boxY + boxH);
-        ctx.lineTo(boxX + boxW, boxY + boxH);
-        ctx.stroke();
-      }
-
-      const textShadow = computed.textShadow;
-      if (textShadow && textShadow !== 'none') {
-        const parenEnd = textShadow.indexOf(')');
-        if (parenEnd !== -1) {
-          ctx.shadowColor = textShadow.slice(0, parenEnd + 1);
-          ctx.shadowBlur = 10 * scaleX;
-        }
-      }
-
-      ctx.fillStyle = color;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(text, x, y);
-      ctx.shadowColor = 'transparent';
-      ctx.shadowBlur = 0;
+      drawLabelToCanvas(ctx, el, text, canvasRect, scaleX, scaleY);
     });
+
+    drawTitleToCanvas(ctx, offscreen.width, scaleX, scaleY, viewLabel);
 
     const link = document.createElement('a');
     link.download = 'galaxy-map.png';
     link.href = offscreen.toDataURL('image/png');
     link.click();
-  }, []);
+  }, [viewLabel]);
   const displayName =
     profile?.display_name
     ?? (typeof session?.user?.user_metadata?.display_name === 'string' ? session.user.user_metadata.display_name : null)
@@ -210,7 +288,7 @@ export function MapPage() {
         <button
           onClick={() => setUiHidden((prev) => !prev)}
           className="flex items-center justify-center w-10 h-10 rounded-lg border border-white/20 text-white/80 hover:text-amber-300 hover:border-amber-400/50 transition-all duration-200 cursor-pointer"
-          style={{ background: 'rgba(10, 10, 16, 0.7)', backdropFilter: 'blur(12px)' }}
+          style={TOOLBAR_BUTTON_STYLE}
           title={uiHidden ? 'Show UI' : 'Hide UI'}
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
@@ -225,16 +303,18 @@ export function MapPage() {
           </svg>
         </button>
 
-        <button
-          onClick={handleDownloadMap}
-          className="flex items-center justify-center w-10 h-10 rounded-lg border border-white/20 text-white/80 hover:text-amber-300 hover:border-amber-400/50 transition-all duration-200 cursor-pointer"
-          style={{ background: 'rgba(10, 10, 16, 0.7)', backdropFilter: 'blur(12px)' }}
-          title="Download map as PNG"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V3" />
-          </svg>
-        </button>
+        {!uiHidden && (
+          <button
+            onClick={handleDownloadMap}
+            className="flex items-center justify-center w-10 h-10 rounded-lg border border-white/20 text-white/80 hover:text-amber-300 hover:border-amber-400/50 transition-all duration-200 cursor-pointer"
+            style={TOOLBAR_BUTTON_STYLE}
+            title="Download map as PNG"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V3" />
+            </svg>
+          </button>
+        )}
       </div>
 
       {!uiHidden && (
