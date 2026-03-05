@@ -117,6 +117,7 @@ const FleetMarker = memo(function FleetMarker({ fleet }: FleetMarkerProps) {
             style={{ pointerEvents: 'none', userSelect: 'none' }}
           >
             <div
+              data-map-label
               className="text-center whitespace-nowrap px-3 py-1 rounded"
               style={{
                 color: '#FFFFFF',
@@ -170,6 +171,7 @@ const FleetMarker = memo(function FleetMarker({ fleet }: FleetMarkerProps) {
           style={{ pointerEvents: 'none', userSelect: 'none' }}
         >
           <div
+            data-map-label
             className="text-center whitespace-nowrap holo-tooltip"
             style={{ minWidth: '100px' }}
           >
