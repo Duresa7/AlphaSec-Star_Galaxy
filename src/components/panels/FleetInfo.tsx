@@ -20,6 +20,7 @@ import {
   CUSTOM_SHIP_QUANTITY_MAX,
   CUSTOM_SHIP_QUANTITY_MIN,
 } from '@/utils/fleetComposition';
+import { CUSTOM_SHIP_CLASSES } from '@/constants/ships';
 
 const MODEL_TYPE_LABELS: Record<ShipModelType, string> = {
   republic: 'Republic',
@@ -34,8 +35,6 @@ const MODEL_BADGES: Record<ShipModelType, string> = {
   valor: 'VAL',
   terminus: 'TER',
 };
-
-const CUSTOM_SHIP_CLASSES = ['Corvette', 'Frigate', 'Cruiser', 'Destroyer', 'Dreadnought', 'Fighter Wing', 'Transport'] as const;
 
 function CompositionEntry({
   entry,

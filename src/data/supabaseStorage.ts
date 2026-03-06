@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { supabase, supabaseConfigured } from '@/lib/supabase';
 import { withTimeout } from '@/utils/withTimeout';
+import { logger } from '@/utils/logger';
 import type { StarSystem, Fleet, Faction, Planet, AuditAction, AuditLogEntry, UserProfile, ShipModelType, FactionConfig, FleetShipEntry } from '@/types';
 
 const AUTH_LOOKUP_TIMEOUT_MS = 8_000;
@@ -14,12 +15,12 @@ export const getAuthenticatedUserId = async (): Promise<string | null> => {
       'Auth user lookup timed out.',
     );
     if (error) {
-      console.error('Failed to resolve auth user:', error);
+      logger.error('Failed to resolve auth user:', error);
       return null;
     }
     return data.user?.id ?? null;
   } catch (error) {
-    console.error('Failed to resolve auth user:', error);
+    logger.error('Failed to resolve auth user:', error);
     return null;
   }
 };
@@ -185,7 +186,7 @@ export async function loadCustomSystems(): Promise<StarSystem[]> {
     .from('custom_systems')
     .select('*');
   if (error) {
-    console.error('Failed to load custom systems:', error);
+    logger.error('Failed to load custom systems:', error);
     return [];
   }
   return (data as DbSystem[]).map(dbToSystem);
@@ -195,7 +196,7 @@ export async function insertCustomSystem(system: StarSystem, userId: string): Pr
   if (!supabaseConfigured) return;
   const { error } = await supabase.from('custom_systems').insert(serializeSystemForDb(system, userId));
   if (error) {
-    console.error('Failed to insert custom system:', error);
+    logger.error('Failed to insert custom system:', error);
     throw error;
   }
 }
@@ -204,7 +205,7 @@ export async function upsertSystem(system: StarSystem, userId: string): Promise<
   if (!supabaseConfigured) return;
   const { error } = await supabase.from('custom_systems').upsert(serializeSystemForDb(system, userId), { onConflict: 'id' });
   if (error) {
-    console.error('Failed to upsert system:', error);
+    logger.error('Failed to upsert system:', error);
     throw error;
   }
 }
@@ -214,7 +215,7 @@ export async function batchUpsertSystems(systems: StarSystem[], userId: string):
   const rows = systems.map(s => serializeSystemForDb(s, userId));
   const { error } = await supabase.from('custom_systems').upsert(rows, { onConflict: 'id' });
   if (error) {
-    console.error('Failed to batch upsert systems:', error);
+    logger.error('Failed to batch upsert systems:', error);
     throw error;
   }
 }
@@ -223,7 +224,7 @@ export async function deleteCustomSystem(id: string): Promise<void> {
   if (!supabaseConfigured) return;
   const { error } = await supabase.from('custom_systems').delete().eq('id', id);
   if (error) {
-    console.error('Failed to delete custom system:', error);
+    logger.error('Failed to delete custom system:', error);
     throw error;
   }
 }
@@ -234,7 +235,7 @@ export async function loadCustomFleets(): Promise<Fleet[]> {
     .from('custom_fleets')
     .select('*');
   if (error) {
-    console.error('Failed to load custom fleets:', error);
+    logger.error('Failed to load custom fleets:', error);
     return [];
   }
   return (data as DbFleet[]).map(dbToFleet);
@@ -244,7 +245,7 @@ export async function insertCustomFleet(fleet: Fleet, userId: string): Promise<v
   if (!supabaseConfigured) return;
   const { error } = await supabase.from('custom_fleets').insert(serializeFleetForDb(fleet, userId));
   if (error) {
-    console.error('Failed to insert custom fleet:', error);
+    logger.error('Failed to insert custom fleet:', error);
     throw error;
   }
 }
@@ -253,7 +254,7 @@ export async function upsertFleet(fleet: Fleet, userId: string): Promise<void> {
   if (!supabaseConfigured) return;
   const { error } = await supabase.from('custom_fleets').upsert(serializeFleetForDb(fleet, userId), { onConflict: 'id' });
   if (error) {
-    console.error('Failed to upsert fleet:', error);
+    logger.error('Failed to upsert fleet:', error);
     throw error;
   }
 }
@@ -263,7 +264,7 @@ export async function batchUpsertFleets(fleets: Fleet[], userId: string): Promis
   const rows = fleets.map(f => serializeFleetForDb(f, userId));
   const { error } = await supabase.from('custom_fleets').upsert(rows, { onConflict: 'id' });
   if (error) {
-    console.error('Failed to batch upsert fleets:', error);
+    logger.error('Failed to batch upsert fleets:', error);
     throw error;
   }
 }
@@ -272,7 +273,7 @@ export async function deleteCustomFleet(id: string): Promise<void> {
   if (!supabaseConfigured) return;
   const { error } = await supabase.from('custom_fleets').delete().eq('id', id);
   if (error) {
-    console.error('Failed to delete custom fleet:', error);
+    logger.error('Failed to delete custom fleet:', error);
     throw error;
   }
 }
@@ -285,7 +286,7 @@ export async function loadSetting(key: string): Promise<unknown> {
     .eq('key', key)
     .single();
   if (error) {
-    console.error(`Failed to load setting "${key}":`, error);
+    logger.error(`Failed to load setting "${key}":`, error);
     return null;
   }
   return data?.value ?? null;
@@ -299,7 +300,7 @@ export async function updateSetting(key: string, value: unknown): Promise<void> 
     .update({ value: value as never, updated_by: userId })
     .eq('key', key);
   if (error) {
-    console.error(`Failed to update setting "${key}":`, error);
+    logger.error(`Failed to update setting "${key}":`, error);
     throw error;
   }
 }
@@ -322,7 +323,7 @@ export async function logAction(
     entity_name: entityName,
     details: details ?? null,
   });
-  if (error) console.error('Failed to log audit action:', error);
+  if (error) logger.error('Failed to log audit action:', error);
 }
 
 function mapAuditLogRow(row: Record<string, unknown>): AuditLogEntry {
@@ -350,7 +351,7 @@ export async function fetchAuditLogPage(limit = 40, offset = 0, query = ''): Pro
     });
 
   if (error) {
-    console.error('Failed to fetch audit log page:', error);
+    logger.error('Failed to fetch audit log page:', error);
     return [];
   }
 
@@ -367,7 +368,7 @@ export async function fetchAuditLogTotal(query = ''): Promise<number> {
     });
 
   if (error) {
-    console.error('Failed to fetch audit log total:', error);
+    logger.error('Failed to fetch audit log total:', error);
     return 0;
   }
 
@@ -387,7 +388,7 @@ export async function fetchAllProfiles(): Promise<UserProfile[]> {
     .order('created_at', { ascending: true });
 
   if (error) {
-    console.error('Failed to fetch profiles:', error);
+    logger.error('Failed to fetch profiles:', error);
     return [];
   }
   return data as UserProfile[];
@@ -459,7 +460,7 @@ export async function loadFactions(): Promise<FactionConfig[]> {
     .select('*')
     .order('sort_order', { ascending: true });
   if (error) {
-    console.error('Failed to load factions:', error);
+    logger.error('Failed to load factions:', error);
     return [];
   }
   return (data as DbFaction[]).map(dbToFactionConfig);
@@ -477,7 +478,7 @@ export async function upsertFaction(faction: FactionConfig, userId: string): Pro
     created_by: userId,
   }, { onConflict: 'id' });
   if (error) {
-    console.error('Failed to upsert faction:', error);
+    logger.error('Failed to upsert faction:', error);
     throw error;
   }
 }
@@ -491,7 +492,7 @@ export async function updateFactionInDb(id: string, updates: Partial<Pick<Factio
   if (updates.sortOrder !== undefined) dbUpdates.sort_order = updates.sortOrder;
   const { error } = await supabase.from('custom_factions').update(dbUpdates).eq('id', id);
   if (error) {
-    console.error('Failed to update faction:', error);
+    logger.error('Failed to update faction:', error);
     throw error;
   }
 }
@@ -500,7 +501,7 @@ export async function deleteFactionFromDb(id: string): Promise<void> {
   if (!supabaseConfigured) return;
   const { error } = await supabase.from('custom_factions').delete().eq('id', id);
   if (error) {
-    console.error('Failed to delete faction:', error);
+    logger.error('Failed to delete faction:', error);
     throw error;
   }
 }
