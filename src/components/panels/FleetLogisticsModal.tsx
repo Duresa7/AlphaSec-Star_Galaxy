@@ -15,6 +15,7 @@ import {
   CUSTOM_SHIP_QUANTITY_MAX,
   CUSTOM_SHIP_QUANTITY_MIN,
 } from '@/utils/fleetComposition';
+import { CUSTOM_SHIP_CLASSES } from '@/constants/ships';
 
 interface ShipCardPreviewProps {
   modelType: ShipModelType;
@@ -50,8 +51,6 @@ function ShipCardPreview({ modelType }: ShipCardPreviewProps) {
     </Canvas>
   );
 }
-
-const CUSTOM_SHIP_CLASSES = ['Corvette', 'Frigate', 'Cruiser', 'Destroyer', 'Dreadnought', 'Fighter Wing', 'Transport'] as const;
 
 interface FleetLogisticsModalProps {
   onConfirm: (data: { name: string; faction: string; shipCount: number; modelType: ShipModelType; commander?: string; composition: FleetShipEntry[] }) => void;
