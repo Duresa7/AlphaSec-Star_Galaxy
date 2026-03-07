@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { LandingPage } from '@/pages/LandingPage';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { AdminRoute } from '@/components/auth/AdminRoute';
+import { BossmanRoute } from '@/components/auth/BossmanRoute';
 
 const MapPage = lazy(() => import('@/pages/MapPage').then(m => ({ default: m.MapPage })));
 const MapLoadingPage = lazy(() => import('@/pages/MapLoadingPage').then(m => ({ default: m.MapLoadingPage })));
@@ -11,6 +12,7 @@ const TermsPage = lazy(() => import('@/pages/TermsPage').then(m => ({ default: m
 const CreditsPage = lazy(() => import('@/pages/CreditsPage').then(m => ({ default: m.CreditsPage })));
 const AdminPage = lazy(() => import('@/pages/AdminPage').then(m => ({ default: m.AdminPage })));
 const SettingsPage = lazy(() => import('@/pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
+const NewsPage = lazy(() => import('@/pages/NewsPage').then(m => ({ default: m.NewsPage })));
 
 function App() {
   return (
@@ -49,6 +51,11 @@ function App() {
           <AdminRoute>
             <AdminPage />
           </AdminRoute>
+        } />
+        <Route path="/news" element={
+          <BossmanRoute>
+            <NewsPage />
+          </BossmanRoute>
         } />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
