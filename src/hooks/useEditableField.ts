@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-export function useEditableField(initialValue: string) {
+export function useEditableField(initialValue = '') {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(initialValue);
 
