@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type ComponentType, type CSSProperties } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useRole } from '@/hooks/useRole';
 import { AuthModal } from '@/components/auth/AuthModal';
 import { Footer } from '@/components/Footer';
 import { clamp } from '@/utils/math';
@@ -129,6 +130,7 @@ const SOCIAL_LINKS: SocialLink[] = [
 export function LandingPage() {
   const heroImageUrl = `${import.meta.env.BASE_URL}homepage-bg.jpg`;
   const { session, profile, signOut } = useAuth();
+  const { isBossman } = useRole();
   const location = useLocation();
   const locationState = location.state as { showAuthModal?: boolean } | null;
   const [showAuthModal, setShowAuthModal] = useState(locationState?.showAuthModal ?? false);
@@ -388,13 +390,34 @@ export function LandingPage() {
               <img src={`${import.meta.env.BASE_URL}icons/codex-planets.png`} alt="" className="portfolio-hero__nav-icon-img" />
             </span>
           )}
-          <span
-            className="portfolio-hero__nav-link portfolio-hero__nav-link--icon portfolio-hero__nav-link--disabled"
-            aria-label="Blog Coming Soon"
-            data-hover-label="Blog Coming Soon"
-          >
-            <BlogIcon />
-          </span>
+          {interactive ? (
+            session && isBossman ? (
+              <Link
+                className="portfolio-hero__nav-link portfolio-hero__nav-link--icon"
+                to="/news"
+                aria-label="AlphaSec News"
+                data-hover-label="AlphaSec News"
+              >
+                <BlogIcon />
+              </Link>
+            ) : (
+              <span
+                className="portfolio-hero__nav-link portfolio-hero__nav-link--icon portfolio-hero__nav-link--disabled"
+                aria-label="AlphaSec News"
+                data-hover-label="AlphaSec News"
+              >
+                <BlogIcon />
+              </span>
+            )
+          ) : (
+            <span
+              className="portfolio-hero__nav-link portfolio-hero__nav-link--icon"
+              aria-label="AlphaSec News"
+              data-hover-label="AlphaSec News"
+            >
+              <BlogIcon />
+            </span>
+          )}
           <span
             className="portfolio-hero__nav-link portfolio-hero__nav-link--icon portfolio-hero__nav-link--disabled"
             aria-label="TNIO: Codex of Planets Coming Soon"
