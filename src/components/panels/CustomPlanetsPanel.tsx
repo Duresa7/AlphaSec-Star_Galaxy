@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useGalaxyUIStore } from '@/store/galaxyUIStore';
 import { useGalaxyDataStore } from '@/store/galaxyDataStore';
 import { useFactionStore } from '@/store/factionStore';
+import { PlacementNotice } from '@/components/panels/PlacementNotice';
 
 export function CustomPlanetsPanel() {
   const placementMode = useGalaxyUIStore((s) => s.placementMode);
@@ -29,19 +30,7 @@ export function CustomPlanetsPanel() {
         </span>
       </label>
 
-          {placementMode && (
-            <div className="holo-placement-notice">
-              <p className="holo-placement-notice-text animate-pulse">
-                Click on the map to place your planet
-              </p>
-              <button
-                onClick={() => setPlacementMode(false)}
-                className="holo-text-button mt-2"
-              >
-                Cancel
-              </button>
-            </div>
-          )}
+          <PlacementNotice active={placementMode} entityLabel="planet" onCancel={() => setPlacementMode(false)} />
 
           {showCreateForm && !placementMode ? (
             <div className="mt-3 space-y-3">

@@ -1,5 +1,5 @@
 import { memo, useMemo, useState } from 'react';
-import { Html } from '@react-three/drei';
+import { MapLabel } from '@/components/galaxy/MapLabel';
 import type { StarSystem } from '@/types';
 import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
 import { useGalaxyUIStore } from '@/store/galaxyUIStore';
@@ -104,27 +104,13 @@ const TopDownMarker = memo(function TopDownMarker({ system }: TopDownMarkerProps
       )}
 
       {(showLabels || hovered || system.importance === 'capital' || system.isCustom) && (
-        <Html
-          position={[0, 0, -markerSize * 1.5]}
-          center
-          zIndexRange={[0, 0]}
-          style={{ pointerEvents: 'none', userSelect: 'none' }}
-        >
-          <div
-            data-map-label
-            className="text-center whitespace-nowrap px-3 py-1 rounded"
-            style={{
-              color: '#FFFFFF',
-              backgroundColor: hovered ? 'rgba(0,0,0,0.9)' : 'rgba(0,0,0,0.75)',
-              textShadow: `0 0 10px ${factionColor}, 0 0 5px ${factionColor}`,
-              fontSize: system.importance === 'capital' ? '16px' : '13px',
-              fontWeight: 'bold',
-              borderBottom: `2px solid ${factionColor}`,
-            }}
-          >
-            {system.name}
-          </div>
-        </Html>
+        <MapLabel
+          markerSize={markerSize}
+          color={factionColor}
+          hovered={hovered}
+          title={system.name}
+          fontSize={system.importance === 'capital' ? '16px' : '13px'}
+        />
       )}
     </group>
   );
