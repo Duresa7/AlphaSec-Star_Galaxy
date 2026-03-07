@@ -3,6 +3,7 @@ import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 import { supabase, supabaseConfigured } from '@/lib/supabase';
 import { deleteAccount as deleteAccountRequest } from '@/data/supabaseStorage';
 import { withTimeout } from '@/utils/withTimeout';
+import { logger } from '@/utils/logger';
 import type { UserProfile } from '@/types';
 
 export interface AuthContextValue {
@@ -96,7 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .maybeSingle();
 
       if (error) {
-        console.error('Failed to fetch profile:', error);
+        logger.error('Failed to fetch profile:', error);
         if (sessionUserIdRef.current === userId) {
           setProfileError(error.message);
         }
@@ -111,7 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       resolvedProfileUserIdRef.current = userId;
       setProfileError(null);
     } catch (error) {
-      console.error('Failed to fetch profile:', error);
+      logger.error('Failed to fetch profile:', error);
       if (sessionUserIdRef.current === userId) {
         setProfileError(error instanceof Error ? error.message : 'Unable to refresh profile.');
       }
@@ -280,10 +281,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         'Sign-out timed out. Local session has been cleared.',
       );
       if (error) {
-        console.error('Failed to sign out from Supabase:', error);
+        logger.error('Failed to sign out from Supabase:', error);
       }
     } catch (error) {
-      console.error('Failed to sign out from Supabase:', error);
+      logger.error('Failed to sign out from Supabase:', error);
     }
   }, []);
 

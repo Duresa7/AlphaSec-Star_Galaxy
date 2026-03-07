@@ -2,6 +2,7 @@ import { memo, useMemo, useRef, useState, Suspense } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
+import { MapLabel } from '@/components/galaxy/MapLabel';
 import type { Fleet } from '@/types';
 import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
 import { useGalaxyUIStore } from '@/store/galaxyUIStore';
@@ -110,30 +111,13 @@ const FleetMarker = memo(function FleetMarker({ fleet }: FleetMarkerProps) {
         </mesh>
 
         {(showLabels || hovered || fleet.isCustom) && (
-          <Html
-            position={[0, 0, -markerSize * 1.5]}
-            center
-            zIndexRange={[0, 0]}
-            style={{ pointerEvents: 'none', userSelect: 'none' }}
-          >
-            <div
-              data-map-label
-              className="text-center whitespace-nowrap px-3 py-1 rounded"
-              style={{
-                color: '#FFFFFF',
-                backgroundColor: hovered ? 'rgba(0,0,0,0.9)' : 'rgba(0,0,0,0.75)',
-                textShadow: `0 0 10px ${color}, 0 0 5px ${color}`,
-                fontSize: '13px',
-                fontWeight: 'bold',
-                borderBottom: `2px solid ${color}`,
-              }}
-            >
-              {fleet.name}
-              <div style={{ fontSize: '10px', fontWeight: 'normal', opacity: 0.7 }}>
-                {fleet.shipCount} ships
-              </div>
-            </div>
-          </Html>
+          <MapLabel
+            markerSize={markerSize}
+            color={color}
+            hovered={hovered}
+            title={fleet.name}
+            subtitle={`${fleet.shipCount} ships`}
+          />
         )}
       </group>
     );

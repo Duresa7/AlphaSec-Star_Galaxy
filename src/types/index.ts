@@ -248,7 +248,6 @@ export interface GalaxyDataStore {
   updateFleetMarkerSize: (id: string, markerSize: number) => void;
   updateFleetStats: (id: string, updates: FleetStatsUpdate) => void;
   getFilteredSystems: () => StarSystem[];
-  getSearchResults: () => SearchResult[];
   getFactionStats: () => Record<string, { planets: number; fleets: number; shipUnits: number }>;
   dirtySystemIds: Set<string>;
   dirtyFleetIds: Set<string>;

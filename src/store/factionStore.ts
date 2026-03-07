@@ -7,6 +7,7 @@ import {
   logAction,
   getAuthenticatedUserId,
 } from '@/data/supabaseStorage';
+import { logger } from '@/utils/logger';
 
 const DEFAULT_FACTIONS: FactionConfig[] = [
   { id: 'galactic_republic', label: 'Galactic Republic', markerColor: '#FFD700', barColor: '#C8AA6E', sortOrder: 0, isBuiltin: true },
@@ -54,7 +55,7 @@ export const useFactionStore = create<FactionStore>((set, get) => ({
         set({ factions: merged, _map: buildMap(merged) });
       }
     } catch (err) {
-      console.error('Failed to load factions from Supabase, using defaults:', err);
+      logger.error('Failed to load factions from Supabase, using defaults:', err);
     }
   },
 
@@ -75,7 +76,7 @@ export const useFactionStore = create<FactionStore>((set, get) => ({
         await upsertFaction(newFaction, uid);
         logAction('faction_created', 'faction', newFaction.id, newFaction.label).catch(() => {});
       } catch (err) {
-        console.error('[factionStore] Failed to save faction, rolling back:', err);
+        logger.error('[factionStore] Failed to save faction, rolling back:', err);
         set({ factions: prev, _map: buildMap(prev) });
       }
     }
@@ -92,7 +93,7 @@ export const useFactionStore = create<FactionStore>((set, get) => ({
       const uid = await getAuthenticatedUserId();
       if (uid) {
         upsertFaction(updated, uid).catch((err: unknown) =>
-          console.error('[factionStore] Failed to persist faction update:', err),
+          logger.error('[factionStore] Failed to persist faction update:', err),
         );
       }
     }
@@ -112,7 +113,7 @@ export const useFactionStore = create<FactionStore>((set, get) => ({
       logAction('faction_deleted', 'faction', id, id).catch(() => {});
       return true;
     } catch (err) {
-      console.error('[factionStore] Failed to delete faction, rolling back:', err);
+      logger.error('[factionStore] Failed to delete faction, rolling back:', err);
       set({ factions: prev, _map: buildMap(prev) });
       return false;
     }

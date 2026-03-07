@@ -6,6 +6,7 @@ import { useFactionStore } from '@/store/factionStore';
 import { EditableStatCard, AddFactionControl } from '@/components/panels/infoPanelShared';
 import { PLANET_APPEARANCES } from '@/components/galaxy/SystemDetailView';
 import { normalizeFactionControl } from '@/utils/factionControl';
+import { useEditableField } from '@/hooks/useEditableField';
 import {
   TOPDOWN_SYSTEM_MARKER_SIZE_BY_IMPORTANCE,
   DEFAULT_TOPDOWN_SYSTEM_MARKER_SIZE,
@@ -55,23 +56,12 @@ export function PlanetInfo({ planet, editable }: PlanetInfoProps) {
   const getFactionBarColor = useFactionStore((s) => s.getFactionBarColor);
   const getFactionIds = useFactionStore((s) => s.getFactionIds);
 
-  const [editingClimate, setEditingClimate] = useState(false);
-  const [climateDraft, setClimateDraft] = useState(planet.climate || '');
-
-  const [editingTerrain, setEditingTerrain] = useState(false);
-  const [terrainDraft, setTerrainDraft] = useState(planet.terrain || '');
-
-  const [editingInhabitants, setEditingInhabitants] = useState(false);
-  const [inhabitantsDraft, setInhabitantsDraft] = useState(planet.nativeInhabitants || '');
-
-  const [editingPopulation, setEditingPopulation] = useState(false);
-  const [populationDraft, setPopulationDraft] = useState(planet.population || '');
-
-  const [editingDescription, setEditingDescription] = useState(false);
-  const [descriptionDraft, setDescriptionDraft] = useState(planet.description || '');
-
-  const [editingNotable, setEditingNotable] = useState(false);
-  const [notableDraft, setNotableDraft] = useState((planet.notable || []).join(', '));
+  const climate = useEditableField();
+  const terrain = useEditableField();
+  const inhabitants = useEditableField();
+  const population = useEditableField();
+  const description = useEditableField();
+  const notable = useEditableField();
 
   const [expandedRecord, setExpandedRecord] = useState(false);
   const [expandedPOI, setExpandedPOI] = useState(false);
@@ -208,48 +198,48 @@ export function PlanetInfo({ planet, editable }: PlanetInfoProps) {
           value={planet.climate || ''}
           placeholder="Unknown"
           editable={editable}
-          editing={editingClimate}
-          draft={climateDraft}
-          onStartEdit={() => { setClimateDraft(planet.climate || ''); setEditingClimate(true); }}
-          onDraftChange={setClimateDraft}
-          onSave={() => { updateStats({ climate: climateDraft }); setEditingClimate(false); }}
-          onCancel={() => setEditingClimate(false)}
+          editing={climate.editing}
+          draft={climate.draft}
+          onStartEdit={() => climate.startEdit(planet.climate || '')}
+          onDraftChange={climate.setDraft}
+          onSave={() => { updateStats({ climate: climate.draft }); climate.stopEditing(); }}
+          onCancel={climate.cancel}
         />
         <EditableStatCard
           label="TERRAIN"
           value={planet.terrain || ''}
           placeholder="Unknown"
           editable={editable}
-          editing={editingTerrain}
-          draft={terrainDraft}
-          onStartEdit={() => { setTerrainDraft(planet.terrain || ''); setEditingTerrain(true); }}
-          onDraftChange={setTerrainDraft}
-          onSave={() => { updateStats({ terrain: terrainDraft }); setEditingTerrain(false); }}
-          onCancel={() => setEditingTerrain(false)}
+          editing={terrain.editing}
+          draft={terrain.draft}
+          onStartEdit={() => terrain.startEdit(planet.terrain || '')}
+          onDraftChange={terrain.setDraft}
+          onSave={() => { updateStats({ terrain: terrain.draft }); terrain.stopEditing(); }}
+          onCancel={terrain.cancel}
         />
         <EditableStatCard
           label="NATIVE INHABITANTS"
           value={planet.nativeInhabitants || ''}
           placeholder="Unknown"
           editable={editable}
-          editing={editingInhabitants}
-          draft={inhabitantsDraft}
-          onStartEdit={() => { setInhabitantsDraft(planet.nativeInhabitants || ''); setEditingInhabitants(true); }}
-          onDraftChange={setInhabitantsDraft}
-          onSave={() => { updateStats({ nativeInhabitants: inhabitantsDraft }); setEditingInhabitants(false); }}
-          onCancel={() => setEditingInhabitants(false)}
+          editing={inhabitants.editing}
+          draft={inhabitants.draft}
+          onStartEdit={() => inhabitants.startEdit(planet.nativeInhabitants || '')}
+          onDraftChange={inhabitants.setDraft}
+          onSave={() => { updateStats({ nativeInhabitants: inhabitants.draft }); inhabitants.stopEditing(); }}
+          onCancel={inhabitants.cancel}
         />
         <EditableStatCard
           label="POPULATION"
           value={planet.population || ''}
           placeholder="Unknown"
           editable={editable}
-          editing={editingPopulation}
-          draft={populationDraft}
-          onStartEdit={() => { setPopulationDraft(planet.population || ''); setEditingPopulation(true); }}
-          onDraftChange={setPopulationDraft}
-          onSave={() => { updateStats({ population: populationDraft }); setEditingPopulation(false); }}
-          onCancel={() => setEditingPopulation(false)}
+          editing={population.editing}
+          draft={population.draft}
+          onStartEdit={() => population.startEdit(planet.population || '')}
+          onDraftChange={population.setDraft}
+          onSave={() => { updateStats({ population: population.draft }); population.stopEditing(); }}
+          onCancel={population.cancel}
         />
       </div>
 
@@ -371,29 +361,29 @@ export function PlanetInfo({ planet, editable }: PlanetInfoProps) {
           <h3 className={SECTION_LABEL}>Planetary Record</h3>
         </div>
 
-        {editable && editingDescription ? (
+        {editable && description.editing ? (
           <div className="mt-1">
             <textarea
-              value={descriptionDraft}
-              onChange={(e) => setDescriptionDraft(e.target.value)}
+              value={description.draft}
+              onChange={(e) => description.setDraft(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
-                  updateStats({ description: descriptionDraft });
-                  setEditingDescription(false);
+                  updateStats({ description: description.draft });
+                  description.stopEditing();
                 }
-                if (e.key === 'Escape') setEditingDescription(false);
+                if (e.key === 'Escape') description.cancel();
               }}
               autoFocus
               rows={4}
               className="holo-input holo-field-textarea w-full text-[14px] leading-relaxed p-3 bg-white/[0.02] border-white/5 focus:border-white/20 transition-colors"
             />
             <div className="flex gap-2 justify-end mt-2">
-              <button onClick={() => setEditingDescription(false)} className={CANCEL_BTN}>
+              <button onClick={description.cancel} className={CANCEL_BTN}>
                 Cancel
               </button>
               <button
-                onClick={() => { updateStats({ description: descriptionDraft }); setEditingDescription(false); }}
+                onClick={() => { updateStats({ description: description.draft }); description.stopEditing(); }}
                 className={`${SAVE_BTN_BASE} bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 border-amber-500/20`}
               >
                 Save
@@ -403,7 +393,7 @@ export function PlanetInfo({ planet, editable }: PlanetInfoProps) {
         ) : (
           <div>
             <div
-              onClick={editable ? () => { setDescriptionDraft(planet.description || ''); setEditingDescription(true); } : undefined}
+              onClick={editable ? () => description.startEdit(planet.description || '') : undefined}
               className={`text-[13px] leading-relaxed text-white/80 ${
                 !expandedRecord ? 'line-clamp-2' : ''
               } ${editable ? 'cursor-text hover:text-white transition-colors' : ''}`}
@@ -449,29 +439,29 @@ export function PlanetInfo({ planet, editable }: PlanetInfoProps) {
           <h3 className={SECTION_LABEL}>Points of Interest</h3>
         </div>
 
-        {editable && editingNotable ? (
+        {editable && notable.editing ? (
           <div className="mt-1">
             <input
               type="text"
-              value={notableDraft}
-              onChange={(e) => setNotableDraft(e.target.value)}
+              value={notable.draft}
+              onChange={(e) => notable.setDraft(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
-                  updateStats({ notable: parseNotable(notableDraft) });
-                  setEditingNotable(false);
+                  updateStats({ notable: parseNotable(notable.draft) });
+                  notable.stopEditing();
                 }
-                if (e.key === 'Escape') setEditingNotable(false);
+                if (e.key === 'Escape') notable.cancel();
               }}
               autoFocus
               placeholder="Coordinates / Locations (comma separated)"
               className="holo-input holo-field-input w-full text-[13px] p-2 bg-white/[0.02] border-white/5 focus:border-white/20 transition-colors"
             />
             <div className="flex gap-2 justify-end mt-2">
-              <button onClick={() => setEditingNotable(false)} className={CANCEL_BTN}>
+              <button onClick={notable.cancel} className={CANCEL_BTN}>
                 Cancel
               </button>
               <button
-                onClick={() => { updateStats({ notable: parseNotable(notableDraft) }); setEditingNotable(false); }}
+                onClick={() => { updateStats({ notable: parseNotable(notable.draft) }); notable.stopEditing(); }}
                 className={`${SAVE_BTN_BASE} bg-cyan-500/10 text-cyan-500 hover:bg-cyan-500/20 border-cyan-500/20`}
               >
                 Save
@@ -481,7 +471,7 @@ export function PlanetInfo({ planet, editable }: PlanetInfoProps) {
         ) : (
           <div>
             <div
-              onClick={editable ? () => { setNotableDraft((planet.notable || []).join(', ')); setEditingNotable(true); } : undefined}
+              onClick={editable ? () => notable.startEdit((planet.notable || []).join(', ')) : undefined}
               className={`min-h-[1.5rem] ${editable ? 'cursor-text' : ''}`}
               title={editable ? 'Click to edit' : undefined}
             >
