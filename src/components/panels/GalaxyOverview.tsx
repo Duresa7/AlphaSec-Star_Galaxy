@@ -8,32 +8,8 @@ export function GalaxyOverview() {
   const fleets = useGalaxyDataStore((s) => s.fleets);
   const factions = useFactionStore((s) => s.factions);
   const activeModule = useGalaxyUIStore((s) => s.activeModule);
-  const factionStats = useMemo(() => {
-    const stats: Record<string, { planets: number; fleets: number; shipUnits: number }> = {};
-    factions.forEach((faction) => {
-      stats[faction.id] = { planets: 0, fleets: 0, shipUnits: 0 };
-    });
-
-    systems.forEach((system) => {
-      system.planets.forEach((planet) => {
-        if (!stats[planet.faction]) {
-          stats[planet.faction] = { planets: 0, fleets: 0, shipUnits: 0 };
-        }
-        stats[planet.faction].planets += 1;
-      });
-    });
-
-    fleets.forEach((fleet) => {
-      if (!Number.isFinite(fleet.shipCount)) return;
-      if (!stats[fleet.faction]) {
-        stats[fleet.faction] = { planets: 0, fleets: 0, shipUnits: 0 };
-      }
-      stats[fleet.faction].fleets += 1;
-      stats[fleet.faction].shipUnits += fleet.shipCount;
-    });
-
-    return stats;
-  }, [systems, fleets, factions]);
+  const getFactionStats = useGalaxyDataStore((s) => s.getFactionStats);
+  const factionStats = useMemo(() => getFactionStats(), [systems, fleets, factions, getFactionStats]);
 
   if (activeModule !== 'overview') return null;
 
