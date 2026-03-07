@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import type {
   GalaxyDataStore,
   InfoPanelData,
-  SearchResult,
   Planet,
   PlanetStatsUpdate,
   FleetStatsUpdate,
@@ -194,43 +193,6 @@ export const useGalaxyDataStore = create<GalaxyDataStore>((set, get) => ({
 
       return true;
     });
-  },
-  getSearchResults: () => {
-    const state = get();
-    const { searchQuery } = useGalaxyUIStore.getState();
-    const query = searchQuery.toLowerCase().trim();
-
-    if (!query || query.length < 2) {
-      return [];
-    }
-
-    const results: SearchResult[] = [];
-
-    state.systems.forEach((system) => {
-      if (system.name.toLowerCase().includes(query)) {
-        results.push({ type: 'system', id: system.id, name: system.name });
-      }
-
-      system.planets.forEach((planet) => {
-        if (planet.name.toLowerCase().includes(query)) {
-          results.push({
-            type: 'planet',
-            id: planet.id,
-            name: planet.name,
-            parentName: system.name,
-            parentSystemId: system.id,
-          });
-        }
-      });
-    });
-
-    state.fleets.forEach((fleet) => {
-      if (fleet.name.toLowerCase().includes(query)) {
-        results.push({ type: 'fleet', id: fleet.id, name: fleet.name });
-      }
-    });
-
-    return results.slice(0, 10);
   },
   getFactionStats: () => {
     const state = get();

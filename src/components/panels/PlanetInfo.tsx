@@ -56,12 +56,12 @@ export function PlanetInfo({ planet, editable }: PlanetInfoProps) {
   const getFactionBarColor = useFactionStore((s) => s.getFactionBarColor);
   const getFactionIds = useFactionStore((s) => s.getFactionIds);
 
-  const climate = useEditableField(planet.climate || '');
-  const terrain = useEditableField(planet.terrain || '');
-  const inhabitants = useEditableField(planet.nativeInhabitants || '');
-  const population = useEditableField(planet.population || '');
-  const description = useEditableField(planet.description || '');
-  const notable = useEditableField((planet.notable || []).join(', '));
+  const climate = useEditableField();
+  const terrain = useEditableField();
+  const inhabitants = useEditableField();
+  const population = useEditableField();
+  const description = useEditableField();
+  const notable = useEditableField();
 
   const [expandedRecord, setExpandedRecord] = useState(false);
   const [expandedPOI, setExpandedPOI] = useState(false);

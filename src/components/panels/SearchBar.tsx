@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
 import { useGalaxyUIStore } from '@/store/galaxyUIStore';
 import { useGalaxyDataStore } from '@/store/galaxyDataStore';
@@ -17,7 +17,38 @@ export function SearchBar() {
 
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
-  const searchResults = useGalaxyDataStore((s) => s.getSearchResults());
+  const searchResults = useMemo(() => {
+    const query = searchQuery.toLowerCase().trim();
+    if (!query || query.length < 2) return [];
+
+    const results: SearchResult[] = [];
+
+    systems.forEach((system) => {
+      if (system.name.toLowerCase().includes(query)) {
+        results.push({ type: 'system', id: system.id, name: system.name });
+      }
+
+      system.planets.forEach((planet) => {
+        if (planet.name.toLowerCase().includes(query)) {
+          results.push({
+            type: 'planet',
+            id: planet.id,
+            name: planet.name,
+            parentName: system.name,
+            parentSystemId: system.id,
+          });
+        }
+      });
+    });
+
+    fleets.forEach((fleet) => {
+      if (fleet.name.toLowerCase().includes(query)) {
+        results.push({ type: 'fleet', id: fleet.id, name: fleet.name });
+      }
+    });
+
+    return results.slice(0, 10);
+  }, [searchQuery, systems, fleets]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {

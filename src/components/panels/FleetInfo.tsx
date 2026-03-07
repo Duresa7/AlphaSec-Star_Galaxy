@@ -3,6 +3,7 @@ import type { Fleet, FleetShipEntry, ShipModelType } from '@/types';
 import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
 import { useGalaxyDataStore } from '@/store/galaxyDataStore';
 import { useFactionStore } from '@/store/factionStore';
+import { useEditableField } from '@/hooks/useEditableField';
 import {
   FLEET_STRENGTH_SEGMENTS,
   FLEET_STRENGTH_DIVISOR,
@@ -94,12 +95,9 @@ export function FleetInfo({ fleet, editable }: { fleet: Fleet; editable: boolean
   const getFactionLabel = useFactionStore((s) => s.getFactionLabel);
   const getFactionBarColor = useFactionStore((s) => s.getFactionBarColor);
 
-  const [editingName, setEditingName] = useState(false);
-  const [nameDraft, setNameDraft] = useState(fleet.name);
-  const [editingCommander, setEditingCommander] = useState(false);
-  const [commanderDraft, setCommanderDraft] = useState(fleet.commander ?? '');
-  const [editingShipCount, setEditingShipCount] = useState(false);
-  const [shipCountDraft, setShipCountDraft] = useState(String(fleet.shipCount));
+  const nameField = useEditableField();
+  const commanderField = useEditableField();
+  const shipCountField = useEditableField();
 
   // Inline add form state
   const [addMode, setAddMode] = useState<'catalog' | 'custom' | null>(null);
@@ -204,47 +202,47 @@ export function FleetInfo({ fleet, editable }: { fleet: Fleet; editable: boolean
               value={fleet.name}
               placeholder="Fleet Name"
               editable
-              editing={editingName}
-              draft={nameDraft}
-              onStartEdit={() => { setEditingName(true); setNameDraft(fleet.name); }}
-              onDraftChange={setNameDraft}
+              editing={nameField.editing}
+              draft={nameField.draft}
+              onStartEdit={() => nameField.startEdit(fleet.name)}
+              onDraftChange={nameField.setDraft}
               onSave={() => {
-                if (nameDraft.trim()) updateFleetStats(fleet.id, { name: nameDraft.trim() });
-                setEditingName(false);
+                if (nameField.draft.trim()) updateFleetStats(fleet.id, { name: nameField.draft.trim() });
+                nameField.stopEditing();
               }}
-              onCancel={() => setEditingName(false)}
+              onCancel={nameField.cancel}
             />
             <EditableInfoRow
               label="Commander"
               value={fleet.commander ?? ''}
               placeholder="Unknown Commander"
               editable
-              editing={editingCommander}
-              draft={commanderDraft}
-              onStartEdit={() => { setEditingCommander(true); setCommanderDraft(fleet.commander ?? ''); }}
-              onDraftChange={setCommanderDraft}
+              editing={commanderField.editing}
+              draft={commanderField.draft}
+              onStartEdit={() => commanderField.startEdit(fleet.commander ?? '')}
+              onDraftChange={commanderField.setDraft}
               onSave={() => {
-                const trimmed = commanderDraft.trim();
+                const trimmed = commanderField.draft.trim();
                 updateFleetStats(fleet.id, { commander: trimmed || undefined });
-                setEditingCommander(false);
+                commanderField.stopEditing();
               }}
-              onCancel={() => setEditingCommander(false)}
+              onCancel={commanderField.cancel}
             />
             <EditableInfoRow
               label="Ships"
               value={`${fleet.shipCount} Vessels`}
               placeholder="10"
               editable
-              editing={editingShipCount}
-              draft={shipCountDraft}
-              onStartEdit={() => { setEditingShipCount(true); setShipCountDraft(String(fleet.shipCount)); }}
-              onDraftChange={setShipCountDraft}
+              editing={shipCountField.editing}
+              draft={shipCountField.draft}
+              onStartEdit={() => shipCountField.startEdit(String(fleet.shipCount))}
+              onDraftChange={shipCountField.setDraft}
               onSave={() => {
-                const parsed = parseInt(shipCountDraft, 10);
+                const parsed = parseInt(shipCountField.draft, 10);
                 if (!isNaN(parsed) && parsed > 0) updateFleetStats(fleet.id, { shipCount: parsed });
-                setEditingShipCount(false);
+                shipCountField.stopEditing();
               }}
-              onCancel={() => setEditingShipCount(false)}
+              onCancel={shipCountField.cancel}
             />
             <div className="flex justify-between items-center text-sm">
               <span className="holo-label-inline">Faction</span>
