@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useGalaxyUIStore } from '@/store/galaxyUIStore';
 import { useGalaxyDataStore } from '@/store/galaxyDataStore';
 import { FleetLogisticsModal } from '@/components/panels/FleetLogisticsModal';
+import { PlacementNotice } from '@/components/panels/PlacementNotice';
 
 export function CustomFleetsPanel() {
   const fleetPlacementMode = useGalaxyUIStore((s) => s.fleetPlacementMode);
@@ -26,19 +27,7 @@ export function CustomFleetsPanel() {
         </span>
       </label>
 
-          {fleetPlacementMode && (
-            <div className="holo-placement-notice">
-              <p className="holo-placement-notice-text animate-pulse">
-                Click on the map to place your fleet
-              </p>
-              <button
-                onClick={() => setFleetPlacementMode(false)}
-                className="holo-text-button mt-2"
-              >
-                Cancel
-              </button>
-            </div>
-          )}
+          <PlacementNotice active={fleetPlacementMode} entityLabel="fleet" onCancel={() => setFleetPlacementMode(false)} />
 
           {!fleetPlacementMode && (
             <button

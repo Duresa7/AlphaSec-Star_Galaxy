@@ -1,7 +1,10 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-const DEFAULT_ALLOWED_ORIGINS = ["https://alpha-sec.vercel.app"];
+const DEFAULT_ALLOWED_ORIGINS = [
+  "https://alphasecunited.com",
+  "https://www.alphasecunited.com",
+];
 const CORS_ALLOWED_HEADERS = "authorization, x-client-info, apikey, content-type";
 const CORS_ALLOWED_METHODS = "POST, OPTIONS";
 
