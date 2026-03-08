@@ -387,7 +387,16 @@ export function MapPage() {
             </div>
           )}
 
-          <div className="absolute bottom-6 right-6 z-40 flex items-center gap-3">
+          <div className="absolute bottom-6 left-6 z-40">
+            <Link to="/" className="holo-button holo-button-sm">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+              </svg>
+              <span>AlphaSec</span>
+            </Link>
+          </div>
+
+          <div className="absolute bottom-6 right-6 z-40">
             {isAdmin && (
               <Link to="/admin" className="holo-button holo-button-sm">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -397,12 +406,6 @@ export function MapPage() {
                 <span>Admin</span>
               </Link>
             )}
-            <Link to="/" className="holo-button holo-button-sm">
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
-              </svg>
-              <span>AlphaSec</span>
-            </Link>
           </div>
 
           <div className="absolute top-5 right-5 z-40">

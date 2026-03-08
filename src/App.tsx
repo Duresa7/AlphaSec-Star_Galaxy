@@ -13,6 +13,10 @@ const CreditsPage = lazy(() => import('@/pages/CreditsPage').then(m => ({ defaul
 const AdminPage = lazy(() => import('@/pages/AdminPage').then(m => ({ default: m.AdminPage })));
 const SettingsPage = lazy(() => import('@/pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
 const NewsPage = lazy(() => import('@/pages/NewsPage').then(m => ({ default: m.NewsPage })));
+const BlogPage = lazy(() => import('@/pages/BlogPage').then(m => ({ default: m.BlogPage })));
+const ChangelogPage = lazy(() => import('@/pages/ChangelogPage').then(m => ({ default: m.ChangelogPage })));
+const ChangelogDetailPage = lazy(() => import('@/pages/ChangelogDetailPage').then(m => ({ default: m.ChangelogDetailPage })));
+const ServicesPage = lazy(() => import('@/pages/ServicesPage').then(m => ({ default: m.ServicesPage })));
 
 function App() {
   return (
@@ -55,6 +59,26 @@ function App() {
         <Route path="/news" element={
           <BossmanRoute>
             <NewsPage />
+          </BossmanRoute>
+        } />
+        <Route path="/blog" element={
+          <BossmanRoute>
+            <BlogPage />
+          </BossmanRoute>
+        } />
+        <Route path="/changelog" element={
+          <BossmanRoute>
+            <ChangelogPage />
+          </BossmanRoute>
+        } />
+        <Route path="/changelog/:version" element={
+          <BossmanRoute>
+            <ChangelogDetailPage />
+          </BossmanRoute>
+        } />
+        <Route path="/services" element={
+          <BossmanRoute>
+            <ServicesPage />
           </BossmanRoute>
         } />
         <Route path="*" element={<Navigate to="/" replace />} />
