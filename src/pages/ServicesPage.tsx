@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import { NewsShell } from '@/components/news/NewsShell';
 import { CHANGELOG } from '@/data/changelogData';
 
@@ -31,9 +30,6 @@ export function ServicesPage() {
                       <span className="changelog__date">{entry.date}</span>
                     </div>
                     <p className="changelog__summary">{entry.summary}</p>
-                    <Link to={`/changelog/${entry.version}`} className="changelog__read-more">
-                      Read more →
-                    </Link>
                   </div>
                 </article>
               ))}
