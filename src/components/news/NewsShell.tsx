@@ -4,7 +4,6 @@ import { Footer } from '@/components/Footer';
 const NAV_ITEMS = [
   { path: '/news', label: 'News' },
   { path: '/services', label: 'AlphaSec Services' },
-  { path: '/changelog', label: 'Update Logs' },
   { path: '/blog', label: 'Blog' },
 ];
 
