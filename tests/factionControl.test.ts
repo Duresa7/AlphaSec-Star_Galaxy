@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { normalizeFactionControl } from '../factionControl';
+import { normalizeFactionControl } from '@/utils/factionControl';
 
 const FACTION_ORDER = ['sith_empire', 'galactic_republic', 'neutral', 'contested', 'hutt_cartel'];
 
