@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { NewsShell } from '@/components/news/NewsShell';
+import { NewsAuthModal } from '@/components/news/NewsAuthModal';
 import { insertFeedback, type FeedbackCategory } from '@/data/feedbackStorage';
+import { useAuth } from '@/hooks/useAuth';
 
 const CATEGORIES: { value: FeedbackCategory; label: string }[] = [
   { value: 'feature_request', label: 'Feature Request' },
@@ -13,15 +15,22 @@ function getCategoryLabel(value: FeedbackCategory): string {
 }
 
 export function FeedbackPage() {
+  const { session } = useAuth();
   const [category, setCategory] = useState<FeedbackCategory>('feature_request');
   const [otherLabel, setOtherLabel] = useState('');
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [authOpen, setAuthOpen] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (!session) {
+      setError('Please sign in to submit feedback.');
+      setAuthOpen(true);
+      return;
+    }
     if (!message.trim()) return;
     if (category === 'other' && !otherLabel.trim()) return;
 
@@ -39,8 +48,13 @@ export function FeedbackPage() {
       setCategory('feature_request');
       setOtherLabel('');
       setMessage('');
-    } catch {
-      setError('Failed to submit feedback. Please try again.');
+    } catch (submitError) {
+      if (submitError instanceof Error && submitError.message === 'Not authenticated') {
+        setError('Please sign in to submit feedback.');
+        setAuthOpen(true);
+      } else {
+        setError('Failed to submit feedback. Please try again.');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -53,6 +67,20 @@ export function FeedbackPage() {
         <p className="feedback-page__subtitle">
           Share a feature request, report a bug, or send us anything else on your mind.
         </p>
+        {!session && (
+          <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <p className="feedback-page__subtitle" style={{ margin: 0 }}>
+              Sign in is required before you can send feedback.
+            </p>
+            <button
+              type="button"
+              className="news-btn news-btn--primary"
+              onClick={() => setAuthOpen(true)}
+            >
+              Sign In
+            </button>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="article-editor__field">
@@ -123,6 +151,7 @@ export function FeedbackPage() {
           )}
         </form>
       </div>
+      <NewsAuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
     </NewsShell>
   );
 }
