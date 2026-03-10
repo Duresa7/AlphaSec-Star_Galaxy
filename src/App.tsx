@@ -15,6 +15,9 @@ const SettingsPage = lazy(() => import('@/pages/SettingsPage').then(m => ({ defa
 const NewsPage = lazy(() => import('@/pages/NewsPage').then(m => ({ default: m.NewsPage })));
 const BlogPage = lazy(() => import('@/pages/BlogPage').then(m => ({ default: m.BlogPage })));
 const ServicesPage = lazy(() => import('@/pages/ServicesPage').then(m => ({ default: m.ServicesPage })));
+const ArticlePage = lazy(() => import('@/pages/ArticlePage').then(m => ({ default: m.ArticlePage })));
+const ArticleEditorPage = lazy(() => import('@/pages/ArticleEditorPage').then(m => ({ default: m.ArticleEditorPage })));
+const ArticleDashboardPage = lazy(() => import('@/pages/ArticleDashboardPage').then(m => ({ default: m.ArticleDashboardPage })));
 
 function App() {
   return (
@@ -54,21 +57,25 @@ function App() {
             <AdminPage />
           </AdminRoute>
         } />
-        <Route path="/news" element={
+        <Route path="/news" element={<NewsPage />} />
+        <Route path="/news/dashboard" element={
           <BossmanRoute>
-            <NewsPage />
+            <ArticleDashboardPage />
           </BossmanRoute>
         } />
-        <Route path="/blog" element={
+        <Route path="/news/editor" element={
           <BossmanRoute>
-            <BlogPage />
+            <ArticleEditorPage />
           </BossmanRoute>
         } />
-        <Route path="/services" element={
+        <Route path="/news/editor/:id" element={
           <BossmanRoute>
-            <ServicesPage />
+            <ArticleEditorPage />
           </BossmanRoute>
         } />
+        <Route path="/news/:slug" element={<ArticlePage />} />
+        <Route path="/blog" element={<BlogPage />} />
+        <Route path="/services" element={<ServicesPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
