@@ -103,6 +103,24 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
             </div>
           )}
 
+          {f.mode === 'signup' && (
+            <div className="auth-modal__field auth-modal__field--checkbox">
+              <label className="auth-modal__checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={f.galaxyMapRequested}
+                  onChange={(e) => f.setGalaxyMapRequested(e.target.checked)}
+                />
+                I'm registering to access the Galaxy Map
+              </label>
+              {f.galaxyMapRequested && (
+                <p className="auth-modal__galaxy-note">
+                  An admin will review your request and grant access.
+                </p>
+              )}
+            </div>
+          )}
+
           <button
             type="submit"
             disabled={f.submitting}

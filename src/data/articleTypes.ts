@@ -19,7 +19,6 @@ export interface Article {
   content: string;
   category: Category;
   coverImageUrl?: string;
-  authorId: string;
   authorName: string;
   authorInitials: string;
   readingTimeMinutes: number;
@@ -34,11 +33,10 @@ export interface Article {
 
 export interface ArticleComment {
   id: string;
-  articleId: string;
-  userId: string;
   authorName: string;
   body: string;
   createdAt: string;
+  canDelete: boolean;
 }
 
 export interface ArticleInput {

@@ -3,24 +3,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { useRole } from '@/hooks/useRole';
 import { fetchComments, addComment, deleteComment } from '@/data/articleStorage';
 import type { ArticleComment } from '@/data/articleTypes';
+import { formatDate, getInitials } from '@/utils/format';
 
 interface CommentSectionProps {
   articleId: string;
   onAuthRequired: () => void;
-}
-
-function formatDate(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
-function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
 }
 
 export function CommentSection({ articleId, onAuthRequired }: CommentSectionProps) {
@@ -41,7 +28,7 @@ export function CommentSection({ articleId, onAuthRequired }: CommentSectionProp
       }
     });
     return () => { cancelled = true; };
-  }, [articleId]);
+  }, [articleId, session?.user?.id]);
 
   const handleSubmit = useCallback(async (e: FormEvent) => {
     e.preventDefault();
@@ -58,7 +45,7 @@ export function CommentSection({ articleId, onAuthRequired }: CommentSectionProp
       setComments((prev) => [...prev, comment]);
       setBody('');
     } catch {
-      // silently fail
+      // optimistic UI — no rollback needed
     } finally {
       setSubmitting(false);
     }
@@ -69,11 +56,9 @@ export function CommentSection({ articleId, onAuthRequired }: CommentSectionProp
       await deleteComment(commentId);
       setComments((prev) => prev.filter((c) => c.id !== commentId));
     } catch {
-      // silently fail
+      // server-side only — comment stays if delete fails
     }
   }, []);
-
-  const userId = session?.user?.id;
 
   return (
     <section className="comment-section">
@@ -116,7 +101,7 @@ export function CommentSection({ articleId, onAuthRequired }: CommentSectionProp
                 <span className="comment-item__author">{c.authorName}</span>
                 <span className="comment-item__date">{formatDate(c.createdAt)}</span>
               </div>
-              {(userId === c.userId || isBossman) && (
+              {(c.canDelete || isBossman) && (
                 <button
                   className="comment-item__delete"
                   onClick={() => handleDelete(c.id)}

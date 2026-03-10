@@ -2,16 +2,10 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { NewsShell } from '@/components/news/NewsShell';
 import { fetchArticles } from '@/data/articleStorage';
-import { SERVICE_STATUSES } from '@/data/newsMockData';
+import { fetchLiveStatuses } from '@/data/liveStatuses';
 import type { Article } from '@/data/articleTypes';
-import type { ServiceStatus } from '@/data/newsMockData';
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-  });
-}
+import type { ServiceStatus } from '@/data/liveStatuses';
+import { formatDate } from '@/utils/format';
 
 function FeaturedHero({ article }: { article: Article }) {
   return (
@@ -28,7 +22,7 @@ function FeaturedHero({ article }: { article: Article }) {
         <div className="news-home__hero-avatar">{article.authorInitials}</div>
         <span className="news-home__hero-author">{article.authorName}</span>
         <span className="news-home__hero-date">
-          &middot; {formatDate(article.createdAt)} &middot; {article.readingTimeMinutes} min read
+          &middot; {formatDate(article.createdAt, 'compact')} &middot; {article.readingTimeMinutes} min read
         </span>
       </div>
     </Link>
@@ -42,7 +36,7 @@ function ArticleCard({ article }: { article: Article }) {
         <div className="article-card__meta">
           <div className="article-card__avatar">{article.authorInitials}</div>
           <span className="article-card__author-name">{article.authorName}</span>
-          <span className="article-card__date">&middot; {formatDate(article.createdAt)}</span>
+          <span className="article-card__date">&middot; {formatDate(article.createdAt, 'compact')}</span>
         </div>
         <h3 className="article-card__title">{article.title}</h3>
         <p className="article-card__excerpt">{article.excerpt}</p>
@@ -67,7 +61,7 @@ function TrendingItem({ article, rank }: { article: Article; rank: number }) {
       <div className="trending-item__body">
         <div className="trending-item__meta">
           <span className="trending-item__author">{article.authorName}</span>
-          <span className="trending-item__date">&middot; {formatDate(article.createdAt)}</span>
+          <span className="trending-item__date">&middot; {formatDate(article.createdAt, 'compact')}</span>
         </div>
         <h4 className="trending-item__title">{article.title}</h4>
       </div>
@@ -90,12 +84,14 @@ function ServiceQuickCard({ status }: { status: ServiceStatus }) {
 export function NewsPage() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
+  const [statuses, setStatuses] = useState<ServiceStatus[]>([]);
 
   useEffect(() => {
     let cancelled = false;
-    fetchArticles().then((data) => {
+    Promise.all([fetchArticles(), fetchLiveStatuses()]).then(([articleData, statusData]) => {
       if (!cancelled) {
-        setArticles(data);
+        setArticles(articleData);
+        setStatuses(statusData);
         setLoading(false);
       }
     });
@@ -138,12 +134,14 @@ export function NewsPage() {
                 </div>
               )}
 
-              <div className="news-home__sidebar-section">
-                <h3 className="news-home__section-title">AlphaSec Status</h3>
-                {SERVICE_STATUSES.map(status => (
-                  <ServiceQuickCard key={status.id} status={status} />
-                ))}
-              </div>
+              {statuses.length > 0 && (
+                <div className="news-home__sidebar-section">
+                  <h3 className="news-home__section-title">AlphaSec Status</h3>
+                  {statuses.map(status => (
+                    <ServiceQuickCard key={status.id} status={status} />
+                  ))}
+                </div>
+              )}
             </aside>
           </div>
         )}

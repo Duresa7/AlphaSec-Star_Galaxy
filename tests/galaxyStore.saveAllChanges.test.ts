@@ -72,6 +72,7 @@ const buildFleet = (id: string): Fleet => ({
   faction: 'neutral',
   position: new THREE.Vector3(0, 0, 0),
   shipCount: 10,
+  modelType: 'republic',
 });
 
 describe('useGalaxyDataStore.saveAllChanges', () => {
@@ -83,7 +84,7 @@ describe('useGalaxyDataStore.saveAllChanges', () => {
     mocks.getAuthenticatedUserId.mockReset();
 
     mocks.getAuthenticatedUserId.mockResolvedValue('user-1');
-    mocks.batchUpsertSystems.mockImplementation(async (systems: StarSystem[]) => {
+    (mocks.batchUpsertSystems as ReturnType<typeof vi.fn>).mockImplementation(async (systems: StarSystem[]) => {
       if (systems.some(s => s.id === 'system-fail')) {
         throw new Error('failed write');
       }

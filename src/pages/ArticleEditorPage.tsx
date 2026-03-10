@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { createArticle, updateArticle, fetchArticleById, uploadArticleImage } from '@/data/articleStorage';
 import { CATEGORIES } from '@/data/articleTypes';
 import type { Category } from '@/data/articleTypes';
+import { isSafeArticleLinkUrl, validateArticleImageFile } from '@/utils/articleSecurity';
 
 function slugify(text: string): string {
   return text
@@ -24,9 +25,10 @@ function estimateReadingTime(html: string): number {
   return Math.max(1, Math.round(words / 200));
 }
 
-function EditorToolbar({ editor, onImageUpload }: {
+function EditorToolbar({ editor, onImageUpload, onError }: {
   editor: ReturnType<typeof useEditor>;
   onImageUpload: (file: File) => Promise<void>;
+  onError: (message: string) => void;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -75,9 +77,11 @@ function EditorToolbar({ editor, onImageUpload }: {
         } else {
           const url = window.prompt('URL:');
           if (url) {
-            const lower = url.trim().toLowerCase();
-            if (!lower.startsWith('javascript:') && !lower.startsWith('data:')) {
-              editor.chain().focus().setLink({ href: url.trim() }).run();
+            const trimmedUrl = url.trim();
+            if (isSafeArticleLinkUrl(trimmedUrl)) {
+              editor.chain().focus().setLink({ href: trimmedUrl }).run();
+            } else {
+              onError('Only http(s), mailto, tel, and relative links are allowed.');
             }
           }
         }
@@ -109,6 +113,12 @@ function EditorToolbar({ editor, onImageUpload }: {
         onChange={async (e) => {
           const file = e.target.files?.[0];
           if (!file) return;
+          const validationError = validateArticleImageFile(file);
+          if (validationError) {
+            onError(validationError);
+            e.target.value = '';
+            return;
+          }
           setUploading(true);
           try {
             await onImageUpload(file);
@@ -321,12 +331,18 @@ export function ArticleEditorPage() {
               onChange={async (e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;
+                const validationError = validateArticleImageFile(file);
+                if (validationError) {
+                  setError(validationError);
+                  e.target.value = '';
+                  return;
+                }
                 setUploadingCover(true);
                 try {
                   const url = await uploadArticleImage(file);
                   setCoverImageUrl(url);
-                } catch {
-                  setError('Failed to upload cover image');
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : 'Failed to upload cover image');
                 } finally {
                   setUploadingCover(false);
                   e.target.value = '';
@@ -363,7 +379,11 @@ export function ArticleEditorPage() {
 
         <div className="article-editor__editor">
           <label className="article-editor__label">Content</label>
-          <EditorToolbar editor={editor} onImageUpload={handleImageUpload} />
+          <EditorToolbar
+            editor={editor}
+            onImageUpload={handleImageUpload}
+            onError={(message) => setError(message)}
+          />
           <div className="article-editor__content">
             <EditorContent editor={editor} />
           </div>

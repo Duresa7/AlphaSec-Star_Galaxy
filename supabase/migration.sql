@@ -4,7 +4,8 @@ create table if not exists public.profiles (
   email       text not null,
   display_name text not null default '',
   role        text not null default 'user'
-                check (role in ('user', 'admin', 'bossman')),
+                check (role in ('user', 'galaxy_user', 'admin', 'bossman')),
+  galaxy_map_requested boolean not null default false,
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now()
 );
@@ -179,27 +180,34 @@ create policy "audit_logs_insert" on public.audit_logs
     and public.current_user_role() in ('admin', 'bossman')
   );
 
-create or replace function public.fetch_audit_logs_with_display_names(
-  p_limit integer default 50,
-  p_offset integer default 0
+create or replace function public.fetch_audit_logs_page(
+  p_limit  integer     default 40,
+  p_offset integer     default 0,
+  p_query  text        default null,
+  p_since  timestamptz default null,
+  p_action text        default null
 )
 returns table (
-  id bigint,
-  user_id uuid,
-  action text,
+  id          bigint,
+  user_id     uuid,
+  action      text,
   entity_type text,
-  entity_id text,
+  entity_id   text,
   entity_name text,
-  details jsonb,
-  created_at timestamptz,
-  display_name text,
-  total_count bigint
+  details     jsonb,
+  created_at  timestamptz,
+  display_name text
 )
 language sql
 stable
 security definer
 set search_path = ''
 as $$
+  with nq as (
+    select
+      nullif(btrim(p_query),  '') as q,
+      nullif(btrim(p_action), '') as a
+  )
   select
     logs.id,
     logs.user_id,
@@ -209,18 +217,62 @@ as $$
     logs.entity_name,
     logs.details,
     logs.created_at,
-    profiles.display_name,
-    count(*) over() as total_count
-  from public.audit_logs logs
+    profiles.display_name
+  from public.audit_logs  logs
   left join public.profiles profiles on profiles.id = logs.user_id
+  cross join nq
   where public.current_user_role() in ('admin', 'bossman')
-  order by logs.created_at desc
-  limit greatest(coalesce(p_limit, 50), 0)
-  offset greatest(coalesce(p_offset, 0), 0)
+    and (
+      nq.q is null
+      or logs.action                         ilike '%' || nq.q || '%'
+      or logs.entity_name                    ilike '%' || nq.q || '%'
+      or logs.entity_id                      ilike '%' || nq.q || '%'
+      or coalesce(profiles.display_name, '') ilike '%' || nq.q || '%'
+    )
+    and (p_since is null or logs.created_at >= p_since)
+    and (nq.a    is null or logs.action = nq.a)
+  order by logs.created_at desc, logs.id desc
+  limit  least(greatest(coalesce(p_limit,  40), 1), 100)
+  offset greatest(coalesce(p_offset, 0), 0);
 $$;
 
-revoke all on function public.fetch_audit_logs_with_display_names(integer, integer) from public;
-grant execute on function public.fetch_audit_logs_with_display_names(integer, integer) to authenticated;
+revoke all on function public.fetch_audit_logs_page(integer, integer, text, timestamptz, text) from public;
+grant execute on function public.fetch_audit_logs_page(integer, integer, text, timestamptz, text) to authenticated;
+
+create or replace function public.fetch_audit_logs_total(
+  p_query  text        default null,
+  p_since  timestamptz default null,
+  p_action text        default null
+)
+returns bigint
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  with nq as (
+    select
+      nullif(btrim(p_query),  '') as q,
+      nullif(btrim(p_action), '') as a
+  )
+  select count(*)::bigint
+  from public.audit_logs  logs
+  left join public.profiles profiles on profiles.id = logs.user_id
+  cross join nq
+  where public.current_user_role() in ('admin', 'bossman')
+    and (
+      nq.q is null
+      or logs.action                         ilike '%' || nq.q || '%'
+      or logs.entity_name                    ilike '%' || nq.q || '%'
+      or logs.entity_id                      ilike '%' || nq.q || '%'
+      or coalesce(profiles.display_name, '') ilike '%' || nq.q || '%'
+    )
+    and (p_since is null or logs.created_at >= p_since)
+    and (nq.a    is null or logs.action = nq.a);
+$$;
+
+revoke all on function public.fetch_audit_logs_total(text, timestamptz, text) from public;
+grant execute on function public.fetch_audit_logs_total(text, timestamptz, text) to authenticated;
 
 create table if not exists public.app_settings (
   key         text primary key,
@@ -248,12 +300,13 @@ language plpgsql
 security definer set search_path = ''
 as $$
 begin
-  insert into public.profiles (id, email, display_name, role)
+  insert into public.profiles (id, email, display_name, role, galaxy_map_requested)
   values (
     new.id,
     new.email,
     coalesce(new.raw_user_meta_data ->> 'display_name', split_part(new.email, '@', 1)),
-    'user'
+    'user',
+    coalesce((new.raw_user_meta_data ->> 'galaxy_map_requested')::boolean, false)
   );
   return new;
 end;
@@ -368,3 +421,253 @@ values
   ('neutral',           'Neutral',           '#808080', '#808080', 3, true),
   ('contested',         'Contested',         '#FF8C00', '#FF8C00', 4, true)
 on conflict (id) do nothing;
+
+-- ── Feedback ──────────────────────────────────────────────────────────────────
+create table if not exists public.feedback (
+  id           text primary key default gen_random_uuid()::text,
+  user_id      uuid references public.profiles(id) on delete set null,
+  display_name text not null default '',
+  category     text not null check (category in ('feature_request', 'bug', 'other')),
+  other_label  text,
+  message      text not null,
+  created_at   timestamptz not null default now()
+);
+
+alter table public.feedback enable row level security;
+
+create policy "feedback_select_bossman" on public.feedback
+  for select to authenticated
+  using (public.current_user_role() = 'bossman');
+
+create policy "feedback_insert_authenticated" on public.feedback
+  for insert to authenticated
+  with check (auth.uid() is not null);
+
+create policy "feedback_delete_bossman" on public.feedback
+  for delete to authenticated
+  using (public.current_user_role() = 'bossman');
+
+-- ── Profile Guards and Sync ───────────────────────────────────────────────────
+create or replace function public.guard_profile_sensitive_fields()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if new.email is distinct from old.email
+     and current_setting('app.allow_profile_email_sync', true) is distinct from 'true' then
+    raise exception 'Profile email is managed by authentication';
+  end if;
+
+  if new.role is distinct from old.role
+     and current_setting('app.allow_profile_role_update', true) is distinct from 'true' then
+    raise exception 'Use set_user_role() to change roles';
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists profiles_guard_sensitive_fields on public.profiles;
+create trigger profiles_guard_sensitive_fields
+  before update on public.profiles
+  for each row execute function public.guard_profile_sensitive_fields();
+
+create or replace function public.sync_profile_email_from_auth()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  if new.email is distinct from old.email then
+    perform set_config('app.allow_profile_email_sync', 'true', true);
+
+    update public.profiles
+    set email = coalesce(new.email, ''),
+        updated_at = now()
+    where id = new.id;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_email_updated on auth.users;
+create trigger on_auth_user_email_updated
+  after update of email on auth.users
+  for each row execute function public.sync_profile_email_from_auth();
+
+-- ── Secure Role Changes ───────────────────────────────────────────────────────
+create or replace function public.set_user_role(
+  p_user_id uuid,
+  p_role    text
+)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_actor_id      uuid := auth.uid();
+  v_actor_role    text;
+  v_old_role      text;
+  v_display_name  text;
+begin
+  if v_actor_id is null then
+    raise exception 'Not authenticated';
+  end if;
+
+  select role
+  into v_actor_role
+  from public.profiles
+  where id = v_actor_id;
+
+  if v_actor_role <> 'bossman' then
+    raise exception 'Only bossman can change roles';
+  end if;
+
+  if p_user_id is null then
+    raise exception 'Target user is required';
+  end if;
+
+  if p_user_id = v_actor_id then
+    raise exception 'You cannot change your own role';
+  end if;
+
+  if p_role not in ('user', 'galaxy_user', 'admin', 'bossman') then
+    raise exception 'Invalid role';
+  end if;
+
+  select role, display_name
+  into v_old_role, v_display_name
+  from public.profiles
+  where id = p_user_id
+  for update;
+
+  if not found then
+    raise exception 'User not found';
+  end if;
+
+  if v_old_role = p_role then
+    update public.profiles
+    set galaxy_map_requested = case when p_role <> 'user' then false else galaxy_map_requested end,
+        updated_at = now()
+    where id = p_user_id;
+    return;
+  end if;
+
+  perform set_config('app.allow_profile_role_update', 'true', true);
+
+  update public.profiles
+  set role = p_role,
+      galaxy_map_requested = case when p_role <> 'user' then false else galaxy_map_requested end,
+      updated_at = now()
+  where id = p_user_id;
+
+  insert into public.audit_logs (
+    user_id,
+    action,
+    entity_type,
+    entity_id,
+    entity_name,
+    details
+  )
+  values (
+    v_actor_id,
+    'role_changed',
+    'user',
+    p_user_id::text,
+    coalesce(v_display_name, ''),
+    jsonb_build_object(
+      'old_role', v_old_role,
+      'new_role', p_role
+    )
+  );
+end;
+$$;
+
+revoke all on function public.set_user_role(uuid, text) from public;
+grant execute on function public.set_user_role(uuid, text) to authenticated;
+
+-- ── Feedback Integrity ────────────────────────────────────────────────────────
+create or replace function public.prepare_feedback_insert()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_display_name text;
+begin
+  new.user_id := auth.uid();
+
+  if new.user_id is null then
+    raise exception 'Invalid feedback user';
+  end if;
+
+  new.message := btrim(new.message);
+  if new.message = '' then
+    raise exception 'Feedback message is required';
+  end if;
+
+  if char_length(new.message) > 2000 then
+    raise exception 'Feedback message is too long';
+  end if;
+
+  if new.category = 'other' then
+    new.other_label := nullif(btrim(coalesce(new.other_label, '')), '');
+    if new.other_label is null then
+      raise exception 'Other feedback requires a label';
+    end if;
+  else
+    new.other_label := null;
+  end if;
+
+  select display_name
+  into v_display_name
+  from public.profiles
+  where id = new.user_id;
+
+  new.display_name := coalesce(
+    nullif(v_display_name, ''),
+    'Anonymous'
+  );
+
+  return new;
+end;
+$$;
+
+drop trigger if exists feedback_prepare_insert on public.feedback;
+create trigger feedback_prepare_insert
+  before insert on public.feedback
+  for each row execute function public.prepare_feedback_insert();
+
+-- ── Galaxy Access Policies ────────────────────────────────────────────────────
+drop policy if exists "custom_systems_select" on public.custom_systems;
+create policy "custom_systems_select" on public.custom_systems
+  for select to authenticated
+  using (public.current_user_role() in ('galaxy_user', 'admin', 'bossman'));
+
+drop policy if exists "custom_fleets_select" on public.custom_fleets;
+create policy "custom_fleets_select" on public.custom_fleets
+  for select to authenticated
+  using (public.current_user_role() in ('galaxy_user', 'admin', 'bossman'));
+
+drop policy if exists "custom_factions_select" on public.custom_factions;
+create policy "custom_factions_select" on public.custom_factions
+  for select to authenticated
+  using (public.current_user_role() in ('galaxy_user', 'admin', 'bossman'));
+
+-- ── Article Image Bucket Constraints ──────────────────────────────────────────
+update storage.buckets
+set public = true,
+    file_size_limit = 10485760,
+    allowed_mime_types = array[
+      'image/gif',
+      'image/jpeg',
+      'image/png',
+      'image/webp'
+    ]
+where id = 'article-images';

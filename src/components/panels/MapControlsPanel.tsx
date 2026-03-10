@@ -2,6 +2,7 @@ import { useGalaxyUIStore } from '@/store/galaxyUIStore';
 import { useFactionStore } from '@/store/factionStore';
 import { FilterBox } from '@/components/panels/FilterBox';
 import { FactionManagementPanel } from '@/components/panels/FactionManagementPanel';
+import { useRole } from '@/hooks/useRole';
 import { useState } from 'react';
 
 export function MapControlsPanel() {
@@ -18,6 +19,7 @@ export function MapControlsPanel() {
   const toggleLabels = useGalaxyUIStore((s) => s.toggleLabels);
   const toggleCivilianTraffic = useGalaxyUIStore((s) => s.toggleCivilianTraffic);
 
+  const { isAdmin } = useRole();
   const [activeTab, setActiveTab] = useState<'filters' | 'manage'>('filters');
 
   if (activeModule !== 'mapControls') return null;
@@ -45,12 +47,14 @@ export function MapControlsPanel() {
             >
               Filters
             </button>
-            <button
-              onClick={() => setActiveTab('manage')}
-              className={`holo-tab-button${activeTab === 'manage' ? ' is-active' : ''}`}
-            >
-              Manage Factions
-            </button>
+            {isAdmin && (
+              <button
+                onClick={() => setActiveTab('manage')}
+                className={`holo-tab-button${activeTab === 'manage' ? ' is-active' : ''}`}
+              >
+                Manage Factions
+              </button>
+            )}
           </div>
 
           {activeTab === 'filters' ? (

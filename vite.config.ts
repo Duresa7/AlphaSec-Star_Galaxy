@@ -8,6 +8,11 @@ export default defineConfig({
       '@': '/src',
     },
   },
+  test: {
+    alias: {
+      '@/': new URL('./src/', import.meta.url).pathname,
+    },
+  },
   build: {
     rollupOptions: {
       output: {

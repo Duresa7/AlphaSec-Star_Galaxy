@@ -8,16 +8,11 @@ import {
   updateTimelineEntry,
   deleteTimelineEntry,
 } from '@/data/timelineStorage';
+import { fetchFeedback, deleteFeedback } from '@/data/feedbackStorage';
 import type { Article } from '@/data/articleTypes';
 import type { TimelineEntry, TimelineEntryType } from '@/data/timelineStorage';
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
+import type { FeedbackEntry } from '@/data/feedbackStorage';
+import { formatDate } from '@/utils/format';
 
 const EMPTY_ENTRY_FORM = {
   title: '',
@@ -34,6 +29,7 @@ export function ArticleDashboardPage() {
   const [loading, setLoading] = useState(true);
 
   const [entries, setEntries] = useState<TimelineEntry[]>([]);
+  const [feedback, setFeedback] = useState<FeedbackEntry[]>([]);
   const [entryFormOpen, setEntryFormOpen] = useState(false);
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   const [entryForm, setEntryForm] = useState<EntryForm>(EMPTY_ENTRY_FORM);
@@ -44,9 +40,11 @@ export function ArticleDashboardPage() {
     Promise.all([
       fetchArticles({ includeDrafts: true }),
       fetchTimelineEntries(),
-    ]).then(([articleData, entryData]) => {
+      fetchFeedback(),
+    ]).then(([articleData, entryData, feedbackData]) => {
       setArticles(articleData);
       setEntries(entryData);
+      setFeedback(feedbackData);
       setLoading(false);
     });
   }, []);
@@ -122,7 +120,7 @@ export function ArticleDashboardPage() {
       }
       cancelEntryForm();
     } catch {
-      // error is logged in storage layer
+      // form stays open on failure
     } finally {
       setSavingEntry(false);
     }
@@ -137,6 +135,16 @@ export function ArticleDashboardPage() {
       loadAll();
     }
   };
+
+  const handleDeleteFeedback = useCallback(async (id: string) => {
+    if (!window.confirm('Delete this feedback? This cannot be undone.')) return;
+    setFeedback((prev) => prev.filter((f) => f.id !== id));
+    try {
+      await deleteFeedback(id);
+    } catch {
+      loadAll();
+    }
+  }, [loadAll]);
 
   const setField = (field: keyof EntryForm, value: string) =>
     setEntryForm((prev) => ({ ...prev, [field]: value }));
@@ -348,6 +356,60 @@ export function ArticleDashboardPage() {
                   </div>
                 </div>
               ))}
+            </div>
+          )}
+        </div>
+
+        {/* ── Feedback ── */}
+        <div className="article-dash__section">
+          <div className="article-dash__section-header">
+            <h2 className="article-dash__section-title">Feedback</h2>
+            <span className="article-dash__subtitle">{feedback.length} submission{feedback.length !== 1 ? 's' : ''}</span>
+          </div>
+
+          {!loading && feedback.length === 0 && (
+            <p className="article-dash__empty">No feedback submissions yet.</p>
+          )}
+
+          {feedback.length > 0 && (
+            <div className="article-dash__table-wrap">
+              <table className="article-dash__table">
+                <thead>
+                  <tr>
+                    <th className="article-dash__th">User</th>
+                    <th className="article-dash__th">Category</th>
+                    <th className="article-dash__th">Message</th>
+                    <th className="article-dash__th">Date</th>
+                    <th className="article-dash__th">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {feedback.map((f) => (
+                    <tr key={f.id} className="article-dash__row">
+                      <td className="article-dash__td">{f.display_name}</td>
+                      <td className="article-dash__td">
+                        <span className="article-dash__cat">
+                          {f.category === 'feature_request'
+                            ? 'Feature Request'
+                            : f.category === 'bug'
+                            ? 'Bug'
+                            : f.other_label ?? 'Other'}
+                        </span>
+                      </td>
+                      <td className="article-dash__td article-dash__td--title">{f.message}</td>
+                      <td className="article-dash__td article-dash__td--date">{formatDate(f.created_at)}</td>
+                      <td className="article-dash__td article-dash__td--actions">
+                        <button
+                          className="news-btn news-btn--small news-btn--danger"
+                          onClick={() => handleDeleteFeedback(f.id)}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>

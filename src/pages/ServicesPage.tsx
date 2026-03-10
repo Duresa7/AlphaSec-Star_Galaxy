@@ -1,17 +1,10 @@
 import { useState, useEffect } from 'react';
 import { NewsShell } from '@/components/news/NewsShell';
-import { SERVICE_STATUSES } from '@/data/newsMockData';
+import { fetchLiveStatuses } from '@/data/liveStatuses';
 import { fetchTimelineEntries } from '@/data/timelineStorage';
-import type { ServiceStatus } from '@/data/newsMockData';
+import type { ServiceStatus } from '@/data/liveStatuses';
 import type { TimelineEntry } from '@/data/timelineStorage';
-
-function formatTimelineDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
+import { formatDate } from '@/utils/format';
 
 function StatusCard({ status }: { status: ServiceStatus }) {
   return (
@@ -45,7 +38,7 @@ function TimelineItem({ entry }: { entry: TimelineEntry }) {
           {entry.type}
         </span>
         <span className="timeline-item__title">{entry.title}</span>
-        <span className="timeline-item__time">{formatTimelineDate(entry.timestamp)}</span>
+        <span className="timeline-item__time">{formatDate(entry.timestamp)}</span>
       </summary>
       <div className="timeline-item__content">
         {entry.expandedContent}
@@ -55,12 +48,16 @@ function TimelineItem({ entry }: { entry: TimelineEntry }) {
 }
 
 export function ServicesPage() {
+  const [statuses, setStatuses] = useState<ServiceStatus[]>([]);
   const [entries, setEntries] = useState<TimelineEntry[]>([]);
 
   useEffect(() => {
     let cancelled = false;
-    fetchTimelineEntries().then((data) => {
-      if (!cancelled) setEntries(data);
+    Promise.all([fetchLiveStatuses(), fetchTimelineEntries()]).then(([s, e]) => {
+      if (!cancelled) {
+        setStatuses(s);
+        setEntries(e);
+      }
     });
     return () => { cancelled = true; };
   }, []);
@@ -76,7 +73,7 @@ export function ServicesPage() {
         </header>
 
         <div className="services-dash__grid">
-          {SERVICE_STATUSES.map(status => (
+          {statuses.map(status => (
             <StatusCard key={status.id} status={status} />
           ))}
         </div>
