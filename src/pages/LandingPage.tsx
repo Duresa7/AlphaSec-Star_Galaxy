@@ -1,29 +1,8 @@
-import { useCallback, useEffect, useRef, useState, type ComponentType, type CSSProperties } from 'react';
+import { useState, type ComponentType, type CSSProperties } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { AuthModal } from '@/components/auth/AuthModal';
 import { Footer } from '@/components/Footer';
-import { clamp } from '@/utils/math';
-
-type Point = {
-  x: number;
-  y: number;
-};
-
-type Bounds = {
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-};
-
-type EchoParticle = {
-  id: number;
-  x: number;
-  y: number;
-  size: number;
-  createdAt: number;
-};
 
 type SocialLink = {
   href: string;
@@ -31,21 +10,6 @@ type SocialLink = {
   Icon: ComponentType;
   hoverLabel?: string;
 };
-
-const DESKTOP_RADIUS = 160;
-const MOBILE_RADIUS = 120;
-const PARALLAX_LIMIT = 10;
-const GRID_LIMIT = 18;
-const MAX_ECHOES = 8;
-const ECHO_LIFETIME_MS = 450;
-const ECHO_SPEED_THRESHOLD = 1.2;
-const ECHO_SPAWN_COOLDOWN_MS = 42;
-
-const getMediaMatch = (query: string, fallback: boolean) => {
-  if (typeof window === 'undefined') return fallback;
-  return window.matchMedia(query).matches;
-};
-const centerOf = (bounds: Bounds): Point => ({ x: bounds.width / 2, y: bounds.height / 2 });
 
 function PayPalIcon() {
   return (
@@ -148,235 +112,45 @@ export function LandingPage() {
   const location = useLocation();
   const locationState = location.state as { showAuthModal?: boolean } | null;
   const [showAuthModal, setShowAuthModal] = useState(locationState?.showAuthModal ?? false);
-  const heroRef = useRef<HTMLElement | null>(null);
-  const boundsRef = useRef<Bounds>({ left: 0, top: 0, width: 1, height: 1 });
-  const targetCursorRef = useRef<Point>({ x: 0, y: 0 });
-  const displayCursorRef = useRef<Point>({ x: 0, y: 0 });
-  const pointerRef = useRef({ x: 0, y: 0, time: 0 });
-  const initializedRef = useRef(false);
-  const nextEchoIdRef = useRef(1);
-  const lastEchoAtRef = useRef(0);
 
-  const [echoes, setEchoes] = useState<EchoParticle[]>([]);
-  const [isFinePointer, setIsFinePointer] = useState<boolean>(() => getMediaMatch('(pointer: fine)', true));
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState<boolean>(() =>
-    getMediaMatch('(prefers-reduced-motion: reduce)', false)
-  );
   const displayName =
     profile?.display_name
     ?? (typeof session?.user?.user_metadata?.display_name === 'string' ? session.user.user_metadata.display_name : null)
     ?? session?.user?.email?.split('@')[0]
     ?? 'Signed In';
 
-  const spawnEcho = useCallback((x: number, y: number, speed: number, createdAt: number) => {
-    const size = clamp(118 + speed * 20, 118, 220);
-    const id = nextEchoIdRef.current;
-    nextEchoIdRef.current += 1;
+  const renderSocialLinks = () =>
+    SOCIAL_LINKS.map(({ href, ariaLabel, Icon, hoverLabel }) => (
+      <a
+        key={href}
+        className="portfolio-hero__social-link"
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={ariaLabel}
+        data-hover-label={hoverLabel}
+      >
+        <Icon />
+      </a>
+    ));
 
-    setEchoes((current) => {
-      const nextEcho: EchoParticle = { id, x, y, size, createdAt };
-      if (current.length >= MAX_ECHOES) {
-        return [...current.slice(1), nextEcho];
-      }
+  return (
+    <section
+      className="portfolio-hero"
+      aria-label="Portfolio homepage"
+      style={{ '--portfolio-hero-bg-image': `url("${heroImageUrl}")` } as CSSProperties}
+    >
+      <div className="portfolio-hero__layer portfolio-hero__base-image" aria-hidden="true" />
 
-      return [...current, nextEcho];
-    });
+      <div className="portfolio-hero__content portfolio-hero__content--base">
+        <div className="portfolio-hero__name-block portfolio-hero__parallax">
+          <p className="portfolio-hero__name-line">Alpha</p>
+          <p className="portfolio-hero__name-line">Sec</p>
+        </div>
 
-    lastEchoAtRef.current = createdAt;
-  }, []);
-
-  const syncBounds = useCallback(() => {
-    const hero = heroRef.current;
-    if (!hero) return;
-
-    const rect = hero.getBoundingClientRect();
-    const nextBounds: Bounds = {
-      left: rect.left,
-      top: rect.top,
-      width: Math.max(rect.width, 1),
-      height: Math.max(rect.height, 1),
-    };
-    boundsRef.current = nextBounds;
-
-    if (!initializedRef.current) {
-      initializedRef.current = true;
-      const center = centerOf(nextBounds);
-      targetCursorRef.current = center;
-      displayCursorRef.current = center;
-      pointerRef.current = { ...center, time: performance.now() };
-      return;
-    }
-
-    targetCursorRef.current.x = clamp(targetCursorRef.current.x, 0, nextBounds.width);
-    targetCursorRef.current.y = clamp(targetCursorRef.current.y, 0, nextBounds.height);
-    displayCursorRef.current.x = clamp(displayCursorRef.current.x, 0, nextBounds.width);
-    displayCursorRef.current.y = clamp(displayCursorRef.current.y, 0, nextBounds.height);
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const pointerMedia = window.matchMedia('(pointer: fine)');
-    const motionMedia = window.matchMedia('(prefers-reduced-motion: reduce)');
-
-    const syncMediaState = () => {
-      setIsFinePointer(pointerMedia.matches);
-      setPrefersReducedMotion(motionMedia.matches);
-    };
-
-    syncMediaState();
-    pointerMedia.addEventListener('change', syncMediaState);
-    motionMedia.addEventListener('change', syncMediaState);
-
-    return () => {
-      pointerMedia.removeEventListener('change', syncMediaState);
-      motionMedia.removeEventListener('change', syncMediaState);
-    };
-  }, []);
-
-  useEffect(() => {
-    const hero = heroRef.current;
-    if (!hero) return;
-
-    let rafId = 0;
-    const handlePointerMove = (event: PointerEvent) => {
-      if (!isFinePointer) return;
-
-      const { left, top, width, height } = boundsRef.current;
-      const x = clamp(event.clientX - left, 0, width);
-      const y = clamp(event.clientY - top, 0, height);
-      const now = performance.now();
-
-      targetCursorRef.current.x = x;
-      targetCursorRef.current.y = y;
-
-      const deltaX = x - pointerRef.current.x;
-      const deltaY = y - pointerRef.current.y;
-      const deltaTime = Math.max(now - pointerRef.current.time, 1);
-      const speed = Math.hypot(deltaX, deltaY) / deltaTime;
-
-      if (
-        !prefersReducedMotion &&
-        speed > ECHO_SPEED_THRESHOLD &&
-        now - lastEchoAtRef.current > ECHO_SPAWN_COOLDOWN_MS
-      ) {
-        spawnEcho(displayCursorRef.current.x, displayCursorRef.current.y, speed, now);
-      }
-
-      pointerRef.current = { x, y, time: now };
-    };
-
-    syncBounds();
-    hero.addEventListener('pointermove', handlePointerMove, { passive: true });
-    window.addEventListener('resize', syncBounds);
-    window.addEventListener('scroll', syncBounds, { passive: true });
-
-    const renderFrame = (time: number) => {
-      const bounds = boundsRef.current;
-      const center = centerOf(bounds);
-
-      if (!isFinePointer) {
-        if (prefersReducedMotion) {
-          targetCursorRef.current.x = center.x;
-          targetCursorRef.current.y = center.y;
-        } else {
-          targetCursorRef.current.x = clamp(
-            center.x + Math.cos(time * 0.00038) * bounds.width * 0.25,
-            0,
-            bounds.width
-          );
-          targetCursorRef.current.y = clamp(
-            center.y + Math.sin(time * 0.00031) * bounds.height * 0.2,
-            0,
-            bounds.height
-          );
-        }
-      }
-
-      const lerp = prefersReducedMotion ? 0.2 : 0.14;
-      displayCursorRef.current.x += (targetCursorRef.current.x - displayCursorRef.current.x) * lerp;
-      displayCursorRef.current.y += (targetCursorRef.current.y - displayCursorRef.current.y) * lerp;
-
-      const normalizedX = center.x > 0 ? (displayCursorRef.current.x - center.x) / center.x : 0;
-      const normalizedY = center.y > 0 ? (displayCursorRef.current.y - center.y) / center.y : 0;
-
-      const parallaxX = prefersReducedMotion
-        ? 0
-        : clamp(-normalizedX * PARALLAX_LIMIT, -PARALLAX_LIMIT, PARALLAX_LIMIT);
-      const parallaxY = prefersReducedMotion
-        ? 0
-        : clamp(-normalizedY * PARALLAX_LIMIT, -PARALLAX_LIMIT, PARALLAX_LIMIT);
-      const gridX = prefersReducedMotion ? 0 : clamp(-normalizedX * GRID_LIMIT, -GRID_LIMIT, GRID_LIMIT);
-      const gridY = prefersReducedMotion ? 0 : clamp(-normalizedY * GRID_LIMIT, -GRID_LIMIT, GRID_LIMIT);
-      const spotlightRadius =
-        bounds.width <= 768 ? MOBILE_RADIUS : isFinePointer ? DESKTOP_RADIUS : MOBILE_RADIUS;
-
-      hero.style.setProperty('--cursor-x', `${displayCursorRef.current.x.toFixed(2)}px`);
-      hero.style.setProperty('--cursor-y', `${displayCursorRef.current.y.toFixed(2)}px`);
-      hero.style.setProperty('--spotlight-radius', `${spotlightRadius}px`);
-      hero.style.setProperty('--parallax-x', `${parallaxX.toFixed(2)}px`);
-      hero.style.setProperty('--parallax-y', `${parallaxY.toFixed(2)}px`);
-      hero.style.setProperty('--grid-x', `${gridX.toFixed(2)}px`);
-      hero.style.setProperty('--grid-y', `${gridY.toFixed(2)}px`);
-
-      rafId = window.requestAnimationFrame(renderFrame);
-    };
-
-    rafId = window.requestAnimationFrame(renderFrame);
-
-    return () => {
-      hero.removeEventListener('pointermove', handlePointerMove);
-      window.removeEventListener('resize', syncBounds);
-      window.removeEventListener('scroll', syncBounds);
-      window.cancelAnimationFrame(rafId);
-    };
-  }, [isFinePointer, prefersReducedMotion, spawnEcho, syncBounds]);
-
-  useEffect(() => {
-    const cleanupTicker = window.setInterval(() => {
-      const now = performance.now();
-      setEchoes((current) => {
-        if (current.length === 0) return current;
-        const remaining = current.filter((echo) => now - echo.createdAt < ECHO_LIFETIME_MS);
-        return remaining.length === current.length ? current : remaining;
-      });
-    }, 70);
-
-    return () => window.clearInterval(cleanupTicker);
-  }, []);
-
-  const renderSocialLinks = (interactive: boolean) =>
-    SOCIAL_LINKS.map(({ href, ariaLabel, Icon, hoverLabel }) =>
-      interactive ? (
-        <a
-          key={href}
-          className="portfolio-hero__social-link"
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label={ariaLabel}
-          data-hover-label={hoverLabel}
-        >
-          <Icon />
-        </a>
-      ) : (
-        <span key={href} className="portfolio-hero__social-link" data-hover-label={hoverLabel}>
-          <Icon />
-        </span>
-      )
-    );
-
-  const renderOverlayContent = (interactive: boolean) => (
-    <>
-      <div className="portfolio-hero__name-block portfolio-hero__parallax">
-        <p className="portfolio-hero__name-line">Alpha</p>
-        <p className="portfolio-hero__name-line">Sec</p>
-      </div>
-
-      <div className="portfolio-hero__nav-block portfolio-hero__parallax">
-        <div className="portfolio-hero__nav-actions">
-          {interactive ? (
-            session ? (
+        <div className="portfolio-hero__nav-block portfolio-hero__parallax">
+          <div className="portfolio-hero__nav-actions">
+            {session ? (
               <Link
                 className="portfolio-hero__nav-link portfolio-hero__nav-link--icon"
                 to="/map-loading"
@@ -394,17 +168,7 @@ export function LandingPage() {
               >
                 <img src={`${import.meta.env.BASE_URL}icons/codex-planets.png`} alt="" className="portfolio-hero__nav-icon-img" />
               </button>
-            )
-          ) : (
-            <span
-              className="portfolio-hero__nav-link portfolio-hero__nav-link--icon"
-              aria-label="Interactive Galaxy Map"
-              data-hover-label="Interactive Galaxy Map"
-            >
-              <img src={`${import.meta.env.BASE_URL}icons/codex-planets.png`} alt="" className="portfolio-hero__nav-icon-img" />
-            </span>
-          )}
-          {interactive ? (
+            )}
             <Link
               className="portfolio-hero__nav-link portfolio-hero__nav-link--icon"
               to="/news"
@@ -413,74 +177,22 @@ export function LandingPage() {
             >
               <BlogIcon />
             </Link>
-          ) : (
             <span
-              className="portfolio-hero__nav-link portfolio-hero__nav-link--icon"
-              aria-label="AlphaSec News"
-              data-hover-label="AlphaSec News"
+              className="portfolio-hero__nav-link portfolio-hero__nav-link--icon portfolio-hero__nav-link--disabled"
+              aria-label="TNIO: Codex of Planets Coming Soon"
+              data-hover-label="TNIO: Codex of Planets Coming Soon"
             >
-              <BlogIcon />
+              <img
+                src={`${import.meta.env.BASE_URL}icons/codex-icon.png`}
+                alt=""
+                className="portfolio-hero__nav-icon-img"
+              />
             </span>
-          )}
-          <span
-            className="portfolio-hero__nav-link portfolio-hero__nav-link--icon portfolio-hero__nav-link--disabled"
-            aria-label="TNIO: Codex of Planets Coming Soon"
-            data-hover-label="TNIO: Codex of Planets Coming Soon"
-          >
-            <img
-              src={`${import.meta.env.BASE_URL}icons/codex-icon.png`}
-              alt=""
-              className="portfolio-hero__nav-icon-img"
-            />
-          </span>
+          </div>
         </div>
+
+        <div className="portfolio-hero__social-block portfolio-hero__parallax">{renderSocialLinks()}</div>
       </div>
-
-      <div className="portfolio-hero__social-block portfolio-hero__parallax">{renderSocialLinks(interactive)}</div>
-    </>
-  );
-
-  return (
-    <section
-      ref={heroRef}
-      className={`portfolio-hero${prefersReducedMotion ? ' portfolio-hero--reduced-motion' : ''}`}
-      aria-label="Portfolio homepage"
-      style={{ '--portfolio-hero-bg-image': `url("${heroImageUrl}")` } as CSSProperties}
-    >
-      <div className="portfolio-hero__layer portfolio-hero__base-image" aria-hidden="true" />
-      <div
-        className="portfolio-hero__layer portfolio-hero__alt-image portfolio-hero__spotlight-mask"
-        aria-hidden="true"
-      />
-
-      <div className="portfolio-hero__content portfolio-hero__content--base">
-        {renderOverlayContent(true)}
-      </div>
-
-      <div
-        className="portfolio-hero__content portfolio-hero__content--invert portfolio-hero__spotlight-mask"
-        aria-hidden="true"
-      >
-        {renderOverlayContent(false)}
-      </div>
-
-      <div className="portfolio-hero__cursor-layer" aria-hidden="true">
-        {echoes.map((echo) => (
-          <span
-            key={echo.id}
-            className="portfolio-hero__echo"
-            style={{
-              left: `${echo.x}px`,
-              top: `${echo.y}px`,
-              width: `${echo.size}px`,
-              height: `${echo.size}px`,
-              animationDuration: `${ECHO_LIFETIME_MS}ms`,
-            }}
-          />
-        ))}
-        <span className="portfolio-hero__cursor-ring" />
-      </div>
-
 
       <div
         style={{
