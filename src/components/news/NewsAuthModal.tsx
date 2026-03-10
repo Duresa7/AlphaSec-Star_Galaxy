@@ -1,45 +1,50 @@
 import { useAuthForm, PASSWORD_RULES } from '@/hooks/useAuthForm';
 
-interface AuthModalProps {
+interface NewsAuthModalProps {
   open: boolean;
   onClose: () => void;
 }
 
-export function AuthModal({ open, onClose }: AuthModalProps) {
+export function NewsAuthModal({ open, onClose }: NewsAuthModalProps) {
   const f = useAuthForm(onClose);
 
   if (!open) return null;
 
   return (
-    <div className="auth-modal__backdrop" onClick={onClose}>
-      <div className="auth-modal__card" onClick={(e) => e.stopPropagation()}>
+    <div className="news-auth__backdrop" onClick={onClose}>
+      <div className="news-auth__card" onClick={(e) => e.stopPropagation()}>
 
-        <button className="auth-modal__close" onClick={onClose} aria-label="Close">
+        <button className="news-auth__close" onClick={onClose} aria-label="Close">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
 
-        <p className="auth-modal__eyebrow">Galaxy Map</p>
-        <h2 className="auth-modal__title">{f.mode === 'login' ? 'Sign In' : 'Create Account'}</h2>
+        <p className="news-auth__eyebrow">AlphaSec United</p>
+        <h2 className="news-auth__title">{f.mode === 'login' ? 'Sign in to continue' : 'Create your account'}</h2>
+        <p className="news-auth__subtitle">
+          {f.mode === 'login'
+            ? 'Sign in to like articles and join the conversation.'
+            : 'Join the community to interact with articles.'}
+        </p>
 
         {f.successMessage && (
-          <div className="auth-modal__success">{f.successMessage}</div>
+          <div className="news-auth__success">{f.successMessage}</div>
         )}
 
         {f.error && (
-          <div className="auth-modal__error">{f.error}</div>
+          <div className="news-auth__error">{f.error}</div>
         )}
 
-        <form onSubmit={f.handleSubmit} className="auth-modal__form">
+        <form onSubmit={f.handleSubmit} className="news-auth__form">
           {f.mode === 'signup' && (
-            <div className="auth-modal__field">
-              <label className="auth-modal__label">Display Name</label>
+            <div className="news-auth__field">
+              <label className="news-auth__label">Display Name</label>
               <input
                 type="text"
                 value={f.displayName}
                 onChange={(e) => f.setDisplayName(e.target.value)}
-                className="auth-modal__input"
+                className="news-auth__input"
                 placeholder="Your name"
                 maxLength={40}
                 required
@@ -48,41 +53,41 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
             </div>
           )}
 
-          <div className="auth-modal__field">
-            <label className="auth-modal__label">Email</label>
+          <div className="news-auth__field">
+            <label className="news-auth__label">Email</label>
             <input
               type="email"
               value={f.email}
               onChange={(e) => f.setEmail(e.target.value)}
-              className="auth-modal__input"
+              className="news-auth__input"
               placeholder="you@example.com"
               required
               autoFocus={f.mode === 'login'}
             />
           </div>
 
-          <div className="auth-modal__field">
-            <label className="auth-modal__label">Password</label>
+          <div className="news-auth__field">
+            <label className="news-auth__label">Password</label>
             <input
               type="password"
               value={f.password}
               onChange={(e) => f.setPassword(e.target.value)}
-              className="auth-modal__input"
+              className="news-auth__input"
               placeholder={f.mode === 'signup' ? 'Min 8 chars, mixed case, digit, special' : 'Your password'}
               required
             />
             {f.mode === 'signup' && f.password.length > 0 && (
-              <div className="auth-modal__strength">
-                <div className="auth-modal__strength-bar">
+              <div className="news-auth__strength">
+                <div className="news-auth__strength-bar">
                   <div
-                    className="auth-modal__strength-fill"
+                    className="news-auth__strength-fill"
                     style={{
                       width: `${(f.passwordStrength / PASSWORD_RULES.length) * 100}%`,
-                      background: f.passwordStrength <= 2 ? '#dc3545' : f.passwordStrength <= 4 ? '#f0ad4e' : '#5cb85c',
+                      background: f.passwordStrength <= 2 ? '#dc3545' : f.passwordStrength <= 4 ? '#f0ad4e' : '#1a73e8',
                     }}
                   />
                 </div>
-                <span className="auth-modal__strength-label">
+                <span className="news-auth__strength-label">
                   {f.passwordStrength <= 2 ? 'Weak' : f.passwordStrength <= 4 ? 'Fair' : 'Strong'}
                 </span>
               </div>
@@ -90,13 +95,13 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
           </div>
 
           {f.mode === 'signup' && (
-            <div className="auth-modal__field">
-              <label className="auth-modal__label">Confirm Password</label>
+            <div className="news-auth__field">
+              <label className="news-auth__label">Confirm Password</label>
               <input
                 type="password"
                 value={f.confirmPassword}
                 onChange={(e) => f.setConfirmPassword(e.target.value)}
-                className="auth-modal__input"
+                className="news-auth__input"
                 placeholder="Re-enter password"
                 required
               />
@@ -106,13 +111,13 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
           <button
             type="submit"
             disabled={f.submitting}
-            className="auth-modal__submit"
+            className="news-auth__submit"
           >
             {f.submitting ? 'Please wait...' : f.mode === 'login' ? 'Sign In' : 'Create Account'}
           </button>
         </form>
 
-        <p className="auth-modal__switch">
+        <p className="news-auth__switch">
           {f.mode === 'login' ? (
             <>Don't have an account?{' '}<button onClick={() => f.switchMode('signup')}>Sign Up</button></>
           ) : (
