@@ -2,7 +2,7 @@ import { LegalShell } from '@/components/legal/LegalShell';
 
 export function CreditsPage() {
   return (
-    <LegalShell ariaLabel="3D Model Credits">
+    <LegalShell>
       <h1 className="legal-page__title">3D Model Credits</h1>
       <p className="legal-page__updated">
         The following third-party 3D models are used in this application under Creative Commons

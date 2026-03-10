@@ -1,6 +1,13 @@
 import { supabase, supabaseConfigured } from '@/lib/supabase';
 import { logger } from '@/utils/logger';
 import type { Article, ArticleComment, ArticleInput } from '@/data/articleTypes';
+import {
+  getArticleImageExtension,
+  sanitizeArticleHtml,
+  sanitizeArticleImageUrl,
+  validateArticleImageFile,
+} from '@/utils/articleSecurity';
+import { getInitials } from '@/utils/format';
 
 interface DbArticle {
   id: string;
@@ -39,10 +46,9 @@ function dbToArticle(
     slug: row.slug,
     title: row.title,
     excerpt: row.excerpt,
-    content: row.content,
+    content: sanitizeArticleHtml(row.content),
     category: row.category as Article['category'],
-    coverImageUrl: row.cover_image_url ?? undefined,
-    authorId: row.author_id,
+    coverImageUrl: sanitizeArticleImageUrl(row.cover_image_url) ?? undefined,
     authorName,
     authorInitials,
     readingTimeMinutes: row.reading_time_minutes,
@@ -54,15 +60,6 @@ function dbToArticle(
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
-}
-
-function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .map((w) => w[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
 }
 
 export async function fetchArticles(opts?: {
@@ -193,6 +190,8 @@ export async function fetchArticleById(id: string): Promise<Article | null> {
 
 export async function createArticle(input: ArticleInput, authorId: string): Promise<string | null> {
   if (!supabaseConfigured) return null;
+  const sanitizedContent = sanitizeArticleHtml(input.content);
+  const sanitizedCoverImageUrl = sanitizeArticleImageUrl(input.coverImageUrl);
 
   const { data, error } = await supabase
     .from('articles')
@@ -200,9 +199,9 @@ export async function createArticle(input: ArticleInput, authorId: string): Prom
       title: input.title,
       slug: input.slug,
       excerpt: input.excerpt,
-      content: input.content,
+      content: sanitizedContent,
       category: input.category,
-      cover_image_url: input.coverImageUrl ?? null,
+      cover_image_url: sanitizedCoverImageUrl,
       reading_time_minutes: input.readingTimeMinutes,
       is_featured: input.isFeatured,
       is_trending: input.isTrending,
@@ -227,13 +226,15 @@ export async function updateArticle(id: string, input: Partial<ArticleInput>): P
   if (input.title !== undefined) updates.title = input.title;
   if (input.slug !== undefined) updates.slug = input.slug;
   if (input.excerpt !== undefined) updates.excerpt = input.excerpt;
-  if (input.content !== undefined) updates.content = input.content;
+  if (input.content !== undefined) updates.content = sanitizeArticleHtml(input.content);
   if (input.category !== undefined) updates.category = input.category;
   if (input.readingTimeMinutes !== undefined) updates.reading_time_minutes = input.readingTimeMinutes;
   if (input.isFeatured !== undefined) updates.is_featured = input.isFeatured;
   if (input.isTrending !== undefined) updates.is_trending = input.isTrending;
   if (input.published !== undefined) updates.published = input.published;
-  if (input.coverImageUrl !== undefined) updates.cover_image_url = input.coverImageUrl ?? null;
+  if (input.coverImageUrl !== undefined) {
+    updates.cover_image_url = sanitizeArticleImageUrl(input.coverImageUrl);
+  }
 
   const { error } = await supabase.from('articles').update(updates).eq('id', id);
   if (error) {
@@ -306,6 +307,9 @@ export async function toggleLike(articleId: string): Promise<{ liked: boolean; c
 export async function fetchComments(articleId: string): Promise<ArticleComment[]> {
   if (!supabaseConfigured) return [];
 
+  const { data: userData } = await supabase.auth.getUser();
+  const currentUserId = userData.user?.id ?? null;
+
   const { data, error } = await supabase
     .from('article_comments')
     .select('*')
@@ -335,11 +339,10 @@ export async function fetchComments(articleId: string): Promise<ArticleComment[]
 
   return comments.map((c) => ({
     id: c.id,
-    articleId: c.article_id,
-    userId: c.user_id,
     authorName: nameMap.get(c.user_id) || 'Anonymous',
     body: c.body,
     createdAt: c.created_at,
+    canDelete: currentUserId === c.user_id,
   }));
 }
 
@@ -348,13 +351,15 @@ export async function addComment(articleId: string, body: string): Promise<Artic
 
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) throw new Error('Not authenticated');
+  const normalizedBody = body.trim();
+  if (!normalizedBody) throw new Error('Comment body is required');
 
   const { data, error } = await supabase
     .from('article_comments')
     .insert({
       article_id: articleId,
       user_id: userData.user.id,
-      body,
+      body: normalizedBody,
     })
     .select('*')
     .single();
@@ -372,11 +377,10 @@ export async function addComment(articleId: string, body: string): Promise<Artic
 
   return {
     id: data.id,
-    articleId: data.article_id,
-    userId: data.user_id,
     authorName: profile?.display_name || 'Anonymous',
     body: data.body,
     createdAt: data.created_at,
+    canDelete: true,
   };
 }
 
@@ -396,8 +400,10 @@ export async function deleteComment(commentId: string): Promise<void> {
 
 export async function uploadArticleImage(file: File): Promise<string> {
   if (!supabaseConfigured) throw new Error('Supabase not configured');
+  const validationError = validateArticleImageFile(file);
+  if (validationError) throw new Error(validationError);
 
-  const ext = file.name.split('.').pop() ?? 'jpg';
+  const ext = getArticleImageExtension(file);
   const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
   const { error } = await supabase.storage

@@ -20,6 +20,7 @@ export function useAuthForm(onSuccess: () => void) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [galaxyMapRequested, setGalaxyMapRequested] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -29,6 +30,7 @@ export function useAuthForm(onSuccess: () => void) {
     setPassword('');
     setConfirmPassword('');
     setDisplayName('');
+    setGalaxyMapRequested(false);
     setError(null);
     if (!options?.keepSuccessMessage) {
       setSuccessMessage(null);
@@ -72,7 +74,7 @@ export function useAuthForm(onSuccess: () => void) {
         if (err) { setError(err); return; }
         onSuccess();
       } else {
-        const { error: err } = await signUp(email, password, displayName.trim());
+        const { error: err } = await signUp(email, password, displayName.trim(), galaxyMapRequested);
         if (err) { setError(err); return; }
         setSuccessMessage('Account created! Check your email to confirm, then sign in. If you don\'t see it, check your spam folder.');
         switchMode('login', { keepSuccessMessage: true });
@@ -92,6 +94,8 @@ export function useAuthForm(onSuccess: () => void) {
     setConfirmPassword,
     displayName,
     setDisplayName,
+    galaxyMapRequested,
+    setGalaxyMapRequested,
     error,
     submitting,
     successMessage,

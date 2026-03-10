@@ -6,7 +6,13 @@ import { shouldShowAdminLoading } from './AdminRoute';
 
 const AUTH_GUARD_TIMEOUT_MS = 8_000;
 
-export function BossmanRoute({ children }: { children: React.ReactNode }) {
+export function BossmanRoute({
+  children,
+  fallbackTo = '/',
+}: {
+  children: React.ReactNode;
+  fallbackTo?: string;
+}) {
   const { session, authResolved, profileLoadingInitial, supabaseConfigured } = useAuth();
   const { isBossman } = useRole();
   const [authWaitExpired, setAuthWaitExpired] = useState(false);
@@ -54,7 +60,7 @@ export function BossmanRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!isBossman) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={fallbackTo} replace />;
   }
 
   return <>{children}</>;

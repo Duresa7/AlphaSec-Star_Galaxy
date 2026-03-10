@@ -12,6 +12,7 @@ export function useRole() {
       isAdmin: role === 'admin' || role === 'bossman',
       isBossman: role === 'bossman',
       isUser: role === 'user',
+      canAccessGalaxy: role === 'galaxy_user' || role === 'admin' || role === 'bossman',
     };
   }, [profile?.role]);
 }

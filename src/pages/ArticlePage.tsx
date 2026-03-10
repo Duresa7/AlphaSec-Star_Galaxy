@@ -7,20 +7,11 @@ import { NewsAuthModal } from '@/components/news/NewsAuthModal';
 import { useRole } from '@/hooks/useRole';
 import { fetchArticleBySlug, fetchArticles, deleteArticle } from '@/data/articleStorage';
 import type { Article } from '@/data/articleTypes';
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
+import { sanitizeArticleHtml } from '@/utils/articleSecurity';
+import { formatDate } from '@/utils/format';
 
 function RelatedCard({ article }: { article: Article }) {
-  const date = new Date(article.createdAt).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-  });
+  const date = formatDate(article.createdAt, 'compact');
 
   return (
     <Link to={`/news/${article.slug}`} className="article-card">
@@ -126,7 +117,7 @@ export function ArticlePage() {
             <div className="article-read__author-info">
               <span className="article-read__author-name">{article.authorName}</span>
               <span className="article-read__date-row">
-                {formatDate(article.createdAt)} &middot; {article.readingTimeMinutes} min read
+                {formatDate(article.createdAt, 'long')} &middot; {article.readingTimeMinutes} min read
               </span>
             </div>
           </div>
@@ -148,7 +139,7 @@ export function ArticlePage() {
 
           <div
             className="article-read__body"
-            dangerouslySetInnerHTML={{ __html: article.content }}
+            dangerouslySetInnerHTML={{ __html: sanitizeArticleHtml(article.content) }}
           />
 
           <div className="article-read__reactions">

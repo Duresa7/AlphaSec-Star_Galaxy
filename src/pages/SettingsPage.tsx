@@ -3,14 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { NewsShell } from "@/components/news/NewsShell";
 import { useAuth } from "@/hooks/useAuth";
 import { updateDisplayName, logAction } from "@/data/supabaseStorage";
-
-const PASSWORD_RULES = [
-  { test: (p: string) => p.length >= 8, label: "8+ characters" },
-  { test: (p: string) => /[A-Z]/.test(p), label: "Uppercase letter" },
-  { test: (p: string) => /[a-z]/.test(p), label: "Lowercase letter" },
-  { test: (p: string) => /\d/.test(p), label: "A digit" },
-  { test: (p: string) => /[^A-Za-z0-9]/.test(p), label: "Special character" },
-];
+import { PASSWORD_RULES } from "@/hooks/useAuthForm";
 
 export function SettingsPage() {
   const navigate = useNavigate();
