@@ -127,6 +127,7 @@ Thumbs.db
 .claude/
 .codex/
 .vercel/
+.github/
 *.suo
 *.ntvs*
 *.njsproj
@@ -137,8 +138,10 @@ Thumbs.db
 .mcp.json
 .mcp/
 CLAUDE.md
+.playwright-mcp/
 
 nul
 .junie/
 /.junie/
+AGENTS.md
 

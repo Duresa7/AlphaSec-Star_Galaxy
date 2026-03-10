@@ -315,6 +315,18 @@ export function MapPage() {
             </svg>
           </button>
         )}
+        {!uiHidden && (
+          <Link
+            to="/feedback"
+            className="flex items-center justify-center w-10 h-10 rounded-lg border border-white/20 text-white/80 hover:text-amber-300 hover:border-amber-400/50 transition-all duration-200"
+            style={TOOLBAR_BUTTON_STYLE}
+            title="Submit feedback"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M7 8h10M7 12h6m-6 4h4M5 3h14a2 2 0 012 2v13a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z" />
+            </svg>
+          </Link>
+        )}
       </div>
 
       {!uiHidden && (
@@ -387,7 +399,16 @@ export function MapPage() {
             </div>
           )}
 
-          <div className="absolute bottom-6 right-6 z-40 flex items-center gap-3">
+          <div className="absolute bottom-6 left-6 z-40">
+            <Link to="/" className="holo-button holo-button-sm">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+              </svg>
+              <span>AlphaSec</span>
+            </Link>
+          </div>
+
+          <div className="absolute bottom-6 right-6 z-40">
             {isAdmin && (
               <Link to="/admin" className="holo-button holo-button-sm">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -397,25 +418,17 @@ export function MapPage() {
                 <span>Admin</span>
               </Link>
             )}
-            <Link to="/" className="holo-button holo-button-sm">
-              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
-              </svg>
-              <span>AlphaSec</span>
-            </Link>
           </div>
 
           <div className="absolute top-5 right-5 z-40">
             {session && (
               <div className="holo-account-shell">
-                <div className="flex items-center gap-3 px-5 py-2.5">
-                  <span
-                    className="text-[13px] font-semibold tracking-[0.1em] uppercase"
-                    style={{ fontFamily: 'Oxanium, Orbitron, monospace', color: 'rgba(255, 255, 255, 0.8)' }}
-                  >
-                    {displayName}
-                  </span>
-                </div>
+                <span
+                  className="px-4 py-2 text-[13px] font-semibold tracking-[0.1em] uppercase"
+                  style={{ fontFamily: 'Oxanium, Orbitron, monospace', color: 'rgba(255, 255, 255, 0.8)' }}
+                >
+                  {displayName}
+                </span>
                 <button
                   onClick={() => signOut()}
                   className="holo-account-action"

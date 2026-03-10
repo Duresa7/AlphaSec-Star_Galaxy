@@ -3,7 +3,7 @@ import { LEGAL_CONTACT_EMAIL, LEGAL_ENTITY_NAME, LEGAL_LAST_UPDATED } from '@/co
 
 export function TermsPage() {
   return (
-    <LegalShell ariaLabel="Terms of Service">
+    <LegalShell>
       <h1 className="legal-page__title">Terms of Service</h1>
       <p className="legal-page__updated">Last updated: {LEGAL_LAST_UPDATED}</p>
 

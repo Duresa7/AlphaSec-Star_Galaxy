@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { withTimeout } from '../withTimeout';
+import { withTimeout } from '@/utils/withTimeout';
 
 describe('withTimeout', () => {
   it('resolves when promise resolves before timeout', async () => {
