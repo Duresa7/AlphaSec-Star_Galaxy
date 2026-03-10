@@ -15,7 +15,7 @@ export interface AuthContextValue {
   profileRefreshing: boolean;
   profileError: string | null;
   supabaseConfigured: boolean;
-  signUp: (email: string, password: string, displayName: string) => Promise<{ error: string | null }>;
+  signUp: (email: string, password: string, displayName: string, galaxyMapRequested?: boolean) => Promise<{ error: string | null }>;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -214,14 +214,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(interval);
   }, [session, fetchProfile]);
 
-  const signUp = useCallback(async (email: string, password: string, displayName: string) => {
+  const signUp = useCallback(async (email: string, password: string, displayName: string, galaxyMapRequested?: boolean) => {
     if (!supabaseConfigured) return { error: 'Supabase is not configured' };
     try {
       const { error } = await withTimeout(
         supabase.auth.signUp({
           email,
           password,
-          options: { data: { display_name: displayName } },
+          options: { data: { display_name: displayName, galaxy_map_requested: galaxyMapRequested ?? false } },
         }),
         AUTH_OPERATION_TIMEOUT_MS,
         'Sign-up timed out. Please try again.',

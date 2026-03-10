@@ -4,7 +4,7 @@ import { normalizeFactionControl } from '../src/utils/factionControl';
 const FACTION_ORDER = ['sith_empire', 'galactic_republic', 'neutral', 'contested', 'hutt_cartel'];
 
 const sumControl = (control: Partial<Record<string, number>>): number =>
-  Object.values(control).reduce((sum, value) => sum + (value ?? 0), 0);
+  Object.values(control).reduce<number>((sum, value) => sum + (value ?? 0), 0);
 
 describe('normalizeFactionControl', () => {
   it('pins the edited faction and keeps totals at 100', () => {

@@ -113,13 +113,14 @@ export interface SearchResult {
   parentSystemId?: string;
 }
 
-export type UserRole = 'user' | 'admin' | 'bossman';
+export type UserRole = 'user' | 'galaxy_user' | 'admin' | 'bossman';
 
 export interface UserProfile {
   id: string;
   email: string;
   display_name: string;
   role: UserRole;
+  galaxy_map_requested: boolean;
   created_at: string;
   updated_at: string;
 }

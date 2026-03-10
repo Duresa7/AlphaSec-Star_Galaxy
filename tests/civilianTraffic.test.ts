@@ -8,7 +8,7 @@ import {
   sampleQuadraticBezier,
   selectRouteEndpoints,
   tangentQuadraticBezier,
-} from '../civilianTraffic';
+} from '@/utils/civilianTraffic';
 
 describe('civilianTraffic utilities', () => {
   it('selects distinct endpoints that satisfy min distance when viable routes exist', () => {

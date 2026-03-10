@@ -3,6 +3,8 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { LandingPage } from '@/pages/LandingPage';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { AdminRoute } from '@/components/auth/AdminRoute';
+import { BossmanRoute } from '@/components/auth/BossmanRoute';
+import { GalaxyRoute } from '@/components/auth/GalaxyRoute';
 
 const MapPage = lazy(() => import('@/pages/MapPage').then(m => ({ default: m.MapPage })));
 const MapLoadingPage = lazy(() => import('@/pages/MapLoadingPage').then(m => ({ default: m.MapLoadingPage })));
@@ -11,6 +13,13 @@ const TermsPage = lazy(() => import('@/pages/TermsPage').then(m => ({ default: m
 const CreditsPage = lazy(() => import('@/pages/CreditsPage').then(m => ({ default: m.CreditsPage })));
 const AdminPage = lazy(() => import('@/pages/AdminPage').then(m => ({ default: m.AdminPage })));
 const SettingsPage = lazy(() => import('@/pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
+const NewsPage = lazy(() => import('@/pages/NewsPage').then(m => ({ default: m.NewsPage })));
+const BlogPage = lazy(() => import('@/pages/BlogPage').then(m => ({ default: m.BlogPage })));
+const ServicesPage = lazy(() => import('@/pages/ServicesPage').then(m => ({ default: m.ServicesPage })));
+const ArticlePage = lazy(() => import('@/pages/ArticlePage').then(m => ({ default: m.ArticlePage })));
+const ArticleEditorPage = lazy(() => import('@/pages/ArticleEditorPage').then(m => ({ default: m.ArticleEditorPage })));
+const ArticleDashboardPage = lazy(() => import('@/pages/ArticleDashboardPage').then(m => ({ default: m.ArticleDashboardPage })));
+const FeedbackPage = lazy(() => import('@/pages/FeedbackPage').then(m => ({ default: m.FeedbackPage })));
 
 function App() {
   return (
@@ -21,14 +30,14 @@ function App() {
         <Route path="/terms" element={<TermsPage />} />
         <Route path="/credits" element={<CreditsPage />} />
         <Route path="/map-loading" element={
-          <ProtectedRoute>
+          <GalaxyRoute>
             <MapLoadingPage />
-          </ProtectedRoute>
+          </GalaxyRoute>
         } />
         <Route path="/map" element={
-          <ProtectedRoute>
+          <GalaxyRoute>
             <MapPage />
-          </ProtectedRoute>
+          </GalaxyRoute>
         } />
         <Route path="/settings" element={
           <ProtectedRoute>
@@ -46,9 +55,33 @@ function App() {
           </AdminRoute>
         } />
         <Route path="/admin/users" element={
-          <AdminRoute>
+          <BossmanRoute fallbackTo="/admin/audit">
             <AdminPage />
-          </AdminRoute>
+          </BossmanRoute>
+        } />
+        <Route path="/news" element={<NewsPage />} />
+        <Route path="/news/dashboard" element={
+          <BossmanRoute>
+            <ArticleDashboardPage />
+          </BossmanRoute>
+        } />
+        <Route path="/news/editor" element={
+          <BossmanRoute>
+            <ArticleEditorPage />
+          </BossmanRoute>
+        } />
+        <Route path="/news/editor/:id" element={
+          <BossmanRoute>
+            <ArticleEditorPage />
+          </BossmanRoute>
+        } />
+        <Route path="/news/:slug" element={<ArticlePage />} />
+        <Route path="/blog" element={<BlogPage />} />
+        <Route path="/services" element={<ServicesPage />} />
+        <Route path="/feedback" element={
+          <ProtectedRoute>
+            <FeedbackPage />
+          </ProtectedRoute>
         } />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
