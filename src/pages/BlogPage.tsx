@@ -32,7 +32,9 @@ function ArticleCard({ article }: { article: Article }) {
           </span>
         </div>
       </div>
-      <div className="article-card__thumb" aria-hidden="true" />
+      <div className="article-card__thumb" aria-hidden="true">
+        {article.coverImageUrl && <img src={article.coverImageUrl} alt="" />}
+      </div>
     </Link>
   );
 }

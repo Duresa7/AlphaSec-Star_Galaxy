@@ -133,11 +133,14 @@ export function ArticleEditorPage() {
   const [slugManual, setSlugManual] = useState(false);
   const [excerpt, setExcerpt] = useState('');
   const [category, setCategory] = useState<Category>('Tech');
+  const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
+  const [uploadingCover, setUploadingCover] = useState(false);
   const [isFeatured, setIsFeatured] = useState(false);
   const [isTrending, setIsTrending] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loadingExisting, setLoadingExisting] = useState(isEditing);
   const [error, setError] = useState<string | null>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
 
   const editor = useEditor({
     extensions: [
@@ -171,6 +174,7 @@ export function ArticleEditorPage() {
       setSlugManual(true);
       setExcerpt(article.excerpt);
       setCategory(article.category);
+      setCoverImageUrl(article.coverImageUrl ?? null);
       setIsFeatured(article.isFeatured);
       setIsTrending(article.isTrending);
       if (!editor.isDestroyed) {
@@ -207,6 +211,7 @@ export function ArticleEditorPage() {
         excerpt: excerpt.trim(),
         content: html,
         category,
+        coverImageUrl,
         readingTimeMinutes: estimateReadingTime(html),
         isFeatured,
         isTrending,
@@ -225,7 +230,7 @@ export function ArticleEditorPage() {
     } finally {
       setSaving(false);
     }
-  }, [editor, session, title, slug, excerpt, category, isFeatured, isTrending, isEditing, id, navigate]);
+  }, [editor, session, title, slug, excerpt, category, coverImageUrl, isFeatured, isTrending, isEditing, id, navigate]);
 
   if (loadingExisting) {
     return (
@@ -282,6 +287,51 @@ export function ArticleEditorPage() {
               placeholder="Brief summary shown in article cards"
               rows={2}
               maxLength={300}
+            />
+          </div>
+
+          <div className="article-editor__field">
+            <label className="article-editor__label">Cover Image</label>
+            {coverImageUrl ? (
+              <div className="article-editor__cover-preview">
+                <img src={coverImageUrl} alt="Cover preview" />
+                <button
+                  type="button"
+                  className="news-btn news-btn--small news-btn--danger"
+                  onClick={() => setCoverImageUrl(null)}
+                >
+                  Remove
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="article-editor__cover-upload-btn"
+                disabled={uploadingCover}
+                onClick={() => coverInputRef.current?.click()}
+              >
+                {uploadingCover ? 'Uploading...' : 'Upload Cover Image'}
+              </button>
+            )}
+            <input
+              ref={coverInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: 'none' }}
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                setUploadingCover(true);
+                try {
+                  const url = await uploadArticleImage(file);
+                  setCoverImageUrl(url);
+                } catch {
+                  setError('Failed to upload cover image');
+                } finally {
+                  setUploadingCover(false);
+                  e.target.value = '';
+                }
+              }}
             />
           </div>
 

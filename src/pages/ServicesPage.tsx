@@ -1,6 +1,9 @@
+import { useState, useEffect } from 'react';
 import { NewsShell } from '@/components/news/NewsShell';
-import { SERVICE_STATUSES, TIMELINE_ENTRIES } from '@/data/newsMockData';
-import type { ServiceStatus, TimelineEntry } from '@/data/newsMockData';
+import { SERVICE_STATUSES } from '@/data/newsMockData';
+import { fetchTimelineEntries } from '@/data/timelineStorage';
+import type { ServiceStatus } from '@/data/newsMockData';
+import type { TimelineEntry } from '@/data/timelineStorage';
 
 function formatTimelineDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', {
@@ -36,7 +39,7 @@ function StatusCard({ status }: { status: ServiceStatus }) {
 
 function TimelineItem({ entry }: { entry: TimelineEntry }) {
   return (
-    <details className="timeline-item">
+    <details className={`timeline-item timeline-item--${entry.type}`}>
       <summary>
         <span className={`timeline-item__type timeline-item__type--${entry.type}`}>
           {entry.type}
@@ -52,6 +55,16 @@ function TimelineItem({ entry }: { entry: TimelineEntry }) {
 }
 
 export function ServicesPage() {
+  const [entries, setEntries] = useState<TimelineEntry[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchTimelineEntries().then((data) => {
+      if (!cancelled) setEntries(data);
+    });
+    return () => { cancelled = true; };
+  }, []);
+
   return (
     <NewsShell>
       <div className="services-dash">
@@ -70,9 +83,16 @@ export function ServicesPage() {
 
         <section className="services-dash__timeline">
           <h2 className="services-dash__timeline-header">Latest Updates</h2>
-          {TIMELINE_ENTRIES.map(entry => (
-            <TimelineItem key={entry.id} entry={entry} />
-          ))}
+          {entries.length === 0 && (
+            <p className="article-dash__empty">No updates yet.</p>
+          )}
+          {entries.length > 0 && (
+            <div className="gh-timeline">
+              {entries.map(entry => (
+                <TimelineItem key={entry.id} entry={entry} />
+              ))}
+            </div>
+          )}
         </section>
       </div>
     </NewsShell>
