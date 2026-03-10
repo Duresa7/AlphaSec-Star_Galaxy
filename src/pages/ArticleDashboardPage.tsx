@@ -2,7 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { NewsShell } from '@/components/news/NewsShell';
 import { fetchArticles, updateArticle, deleteArticle } from '@/data/articleStorage';
+import {
+  fetchTimelineEntries,
+  createTimelineEntry,
+  updateTimelineEntry,
+  deleteTimelineEntry,
+} from '@/data/timelineStorage';
 import type { Article } from '@/data/articleTypes';
+import type { TimelineEntry, TimelineEntryType } from '@/data/timelineStorage';
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', {
@@ -12,14 +19,34 @@ function formatDate(iso: string) {
   });
 }
 
+const EMPTY_ENTRY_FORM = {
+  title: '',
+  type: 'update' as TimelineEntryType,
+  description: '',
+  expandedContent: '',
+  timestamp: '',
+};
+
+type EntryForm = typeof EMPTY_ENTRY_FORM;
+
 export function ArticleDashboardPage() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [entries, setEntries] = useState<TimelineEntry[]>([]);
+  const [entryFormOpen, setEntryFormOpen] = useState(false);
+  const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
+  const [entryForm, setEntryForm] = useState<EntryForm>(EMPTY_ENTRY_FORM);
+  const [savingEntry, setSavingEntry] = useState(false);
+
   const loadAll = useCallback(() => {
     setLoading(true);
-    fetchArticles({ includeDrafts: true }).then((data) => {
-      setArticles(data);
+    Promise.all([
+      fetchArticles({ includeDrafts: true }),
+      fetchTimelineEntries(),
+    ]).then(([articleData, entryData]) => {
+      setArticles(articleData);
+      setEntries(entryData);
       setLoading(false);
     });
   }, []);
@@ -30,7 +57,6 @@ export function ArticleDashboardPage() {
     setArticles((prev) =>
       prev.map((a) => (a.id === id ? { ...a, [field]: !current } : a)),
     );
-
     try {
       await updateArticle(id, { [field]: !current });
     } catch {
@@ -40,9 +66,8 @@ export function ArticleDashboardPage() {
     }
   }, []);
 
-  const handleDelete = useCallback(async (id: string, title: string) => {
+  const handleDeleteArticle = useCallback(async (id: string, title: string) => {
     if (!window.confirm(`Delete "${title}"? This cannot be undone.`)) return;
-
     setArticles((prev) => prev.filter((a) => a.id !== id));
     try {
       await deleteArticle(id);
@@ -51,9 +76,76 @@ export function ArticleDashboardPage() {
     }
   }, [loadAll]);
 
+  const openAddEntry = () => {
+    setEditingEntryId(null);
+    setEntryForm(EMPTY_ENTRY_FORM);
+    setEntryFormOpen(true);
+  };
+
+  const openEditEntry = (e: TimelineEntry) => {
+    setEditingEntryId(e.id);
+    setEntryForm({
+      title: e.title,
+      type: e.type,
+      description: e.description,
+      expandedContent: e.expandedContent,
+      timestamp: e.timestamp ? e.timestamp.slice(0, 16) : '',
+    });
+    setEntryFormOpen(true);
+  };
+
+  const cancelEntryForm = () => {
+    setEntryFormOpen(false);
+    setEditingEntryId(null);
+    setEntryForm(EMPTY_ENTRY_FORM);
+  };
+
+  const handleEntrySave = async () => {
+    if (!entryForm.title.trim() || savingEntry) return;
+    setSavingEntry(true);
+
+    const input = {
+      title: entryForm.title.trim(),
+      type: entryForm.type,
+      description: entryForm.description.trim(),
+      expandedContent: entryForm.expandedContent.trim(),
+      timestamp: entryForm.timestamp || undefined,
+    };
+
+    try {
+      if (editingEntryId) {
+        await updateTimelineEntry(editingEntryId, input);
+        loadAll();
+      } else {
+        const created = await createTimelineEntry(input);
+        setEntries((prev) => [created, ...prev]);
+      }
+      cancelEntryForm();
+    } catch {
+      // error is logged in storage layer
+    } finally {
+      setSavingEntry(false);
+    }
+  };
+
+  const handleDeleteEntry = async (id: string, title: string) => {
+    if (!window.confirm(`Delete "${title}"? This cannot be undone.`)) return;
+    setEntries((prev) => prev.filter((e) => e.id !== id));
+    try {
+      await deleteTimelineEntry(id);
+    } catch {
+      loadAll();
+    }
+  };
+
+  const setField = (field: keyof EntryForm, value: string) =>
+    setEntryForm((prev) => ({ ...prev, [field]: value }));
+
   return (
     <NewsShell>
       <div className="article-dash">
+
+        {/* ── Articles ── */}
         <header className="article-dash__header">
           <div>
             <h1 className="article-dash__title">Article Dashboard</h1>
@@ -64,7 +156,7 @@ export function ArticleDashboardPage() {
           </Link>
         </header>
 
-        {loading && <p className="article-dash__empty">Loading articles...</p>}
+        {loading && <p className="article-dash__empty">Loading...</p>}
 
         {!loading && articles.length === 0 && (
           <div className="article-dash__empty">
@@ -130,7 +222,7 @@ export function ArticleDashboardPage() {
                       </Link>
                       <button
                         className="news-btn news-btn--small news-btn--danger"
-                        onClick={() => handleDelete(a.id, a.title)}
+                        onClick={() => handleDeleteArticle(a.id, a.title)}
                       >
                         Delete
                       </button>
@@ -141,6 +233,125 @@ export function ArticleDashboardPage() {
             </table>
           </div>
         )}
+
+        {/* ── Latest Updates (Timeline) ── */}
+        <div className="article-dash__section">
+          <div className="article-dash__section-header">
+            <h2 className="article-dash__section-title">Latest Updates</h2>
+            {!entryFormOpen && (
+              <button className="news-btn news-btn--primary" onClick={openAddEntry}>
+                Add Entry
+              </button>
+            )}
+          </div>
+
+          {entryFormOpen && (
+            <div className="article-dash__status-form">
+              <div className="article-dash__status-form-grid">
+                <div className="article-editor__field">
+                  <label className="article-editor__label">Title *</label>
+                  <input
+                    type="text"
+                    className="article-editor__input"
+                    value={entryForm.title}
+                    onChange={(e) => setField('title', e.target.value)}
+                    placeholder="e.g. v2.1.0 Released"
+                    maxLength={200}
+                  />
+                </div>
+                <div className="article-editor__field">
+                  <label className="article-editor__label">Type</label>
+                  <select
+                    className="article-editor__select"
+                    value={entryForm.type}
+                    onChange={(e) => setField('type', e.target.value)}
+                  >
+                    <option value="update">Update</option>
+                    <option value="release">Release</option>
+                    <option value="incident">Incident</option>
+                    <option value="maintenance">Maintenance</option>
+                  </select>
+                </div>
+                <div className="article-editor__field">
+                  <label className="article-editor__label">Timestamp</label>
+                  <input
+                    type="datetime-local"
+                    className="article-editor__input"
+                    value={entryForm.timestamp}
+                    onChange={(e) => setField('timestamp', e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="article-editor__field">
+                <label className="article-editor__label">Description</label>
+                <input
+                  type="text"
+                  className="article-editor__input"
+                  value={entryForm.description}
+                  onChange={(e) => setField('description', e.target.value)}
+                  placeholder="Short summary shown in the list"
+                  maxLength={300}
+                />
+              </div>
+              <div className="article-editor__field">
+                <label className="article-editor__label">Expanded Content</label>
+                <textarea
+                  className="article-editor__textarea"
+                  value={entryForm.expandedContent}
+                  onChange={(e) => setField('expandedContent', e.target.value)}
+                  placeholder="Full details shown when the entry is expanded"
+                  rows={4}
+                  maxLength={2000}
+                />
+              </div>
+              <div className="article-dash__status-form-actions">
+                <button
+                  className="news-btn news-btn--primary"
+                  onClick={handleEntrySave}
+                  disabled={savingEntry || !entryForm.title.trim()}
+                >
+                  {savingEntry ? 'Saving...' : editingEntryId ? 'Update' : 'Add'}
+                </button>
+                <button className="news-btn news-btn--ghost" onClick={cancelEntryForm}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+
+          {!loading && entries.length === 0 && !entryFormOpen && (
+            <p className="article-dash__empty">No updates yet. Add one to get started.</p>
+          )}
+
+          {entries.length > 0 && (
+            <div className="article-dash__entry-list">
+              {entries.map((e) => (
+                <div key={e.id} className="article-dash__entry-row">
+                  <div className="article-dash__entry-row-info">
+                    <span className={`timeline-item__type timeline-item__type--${e.type}`}>{e.type}</span>
+                    <span className="article-dash__entry-row-name">{e.title}</span>
+                    <span className="article-dash__entry-row-date">{formatDate(e.timestamp)}</span>
+                  </div>
+                  <div className="article-dash__td--actions">
+                    <button
+                      className="news-btn news-btn--small"
+                      onClick={() => openEditEntry(e)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="news-btn news-btn--small news-btn--danger"
+                      onClick={() => handleDeleteEntry(e.id, e.title)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
       </div>
     </NewsShell>
   );

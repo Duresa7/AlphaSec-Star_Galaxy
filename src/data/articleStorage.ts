@@ -9,6 +9,7 @@ interface DbArticle {
   excerpt: string;
   content: string;
   category: string;
+  cover_image_url: string | null;
   author_id: string;
   reading_time_minutes: number;
   is_featured: boolean;
@@ -40,6 +41,7 @@ function dbToArticle(
     excerpt: row.excerpt,
     content: row.content,
     category: row.category as Article['category'],
+    coverImageUrl: row.cover_image_url ?? undefined,
     authorId: row.author_id,
     authorName,
     authorInitials,
@@ -200,6 +202,7 @@ export async function createArticle(input: ArticleInput, authorId: string): Prom
       excerpt: input.excerpt,
       content: input.content,
       category: input.category,
+      cover_image_url: input.coverImageUrl ?? null,
       reading_time_minutes: input.readingTimeMinutes,
       is_featured: input.isFeatured,
       is_trending: input.isTrending,
@@ -230,6 +233,7 @@ export async function updateArticle(id: string, input: Partial<ArticleInput>): P
   if (input.isFeatured !== undefined) updates.is_featured = input.isFeatured;
   if (input.isTrending !== undefined) updates.is_trending = input.isTrending;
   if (input.published !== undefined) updates.published = input.published;
+  if (input.coverImageUrl !== undefined) updates.cover_image_url = input.coverImageUrl ?? null;
 
   const { error } = await supabase.from('articles').update(updates).eq('id', id);
   if (error) {

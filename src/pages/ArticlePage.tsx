@@ -37,7 +37,9 @@ function RelatedCard({ article }: { article: Article }) {
           <span className="article-card__read-time">{article.readingTimeMinutes} min read</span>
         </div>
       </div>
-      <div className="article-card__thumb" aria-hidden="true" />
+      <div className="article-card__thumb" aria-hidden="true">
+        {article.coverImageUrl && <img src={article.coverImageUrl} alt="" />}
+      </div>
     </Link>
   );
 }
@@ -111,7 +113,9 @@ export function ArticlePage() {
   return (
     <NewsShell>
       <article className="article-read">
-        <div className="article-read__cover" aria-hidden="true" />
+        <div className="article-read__cover" aria-hidden="true">
+          {article.coverImageUrl && <img src={article.coverImageUrl} alt="" />}
+        </div>
 
         <div className="article-read__container">
           <span className="article-read__category">{article.category}</span>

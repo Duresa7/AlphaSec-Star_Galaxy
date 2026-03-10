@@ -16,7 +16,11 @@ function formatDate(iso: string) {
 function FeaturedHero({ article }: { article: Article }) {
   return (
     <Link to={`/news/${article.slug}`} className="news-home__hero">
-      <div className="news-home__hero-cover" aria-hidden="true" />
+      <div className="news-home__hero-cover" aria-hidden="true">
+        {article.coverImageUrl && (
+          <img src={article.coverImageUrl} alt="" />
+        )}
+      </div>
       <p className="news-home__hero-tag">{article.category}</p>
       <h2 className="news-home__hero-title">{article.title}</h2>
       <p className="news-home__hero-excerpt">{article.excerpt}</p>
@@ -47,7 +51,9 @@ function ArticleCard({ article }: { article: Article }) {
           <span className="article-card__read-time">{article.readingTimeMinutes} min read</span>
         </div>
       </div>
-      <div className="article-card__thumb" aria-hidden="true" />
+      <div className="article-card__thumb" aria-hidden="true">
+        {article.coverImageUrl && <img src={article.coverImageUrl} alt="" />}
+      </div>
     </Link>
   );
 }

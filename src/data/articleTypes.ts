@@ -18,6 +18,7 @@ export interface Article {
   excerpt: string;
   content: string;
   category: Category;
+  coverImageUrl?: string;
   authorId: string;
   authorName: string;
   authorInitials: string;
@@ -46,6 +47,7 @@ export interface ArticleInput {
   excerpt: string;
   content: string;
   category: Category;
+  coverImageUrl?: string | null;
   readingTimeMinutes: number;
   isFeatured: boolean;
   isTrending: boolean;
