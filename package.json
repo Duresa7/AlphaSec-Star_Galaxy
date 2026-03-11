@@ -33,6 +33,7 @@
     "vitest": "^4.0.18"
   },
   "dependencies": {
+    "@radix-ui/react-slot": "^1.2.4",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
     "@supabase/supabase-js": "^2.95.3",
@@ -41,10 +42,15 @@
     "@tiptap/pm": "^3.20.1",
     "@tiptap/react": "^3.20.1",
     "@tiptap/starter-kit": "^3.20.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.35.2",
+    "lucide-react": "^0.577.0",
     "postcss": "^8.5.6",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-router-dom": "^7.13.0",
+    "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4.1.18",
     "three": "^0.182.0",
     "zustand": "^5.0.11"
