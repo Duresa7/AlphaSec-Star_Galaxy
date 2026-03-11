@@ -1,4 +1,5 @@
 import { useAuthForm, PASSWORD_RULES } from '@/hooks/useAuthForm';
+import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
 
 interface NewsAuthModalProps {
   open: boolean;
@@ -35,6 +36,16 @@ export function NewsAuthModal({ open, onClose }: NewsAuthModalProps) {
         {f.error && (
           <div className="news-auth__error">{f.error}</div>
         )}
+
+        <GoogleAuthButton
+          mode={f.mode}
+          loading={f.googleSubmitting}
+          disabled={f.submitting || f.googleSubmitting}
+          onClick={f.handleGoogleAuth}
+          containerClassName="news-auth__oauth"
+          buttonClassName="news-auth__oauth-button"
+          dividerClassName="news-auth__divider"
+        />
 
         <form onSubmit={f.handleSubmit} className="news-auth__form">
           {f.mode === 'signup' && (
@@ -110,7 +121,7 @@ export function NewsAuthModal({ open, onClose }: NewsAuthModalProps) {
 
           <button
             type="submit"
-            disabled={f.submitting}
+            disabled={f.submitting || f.googleSubmitting}
             className="news-auth__submit"
           >
             {f.submitting ? 'Please wait...' : f.mode === 'login' ? 'Sign In' : 'Create Account'}
@@ -119,9 +130,9 @@ export function NewsAuthModal({ open, onClose }: NewsAuthModalProps) {
 
         <p className="news-auth__switch">
           {f.mode === 'login' ? (
-            <>Don't have an account?{' '}<button onClick={() => f.switchMode('signup')}>Sign Up</button></>
+            <>Don't have an account?{' '}<button type="button" onClick={() => f.switchMode('signup')}>Sign Up</button></>
           ) : (
-            <>Already have an account?{' '}<button onClick={() => f.switchMode('login')}>Sign In</button></>
+            <>Already have an account?{' '}<button type="button" onClick={() => f.switchMode('login')}>Sign In</button></>
           )}
         </p>
       </div>

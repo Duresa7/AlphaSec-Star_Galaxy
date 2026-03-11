@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { getProfileFetchMode, shouldFetchProfileForEvent } from '../src/contexts/AuthContext';
+import {
+  getProfileFetchMode,
+  shouldFetchProfileForEvent,
+} from '../src/contexts/authContextHelpers';
 
 describe('getProfileFetchMode', () => {
   it('returns null when there is no next session user', () => {

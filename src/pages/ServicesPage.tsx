@@ -2,7 +2,11 @@ import { useEffect, useState, type ReactNode } from "react";
 import { AlertTriangle, ShieldAlert, Sparkles, Wrench } from "lucide-react";
 
 import { NewsShell } from "@/components/news/NewsShell";
-import { Timeline, type TimelineItem } from "@/components/ui/timeline";
+import {
+  Timeline,
+  getTimelineContent,
+  type TimelineItem,
+} from "@/components/ui/timeline";
 import { fetchLiveStatuses } from "@/data/liveStatuses";
 import { fetchTimelineEntries } from "@/data/timelineStorage";
 import type { ServiceStatus } from "@/data/liveStatuses";
@@ -41,17 +45,14 @@ const TIMELINE_ICONS: Record<TimelineEntryType, ReactNode> = {
 
 function toTimelineItems(entries: TimelineEntry[]): TimelineItem[] {
   return entries.map((entry) => {
-    const description = entry.description.trim() || undefined;
-    const expandedContent = entry.expandedContent.trim() || undefined;
-    const content =
-      expandedContent && expandedContent !== description ? expandedContent : undefined;
+    const { description, markdown } = getTimelineContent(entry);
 
     return {
       id: entry.id,
       date: entry.timestamp,
       title: entry.title,
       description,
-      content,
+      content: markdown,
       type: entry.type,
       icon: TIMELINE_ICONS[entry.type],
     };
