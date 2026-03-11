@@ -91,7 +91,7 @@ const hasOwn = (obj: object, key: string): boolean => Object.prototype.hasOwnPro
 const clampMarkerSize = (value: number): number => clamp(value, TOPDOWN_MARKER_MIN_SIZE, TOPDOWN_MARKER_MAX_SIZE);
 
 const NULLABLE_PATCH_FIELDS = [
-  'population', 'climate', 'terrain', 'notable',
+  'hyperlanes', 'climate', 'terrain', 'notable',
   'nativeInhabitants', 'factionControl', 'customColor', 'customType',
 ] as const;
 

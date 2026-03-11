@@ -727,6 +727,26 @@ create policy "custom_factions_select" on public.custom_factions
   for select to authenticated
   using (public.current_user_role() in ('galaxy_user', 'admin', 'bossman'));
 
+update public.custom_systems as cs
+set planets = (
+  select coalesce(
+    jsonb_agg(
+      case
+        when jsonb_typeof(planet) = 'object' then planet - 'population'
+        else planet
+      end
+    ),
+    '[]'::jsonb
+  )
+  from jsonb_array_elements(cs.planets) as planet
+)
+where exists (
+  select 1
+  from jsonb_array_elements(cs.planets) as planet
+  where jsonb_typeof(planet) = 'object'
+    and planet ? 'population'
+);
+
 -- ── Article Image Bucket Constraints ──────────────────────────────────────────
 update storage.buckets
 set public = true,
