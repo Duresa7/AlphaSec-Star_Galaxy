@@ -5,10 +5,10 @@ import { useRole } from "@/hooks/useRole";
 import {
   fetchAuditLogPage,
   fetchAuditLogTotal,
-  fetchAllProfiles,
+  fetchUserManagementProfiles,
   updateUserRole,
 } from "@/data/supabaseStorage";
-import type { AuditLogEntry, UserProfile, UserRole } from "@/types";
+import type { AuditLogEntry, UserManagementProfile, UserRole } from "@/types";
 
 const PAGE_SIZE = 40;
 
@@ -50,6 +50,13 @@ const ROLE_COLORS: Record<UserRole, string> = {
   bossman: "#92761b",
 };
 
+const ROLE_LABELS: Record<UserRole, string> = {
+  user: "User",
+  galaxy_user: "Galaxy User",
+  admin: "Admin",
+  bossman: "Bossman",
+};
+
 function formatTime(iso: string): string {
   const d = new Date(iso);
   return (
@@ -69,12 +76,11 @@ function getActionTone(action: string): "create" | "move" | "update" {
   return "update";
 }
 
-function matchesUser(user: UserProfile, query: string): boolean {
+function matchesUser(user: UserManagementProfile, query: string): boolean {
   if (!query) return true;
   const text = [
     user.display_name,
-    user.email,
-    user.role,
+    ROLE_LABELS[user.role],
     formatTime(user.created_at),
   ]
     .join(" ")
@@ -82,15 +88,21 @@ function matchesUser(user: UserProfile, query: string): boolean {
   return text.includes(query);
 }
 
+function getAssignableRoles(isBossman: boolean): UserRole[] {
+  return isBossman
+    ? ["user", "galaxy_user", "admin", "bossman"]
+    : ["user", "galaxy_user"];
+}
+
 export function AdminPage() {
   const location = useLocation();
   const { profile: currentProfile } = useAuth();
-  const { isBossman } = useRole();
+  const { isAdmin, isBossman } = useRole();
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);
   const [logTotal, setLogTotal] = useState(0);
   const [logPage, setLogPage] = useState(0);
   const [logsLoading, setLogsLoading] = useState(true);
-  const [users, setUsers] = useState<UserProfile[]>([]);
+  const [users, setUsers] = useState<UserManagementProfile[]>([]);
   const [usersLoading, setUsersLoading] = useState(true);
   const [roleUpdating, setRoleUpdating] = useState<string | null>(null);
   const [searchInput, setSearchInput] = useState("");
@@ -103,7 +115,7 @@ export function AdminPage() {
 
   const loadUsers = useCallback(async () => {
     setUsersLoading(true);
-    const profiles = await fetchAllProfiles();
+    const profiles = await fetchUserManagementProfiles();
     setUsers(profiles);
     setUsersLoading(false);
   }, []);
@@ -178,8 +190,8 @@ export function AdminPage() {
   }, [isAuditView, logPage, debouncedAuditQuery, sinceTimestamp, actionArg]);
 
   useEffect(() => {
-    if (isUsersView && isBossman) loadUsers();
-  }, [isUsersView, isBossman, loadUsers]);
+    if (isUsersView && isAdmin) loadUsers();
+  }, [isUsersView, isAdmin, loadUsers]);
 
   useEffect(() => {
     if (!isDrawerOpen) return;
@@ -247,6 +259,7 @@ export function AdminPage() {
   const totalPages = Math.max(1, Math.ceil(logTotal / PAGE_SIZE));
   const usersToRender = users.filter((user) => matchesUser(user, searchQuery));
   const pendingRequests = users.filter((u) => u.galaxy_map_requested && u.role === "user");
+  const assignableRoles = getAssignableRoles(isBossman);
 
   return (
     <div
@@ -538,9 +551,9 @@ export function AdminPage() {
               <section className="admin-page__section admin-page__section--full">
                 <h2 className="admin-page__section-title">User Management</h2>
 
-                {!isBossman ? (
+                {!isAdmin ? (
                   <p className="admin-page__empty">
-                    Only bossman can access user management.
+                    Only admins can access user management.
                   </p>
                 ) : usersLoading ? (
                   <p className="admin-page__loading">Loading users...</p>
@@ -556,7 +569,7 @@ export function AdminPage() {
                             <thead>
                               <tr>
                                 <th>Display Name</th>
-                                <th>Email</th>
+                                {isBossman && <th>Email</th>}
                                 <th>Joined</th>
                                 <th>Actions</th>
                               </tr>
@@ -567,9 +580,11 @@ export function AdminPage() {
                                     <td style={{ fontWeight: 600 }}>
                                       {user.display_name}
                                     </td>
-                                    <td className="admin-page__td-email">
-                                      {user.email}
-                                    </td>
+                                    {isBossman && (
+                                      <td className="admin-page__td-email">
+                                        {user.email || "Hidden"}
+                                      </td>
+                                    )}
                                     <td className="admin-page__td-time">
                                       {formatTime(user.created_at)}
                                     </td>
@@ -608,7 +623,7 @@ export function AdminPage() {
                           <thead>
                             <tr>
                               <th>Display Name</th>
-                              <th>Email</th>
+                              {isBossman && <th>Email</th>}
                               <th>Role</th>
                               <th>Joined</th>
                               <th>Actions</th>
@@ -620,9 +635,11 @@ export function AdminPage() {
                                 <td style={{ fontWeight: 600 }}>
                                   {user.display_name}
                                 </td>
-                                <td className="admin-page__td-email">
-                                  {user.email}
-                                </td>
+                                {isBossman && (
+                                  <td className="admin-page__td-email">
+                                    {user.email || "Hidden"}
+                                  </td>
+                                )}
                                 <td>
                                   <span
                                     className="admin-page__role-badge"
@@ -631,7 +648,7 @@ export function AdminPage() {
                                       borderColor: ROLE_COLORS[user.role],
                                     }}
                                   >
-                                    {user.role}
+                                    {ROLE_LABELS[user.role]}
                                   </span>
                                 </td>
                                 <td className="admin-page__td-time">
@@ -641,6 +658,10 @@ export function AdminPage() {
                                   {user.id === currentProfile?.id ? (
                                     <span className="admin-page__you-label">
                                       You
+                                    </span>
+                                  ) : !user.can_manage ? (
+                                    <span className="admin-page__you-label">
+                                      Restricted
                                     </span>
                                   ) : (
                                     <select
@@ -654,12 +675,11 @@ export function AdminPage() {
                                       disabled={roleUpdating === user.id}
                                       className="admin-page__role-select"
                                     >
-                                      <option value="user">user</option>
-                                      <option value="galaxy_user">
-                                        galaxy_user
-                                      </option>
-                                      <option value="admin">admin</option>
-                                      <option value="bossman">bossman</option>
+                                      {assignableRoles.map((role) => (
+                                        <option key={role} value={role}>
+                                          {ROLE_LABELS[role]}
+                                        </option>
+                                      ))}
                                     </select>
                                   )}
                                 </td>

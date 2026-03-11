@@ -55,9 +55,9 @@ function App() {
           </AdminRoute>
         } />
         <Route path="/admin/users" element={
-          <BossmanRoute fallbackTo="/admin/audit">
+          <AdminRoute>
             <AdminPage />
-          </BossmanRoute>
+          </AdminRoute>
         } />
         <Route path="/news" element={<NewsPage />} />
         <Route path="/news/dashboard" element={
