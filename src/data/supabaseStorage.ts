@@ -55,7 +55,7 @@ interface DbPlanet {
   radius: number;
   faction: Faction;
   description: string;
-  population?: string;
+  hyperlanes?: string[];
   climate?: string;
   terrain?: string;
   notable?: string[];
@@ -64,6 +64,15 @@ interface DbPlanet {
   customColor?: string;
   customType?: string;
 }
+
+const sanitizeStringArray = (value: unknown): string[] | undefined => {
+  if (!Array.isArray(value)) return undefined;
+  const items = value
+    .filter((item): item is string => typeof item === "string")
+    .map((item) => item.trim())
+    .filter(Boolean);
+  return items.length > 0 ? items : undefined;
+};
 
 interface DbFleet {
   id: string;
@@ -91,7 +100,7 @@ function dbToSystem(row: DbSystem): StarSystem {
           radius: typeof p.radius === "number" ? p.radius : 1,
           faction: p.faction || "neutral",
           description: p.description || `Custom planet: ${p.name || row.name}`,
-          population: p.population,
+          hyperlanes: sanitizeStringArray(p.hyperlanes),
           climate: p.climate,
           terrain: p.terrain,
           notable: p.notable,
@@ -165,7 +174,7 @@ function serializeSystemForDb(system: StarSystem, userId: string) {
       radius: p.radius,
       faction: p.faction,
       description: p.description,
-      population: p.population,
+      ...(Array.isArray(p.hyperlanes) && p.hyperlanes.length > 0 ? { hyperlanes: p.hyperlanes } : {}),
       climate: p.climate,
       terrain: p.terrain,
       notable: p.notable,

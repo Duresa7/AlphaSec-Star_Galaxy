@@ -59,7 +59,7 @@ export function PlanetInfo({ planet, editable }: PlanetInfoProps) {
   const climate = useEditableField();
   const terrain = useEditableField();
   const inhabitants = useEditableField();
-  const population = useEditableField();
+  const hyperlanes = useEditableField();
   const description = useEditableField();
   const notable = useEditableField();
 
@@ -139,6 +139,11 @@ export function PlanetInfo({ planet, editable }: PlanetInfoProps) {
 
   const parseNotable = (raw: string) =>
     raw.split(',').map((s) => s.trim()).filter(Boolean);
+
+  const parseHyperlanes = (raw: string) =>
+    raw.split(',').map((s) => s.trim()).filter(Boolean);
+
+  const formatHyperlanes = (routes?: string[]) => routes?.join(', ') ?? '';
 
   return (
     <div className="space-y-4">
@@ -230,16 +235,20 @@ export function PlanetInfo({ planet, editable }: PlanetInfoProps) {
           onCancel={inhabitants.cancel}
         />
         <EditableStatCard
-          label="POPULATION"
-          value={planet.population || ''}
-          placeholder="Unknown"
+          label="HYPERLANE ROUTES"
+          value={formatHyperlanes(planet.hyperlanes)}
+          placeholder="None set"
           editable={editable}
-          editing={population.editing}
-          draft={population.draft}
-          onStartEdit={() => population.startEdit(planet.population || '')}
-          onDraftChange={population.setDraft}
-          onSave={() => { updateStats({ population: population.draft }); population.stopEditing(); }}
-          onCancel={population.cancel}
+          editing={hyperlanes.editing}
+          draft={hyperlanes.draft}
+          onStartEdit={() => hyperlanes.startEdit(formatHyperlanes(planet.hyperlanes))}
+          onDraftChange={hyperlanes.setDraft}
+          onSave={() => {
+            const routes = parseHyperlanes(hyperlanes.draft);
+            updateStats({ hyperlanes: routes.length > 0 ? routes : null });
+            hyperlanes.stopEditing();
+          }}
+          onCancel={hyperlanes.cancel}
         />
       </div>
 

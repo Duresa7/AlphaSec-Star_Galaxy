@@ -121,4 +121,37 @@ describe('useGalaxyDataStore.saveAllChanges', () => {
     expect(state.dirtyTimeline).toBe(false);
     expect(state.hasPendingChanges).toBe(true);
   });
+
+  it('tracks hyperlane planet edits as dirty system saves and audit fields', async () => {
+    useGalaxyDataStore.setState({
+      systems: [buildSystem('system-ok')],
+      fleets: [],
+      dirtySystemIds: new Set<string>(),
+      dirtyFleetIds: new Set<string>(),
+      dirtyTimeline: false,
+      hasPendingChanges: false,
+    });
+
+    useGalaxyDataStore
+      .getState()
+      .updatePlanetStats('system-ok', 'system-ok-prime', { hyperlanes: ['Hydian Way', 'Perlemian Trade Route'] });
+
+    let state = useGalaxyDataStore.getState();
+    expect(state.dirtySystemIds.has('system-ok')).toBe(true);
+    expect(state.hasPendingChanges).toBe(true);
+
+    await state.saveAllChanges();
+
+    state = useGalaxyDataStore.getState();
+    expect(state.dirtySystemIds.size).toBe(0);
+    expect(state.hasPendingChanges).toBe(false);
+    expect(mocks.batchUpsertSystems).toHaveBeenCalledTimes(1);
+    expect(mocks.logAction).toHaveBeenCalledWith(
+      'planet_stats_updated',
+      'system',
+      'system-ok-prime',
+      'system-ok Prime',
+      { fields: ['hyperlanes'] },
+    );
+  });
 });

@@ -37,7 +37,7 @@ export interface Planet {
   radius: number;
   faction: Faction;
   description: string;
-  population?: string;
+  hyperlanes?: string[];
   climate?: string;
   terrain?: string;
   notable?: string[];
@@ -170,7 +170,7 @@ export interface AuditLogEntry {
 }
 
 export interface PlanetStatsUpdate {
-  population?: string | null;
+  hyperlanes?: string[] | null;
   faction?: Faction;
   factionControl?: Partial<Record<Faction, number>> | null;
   description?: string | null;

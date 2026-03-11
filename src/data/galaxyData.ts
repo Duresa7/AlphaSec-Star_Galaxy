@@ -44,7 +44,6 @@ export const starSystems: StarSystem[] = [
         radius: 1.2,
         faction: 'galactic_republic',
         description: 'Ecumenopolis where the entire surface is a vast city.',
-        population: '1 trillion',
         climate: 'Controlled',
         terrain: 'Urban cityscape',
         nativeInhabitants: 'Humans',
@@ -243,7 +242,6 @@ export const starSystems: StarSystem[] = [
         climate: 'Toxic',
         terrain: 'Swamps, industrial waste',
         nativeInhabitants: 'Hutts',
-        population: '7 billion',
         systemId: 'hutta',
       }
     ],
@@ -317,7 +315,6 @@ export const starSystems: StarSystem[] = [
         climate: 'Polluted',
         terrain: 'Urban, industrial',
         nativeInhabitants: 'Evocii',
-        population: '85 billion',
         systemId: 'nar-shaddaa',
       }
     ],
