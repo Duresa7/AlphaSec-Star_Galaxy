@@ -9,7 +9,7 @@ import type {
   Planet,
   AuditAction,
   AuditLogEntry,
-  UserProfile,
+  UserManagementProfile,
   ShipModelType,
   FactionConfig,
   FleetShipEntry,
@@ -434,18 +434,32 @@ export async function fetchAuditLogTotal(
   return Number.isFinite(total) ? total : 0;
 }
 
-export async function fetchAllProfiles(): Promise<UserProfile[]> {
+function mapUserManagementRow(
+  row: Record<string, unknown>,
+): UserManagementProfile {
+  return {
+    id: row.id as string,
+    display_name: row.display_name as string,
+    email: (row.email as string | null) ?? null,
+    role: row.role as UserManagementProfile["role"],
+    galaxy_map_requested: Boolean(row.galaxy_map_requested),
+    created_at: row.created_at as string,
+    updated_at: row.updated_at as string,
+    can_manage: Boolean(row.can_manage),
+  };
+}
+
+export async function fetchUserManagementProfiles(): Promise<UserManagementProfile[]> {
   if (!supabaseConfigured) return [];
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .order("created_at", { ascending: true });
+  const { data, error } = await supabase.rpc("fetch_user_management_profiles");
 
   if (error) {
-    logger.error("Failed to fetch profiles:", error);
+    logger.error("Failed to fetch user management profiles:", error);
     return [];
   }
-  return data as UserProfile[];
+
+  const rows = (data || []) as Record<string, unknown>[];
+  return rows.map(mapUserManagementRow);
 }
 
 export async function updateDisplayName(

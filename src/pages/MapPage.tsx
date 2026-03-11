@@ -111,7 +111,7 @@ function drawTitleToCanvas(
   ctx.font = `900 ${titleFontSize}px Orbitron, monospace`;
   ctx.letterSpacing = `${0.3 * titleFontSize}px`;
   ctx.fillStyle = textColor;
-  ctx.fillText('ALPHASEC', cx, titleY);
+  ctx.fillText('TNIO x ALPHASEC', cx, titleY);
   ctx.letterSpacing = '0px';
 
   ctx.font = `700 ${labelFontSize}px Oxanium, Orbitron, monospace`;
@@ -158,6 +158,8 @@ function drawTitleToCanvas(
 
 export function MapPage() {
   const viewMode = useGalaxySelectionStore((s) => s.viewMode);
+  const setSelectedSystem = useGalaxySelectionStore((s) => s.setSelectedSystem);
+  const setSelectedFleet = useGalaxySelectionStore((s) => s.setSelectedFleet);
   const requestCameraReset = useGalaxySelectionStore((s) => s.requestCameraReset);
   const requestZoom = useGalaxySelectionStore((s) => s.requestZoom);
   const initializeData = useGalaxyDataStore((s) => s.initializeData);
@@ -399,8 +401,26 @@ export function MapPage() {
             </div>
           )}
 
+          {viewMode !== 'topdown' && (
+            <div className="absolute top-20 left-5 z-40">
+              <button
+                onClick={() => {
+                  if (viewMode === 'fleet') setSelectedFleet(null);
+                  else setSelectedSystem(null);
+                }}
+                className="holo-button holo-button-sm"
+                title="Back to Galaxy Map"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+                </svg>
+                <span>Galaxy Map</span>
+              </button>
+            </div>
+          )}
+
           <div className="absolute bottom-6 left-6 z-40">
-            <Link to="/" className="holo-button holo-button-sm">
+            <Link to="/" className="holo-button holo-button-sm" style={TOOLBAR_BUTTON_STYLE}>
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
               </svg>
@@ -448,7 +468,7 @@ export function MapPage() {
                   color: 'rgba(255, 255, 255, 0.8)',
                 }}
               >
-                AlphaSec
+                TNIO x ALPHASEC
               </h1>
 
               <div className="flex items-center justify-center gap-3">

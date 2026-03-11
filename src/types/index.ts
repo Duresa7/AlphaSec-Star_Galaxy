@@ -125,6 +125,17 @@ export interface UserProfile {
   updated_at: string;
 }
 
+export interface UserManagementProfile {
+  id: string;
+  display_name: string;
+  email: string | null;
+  role: UserRole;
+  galaxy_map_requested: boolean;
+  created_at: string;
+  updated_at: string;
+  can_manage: boolean;
+}
+
 export type AuditAction =
   | 'system_created'
   | 'system_moved'
