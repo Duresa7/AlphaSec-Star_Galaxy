@@ -16,6 +16,7 @@ import { useFactionStore } from '@/store/factionStore';
 import { useAuth } from '@/hooks/useAuth';
 import { useRole } from '@/hooks/useRole';
 import { supabase, supabaseConfigured } from '@/lib/supabase';
+import { getUserIdentity } from '@/utils/getUserIdentity';
 
 const TOOLBAR_BUTTON_STYLE: React.CSSProperties = {
   background: 'rgba(10, 10, 16, 0.7)',
@@ -203,11 +204,7 @@ export function MapPage() {
     link.href = offscreen.toDataURL('image/png');
     link.click();
   }, [viewLabel]);
-  const displayName =
-    profile?.display_name
-    ?? (typeof session?.user?.user_metadata?.display_name === 'string' ? session.user.user_metadata.display_name : null)
-    ?? session?.user?.email?.split('@')[0]
-    ?? 'Signed In';
+  const { displayName } = getUserIdentity(session, profile, 'Signed In');
   useEffect(() => {
     const init = async () => {
       const factionStore = useFactionStore.getState();

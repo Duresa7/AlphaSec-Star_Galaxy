@@ -1,11 +1,26 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { NewsShell } from "@/components/news/NewsShell";
-import { useAuth } from "@/hooks/useAuth";
-import { updateDisplayName, logAction } from "@/data/supabaseStorage";
-import { PASSWORD_RULES } from "@/hooks/useAuthForm";
 
-export function SettingsPage() {
+import "@/styles/settings.css";
+
+import { NewsShell } from "@/components/news/NewsShell";
+import {
+  AccountSettingsSection,
+  type SettingsMessage,
+} from "@/components/news/settings/AccountSettingsSection";
+import {
+  SettingsSectionNav,
+  type SettingsSectionKey,
+} from "@/components/news/settings/SettingsSectionNav";
+import { ThemeSettingsSection } from "@/components/news/settings/ThemeSettingsSection";
+import { useNewsThemeContext } from "@/components/news/theme/newsTheme";
+import { updateDisplayName, logAction } from "@/data/supabaseStorage";
+import { useAuth } from "@/hooks/useAuth";
+import { PASSWORD_RULES } from "@/hooks/useAuthForm";
+import { getUserIdentity } from "@/utils/getUserIdentity";
+import { isGoogleOnlyAccount } from "@/utils/googleAuth";
+
+function SettingsPageContent() {
   const navigate = useNavigate();
   const {
     session,
@@ -15,35 +30,32 @@ export function SettingsPage() {
     updatePassword,
     deleteAccount,
   } = useAuth();
+  const googleOnlyAccount = isGoogleOnlyAccount(session);
+  const { theme, setTheme } = useNewsThemeContext();
+  const { displayName: identityDisplayName } = getUserIdentity(
+    session,
+    profile,
+    "Signed In",
+  );
+  const [activeSection, setActiveSection] =
+    useState<SettingsSectionKey>("account");
 
   const [displayName, setDisplayName] = useState(profile?.display_name ?? "");
   const [displayNameSaving, setDisplayNameSaving] = useState(false);
-  const [displayNameMsg, setDisplayNameMsg] = useState<{
-    type: "success" | "error";
-    text: string;
-  } | null>(null);
+  const [displayNameMsg, setDisplayNameMsg] = useState<SettingsMessage>(null);
 
   const [newEmail, setNewEmail] = useState("");
   const [emailSaving, setEmailSaving] = useState(false);
-  const [emailMsg, setEmailMsg] = useState<{
-    type: "success" | "error";
-    text: string;
-  } | null>(null);
+  const [emailMsg, setEmailMsg] = useState<SettingsMessage>(null);
 
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordSaving, setPasswordSaving] = useState(false);
-  const [passwordMsg, setPasswordMsg] = useState<{
-    type: "success" | "error";
-    text: string;
-  } | null>(null);
+  const [passwordMsg, setPasswordMsg] = useState<SettingsMessage>(null);
 
   const [deleteConfirm, setDeleteConfirm] = useState("");
   const [deleting, setDeleting] = useState(false);
-  const [deleteMsg, setDeleteMsg] = useState<{
-    type: "success" | "error";
-    text: string;
-  } | null>(null);
+  const [deleteMsg, setDeleteMsg] = useState<SettingsMessage>(null);
 
   const handleDisplayNameSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -80,25 +92,20 @@ export function SettingsPage() {
   const handleEmailSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setEmailMsg(null);
-    if (!newEmail.trim()) {
+    const trimmedEmail = newEmail.trim();
+    if (!trimmedEmail) {
       setEmailMsg({ type: "error", text: "Please enter a new email address." });
       return;
     }
     setEmailSaving(true);
-    const { error } = await updateEmail(newEmail.trim());
+    const { error } = await updateEmail(trimmedEmail);
     if (error) {
       setEmailMsg({ type: "error", text: error });
     } else {
       if (session?.user?.id) {
-        await logAction(
-          "email_changed",
-          "user",
-          session.user.id,
-          profile?.display_name ?? "",
-          {
-            newEmail: newEmail.trim(),
-          },
-        );
+        await logAction("email_changed", "user", session.user.id, profile?.display_name ?? "", {
+          newEmail: trimmedEmail,
+        });
       }
       setEmailMsg({
         type: "success",
@@ -112,11 +119,11 @@ export function SettingsPage() {
   const handlePasswordSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setPasswordMsg(null);
-    const failedRules = PASSWORD_RULES.filter((r) => !r.test(newPassword));
+    const failedRules = PASSWORD_RULES.filter((rule) => !rule.test(newPassword));
     if (failedRules.length > 0) {
       setPasswordMsg({
         type: "error",
-        text: `Password requires: ${failedRules.map((r) => r.label).join(", ")}`,
+        text: `Password requires: ${failedRules.map((rule) => rule.label).join(", ")}`,
       });
       return;
     }
@@ -167,200 +174,71 @@ export function SettingsPage() {
     }
   };
 
-  const passwordStrength = PASSWORD_RULES.filter((r) =>
-    r.test(newPassword),
-  ).length;
-
   return (
-    <NewsShell>
-      <div className="settings-page">
-        <div className="settings-page__hero">
-          <p className="settings-page__kicker">Account</p>
-          <h1 className="settings-page__name">Settings</h1>
-          {profile && (
-            <p className="settings-page__subtitle">
-              Signed in as {profile.display_name}
-            </p>
+    <div className="settings-page">
+      <div className="settings-page__hero">
+        <p className="settings-page__kicker">Account</p>
+        <h1 className="settings-page__name">Settings</h1>
+        {session && (
+          <p className="settings-page__subtitle">
+            Signed in as {identityDisplayName}
+          </p>
+        )}
+      </div>
+
+      <div className="settings-page__layout">
+        <SettingsSectionNav
+          activeSection={activeSection}
+          onSectionChange={setActiveSection}
+        />
+
+        <div className="settings-page__panel">
+          {activeSection === "account" && (
+            <AccountSettingsSection
+              currentEmail={session?.user?.email}
+              googleOnlyAccount={googleOnlyAccount}
+              displayName={displayName}
+              onDisplayNameChange={(e) => setDisplayName(e.target.value)}
+              onDisplayNameSubmit={handleDisplayNameSubmit}
+              displayNameSaving={displayNameSaving}
+              displayNameMsg={displayNameMsg}
+              newEmail={newEmail}
+              onNewEmailChange={(e) => setNewEmail(e.target.value)}
+              onEmailSubmit={handleEmailSubmit}
+              emailSaving={emailSaving}
+              emailMsg={emailMsg}
+              newPassword={newPassword}
+              confirmPassword={confirmPassword}
+              onNewPasswordChange={(e) => setNewPassword(e.target.value)}
+              onConfirmPasswordChange={(e) => setConfirmPassword(e.target.value)}
+              onPasswordSubmit={handlePasswordSubmit}
+              passwordSaving={passwordSaving}
+              passwordMsg={passwordMsg}
+              passwordStrength={
+                PASSWORD_RULES.filter((rule) => rule.test(newPassword)).length
+              }
+              passwordRulesCount={PASSWORD_RULES.length}
+              deleteConfirm={deleteConfirm}
+              onDeleteConfirmChange={(e) => setDeleteConfirm(e.target.value)}
+              onDeleteAccount={handleDeleteAccount}
+              deleting={deleting}
+              deleteMsg={deleteMsg}
+            />
+          )}
+
+          {activeSection === "theme" && (
+            <ThemeSettingsSection theme={theme} setTheme={setTheme} />
           )}
         </div>
-
-        <div className="settings-page__grid">
-          <div className="settings-page__section">
-            <h2 className="settings-page__section-title">Display Name</h2>
-            {displayNameMsg && (
-              <div
-                className={`settings-page__msg settings-page__msg--${displayNameMsg.type}`}
-              >
-                {displayNameMsg.text}
-              </div>
-            )}
-            <form
-              onSubmit={handleDisplayNameSubmit}
-              className="settings-page__form"
-            >
-              <div className="settings-page__field">
-                <input
-                  type="text"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  className="settings-page__input"
-                  placeholder="Your display name"
-                  maxLength={40}
-                  required
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={displayNameSaving}
-                className="settings-page__submit"
-              >
-                {displayNameSaving ? "Saving..." : "Save Name"}
-              </button>
-            </form>
-          </div>
-
-          <div className="settings-page__section">
-            <h2 className="settings-page__section-title">Change Email</h2>
-            <p className="settings-page__hint">
-              Current: {session?.user?.email ?? "Unknown"}
-            </p>
-            {emailMsg && (
-              <div
-                className={`settings-page__msg settings-page__msg--${emailMsg.type}`}
-              >
-                {emailMsg.text}
-              </div>
-            )}
-            <form onSubmit={handleEmailSubmit} className="settings-page__form">
-              <div className="settings-page__field">
-                <label className="settings-page__label">New Email</label>
-                <input
-                  type="email"
-                  value={newEmail}
-                  onChange={(e) => setNewEmail(e.target.value)}
-                  className="settings-page__input"
-                  placeholder="new@example.com"
-                  required
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={emailSaving}
-                className="settings-page__submit"
-              >
-                {emailSaving ? "Updating..." : "Update Email"}
-              </button>
-            </form>
-          </div>
-
-          <div className="settings-page__section">
-            <h2 className="settings-page__section-title">Change Password</h2>
-            {passwordMsg && (
-              <div
-                className={`settings-page__msg settings-page__msg--${passwordMsg.type}`}
-              >
-                {passwordMsg.text}
-              </div>
-            )}
-            <form
-              onSubmit={handlePasswordSubmit}
-              className="settings-page__form"
-            >
-              <div className="settings-page__field">
-                <label className="settings-page__label">New Password</label>
-                <input
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="settings-page__input"
-                  placeholder="Min 8 chars, mixed case, digit, special"
-                  required
-                />
-                {newPassword.length > 0 && (
-                  <div className="settings-page__strength">
-                    <div className="settings-page__strength-bar">
-                      <div
-                        className="settings-page__strength-fill"
-                        style={{
-                          width: `${(passwordStrength / PASSWORD_RULES.length) * 100}%`,
-                          background:
-                            passwordStrength <= 2
-                              ? "#dc3545"
-                              : passwordStrength <= 4
-                                ? "#f0ad4e"
-                                : "#5cb85c",
-                        }}
-                      />
-                    </div>
-                    <span className="settings-page__strength-label">
-                      {passwordStrength <= 2
-                        ? "Weak"
-                        : passwordStrength <= 4
-                          ? "Fair"
-                          : "Strong"}
-                    </span>
-                  </div>
-                )}
-              </div>
-              <div className="settings-page__field">
-                <label className="settings-page__label">Confirm Password</label>
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="settings-page__input"
-                  placeholder="Re-enter new password"
-                  required
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={passwordSaving}
-                className="settings-page__submit"
-              >
-                {passwordSaving ? "Updating..." : "Update Password"}
-              </button>
-            </form>
-          </div>
-
-          <div className="settings-page__section settings-page__section--danger">
-            <h2 className="settings-page__section-title settings-page__section-title--danger">
-              Danger Zone
-            </h2>
-            <p className="settings-page__danger-text">
-              Permanently delete your account and all associated data. This
-              action cannot be undone.
-            </p>
-            {deleteMsg && (
-              <div
-                className={`settings-page__msg settings-page__msg--${deleteMsg.type}`}
-              >
-                {deleteMsg.text}
-              </div>
-            )}
-            <div className="settings-page__field">
-              <label className="settings-page__label">
-                Type <strong>DELETE</strong> to confirm
-              </label>
-              <input
-                type="text"
-                value={deleteConfirm}
-                onChange={(e) => setDeleteConfirm(e.target.value)}
-                className="settings-page__input settings-page__input--danger"
-                placeholder="DELETE"
-              />
-            </div>
-            <button
-              onClick={handleDeleteAccount}
-              disabled={deleteConfirm !== "DELETE" || deleting}
-              className="settings-page__submit settings-page__submit--danger"
-              style={{ marginTop: "16px" }}
-            >
-              {deleting ? "Deleting..." : "Delete My Account"}
-            </button>
-          </div>
-        </div>
       </div>
+    </div>
+  );
+}
+
+export function SettingsPage() {
+  return (
+    <NewsShell>
+      <SettingsPageContent />
     </NewsShell>
   );
 }

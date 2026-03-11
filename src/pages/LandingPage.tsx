@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { AuthModal } from '@/components/auth/AuthModal';
 import { Footer } from '@/components/Footer';
+import { getUserIdentity } from '@/utils/getUserIdentity';
 
 type SocialLink = {
   href: string;
@@ -113,11 +114,7 @@ export function LandingPage() {
   const locationState = location.state as { showAuthModal?: boolean } | null;
   const [showAuthModal, setShowAuthModal] = useState(locationState?.showAuthModal ?? false);
 
-  const displayName =
-    profile?.display_name
-    ?? (typeof session?.user?.user_metadata?.display_name === 'string' ? session.user.user_metadata.display_name : null)
-    ?? session?.user?.email?.split('@')[0]
-    ?? 'Signed In';
+  const { displayName } = getUserIdentity(session, profile, 'Signed In');
 
   const renderSocialLinks = () =>
     SOCIAL_LINKS.map(({ href, ariaLabel, Icon, hoverLabel }) => (

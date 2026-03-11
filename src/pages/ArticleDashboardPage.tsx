@@ -1,6 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { NewsShell } from '@/components/news/NewsShell';
+import {
+  getTimelineContent,
+  getTimelinePreviewText,
+  normalizeTimelineText,
+} from '@/components/ui/timeline';
 import { fetchArticles, updateArticle, deleteArticle } from '@/data/articleStorage';
 import {
   fetchTimelineEntries,
@@ -23,6 +28,16 @@ const EMPTY_ENTRY_FORM = {
 };
 
 type EntryForm = typeof EMPTY_ENTRY_FORM;
+
+function getDashboardEntryPreview(entry: TimelineEntry) {
+  const { description, markdown } = getTimelineContent(entry);
+
+  return {
+    description,
+    detailPreview: getTimelinePreviewText(markdown, 120),
+    hasExpandedDetails: Boolean(markdown),
+  };
+}
 
 export function ArticleDashboardPage() {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -105,8 +120,8 @@ export function ArticleDashboardPage() {
     const input = {
       title: entryForm.title.trim(),
       type: entryForm.type,
-      description: entryForm.description.trim(),
-      expandedContent: entryForm.expandedContent.trim(),
+      description: normalizeTimelineText(entryForm.description) ?? '',
+      expandedContent: normalizeTimelineText(entryForm.expandedContent) ?? '',
       timestamp: entryForm.timestamp || undefined,
     };
 
@@ -120,7 +135,7 @@ export function ArticleDashboardPage() {
       }
       cancelEntryForm();
     } catch {
-      // form stays open on failure
+      return;
     } finally {
       setSavingEntry(false);
     }
@@ -336,40 +351,45 @@ export function ArticleDashboardPage() {
 
           {entries.length > 0 && (
             <div className="article-dash__entry-list">
-              {entries.map((e) => (
-                <div key={e.id} className="article-dash__entry-row">
-                  <div className="article-dash__entry-row-info">
-                    <div className="article-dash__entry-row-meta">
-                      <span className={`timeline-tone timeline-tone--${e.type}`}>{e.type}</span>
-                      <span className="article-dash__entry-row-date">{formatDate(e.timestamp)}</span>
-                      {e.expandedContent.trim() && (
-                        <span className="article-dash__entry-row-pill">Expandable details</span>
+              {entries.map((e) => {
+                const { description, detailPreview, hasExpandedDetails } =
+                  getDashboardEntryPreview(e);
+
+                return (
+                  <div key={e.id} className="article-dash__entry-row">
+                    <div className="article-dash__entry-row-info">
+                      <div className="article-dash__entry-row-meta">
+                        <span className={`article-dash__entry-type article-dash__entry-type--${e.type}`}>{e.type}</span>
+                        <span className="article-dash__entry-row-date">{formatDate(e.timestamp)}</span>
+                        {hasExpandedDetails && (
+                          <span className="article-dash__entry-row-pill">Expandable details</span>
+                        )}
+                      </div>
+                      <span className="article-dash__entry-row-name">{e.title}</span>
+                      {description && (
+                        <p className="article-dash__entry-row-summary">{description}</p>
+                      )}
+                      {detailPreview && (
+                        <p className="article-dash__entry-row-detail">{detailPreview}</p>
                       )}
                     </div>
-                    <span className="article-dash__entry-row-name">{e.title}</span>
-                    {e.description.trim() && (
-                      <p className="article-dash__entry-row-summary">{e.description}</p>
-                    )}
-                    {e.expandedContent.trim() && (
-                      <p className="article-dash__entry-row-detail">{e.expandedContent}</p>
-                    )}
+                    <div className="article-dash__td--actions article-dash__entry-row-actions">
+                      <button
+                        className="news-btn news-btn--small"
+                        onClick={() => openEditEntry(e)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="news-btn news-btn--small news-btn--danger"
+                        onClick={() => handleDeleteEntry(e.id, e.title)}
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </div>
-                  <div className="article-dash__td--actions article-dash__entry-row-actions">
-                    <button
-                      className="news-btn news-btn--small"
-                      onClick={() => openEditEntry(e)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="news-btn news-btn--small news-btn--danger"
-                      onClick={() => handleDeleteEntry(e.id, e.title)}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
