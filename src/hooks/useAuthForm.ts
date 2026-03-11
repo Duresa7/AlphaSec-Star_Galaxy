@@ -13,8 +13,44 @@ const PASSWORD_RULES = [
 
 export { PASSWORD_RULES };
 
+export function validateSignupSubmission({
+  displayName,
+  password,
+  confirmPassword,
+  requirePassword,
+}: {
+  displayName: string;
+  password?: string;
+  confirmPassword?: string;
+  requirePassword: boolean;
+}): { error: string | null; displayName: string | null } {
+  const normalizedDisplayName = displayName.trim();
+  if (!normalizedDisplayName) {
+    return { error: 'Display name is required', displayName: null };
+  }
+
+  if (!requirePassword) {
+    return { error: null, displayName: normalizedDisplayName };
+  }
+
+  const nextPassword = password ?? '';
+  const failedRules = PASSWORD_RULES.filter((r) => !r.test(nextPassword));
+  if (failedRules.length > 0) {
+    return {
+      error: `Password requires: ${failedRules.map((r) => r.label).join(', ')}`,
+      displayName: null,
+    };
+  }
+
+  if (nextPassword !== (confirmPassword ?? '')) {
+    return { error: 'Passwords do not match', displayName: null };
+  }
+
+  return { error: null, displayName: normalizedDisplayName };
+}
+
 export function useAuthForm(onSuccess: () => void) {
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, signInWithGoogle } = useAuth();
   const [mode, setMode] = useState<Mode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,6 +59,7 @@ export function useAuthForm(onSuccess: () => void) {
   const [galaxyMapRequested, setGalaxyMapRequested] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [googleSubmitting, setGoogleSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const resetForm = useCallback((options?: { keepSuccessMessage?: boolean }) => {
@@ -46,25 +83,60 @@ export function useAuthForm(onSuccess: () => void) {
     ? PASSWORD_RULES.filter((r) => r.test(password)).length
     : 0;
 
+  const handleGoogleAuth = useCallback(async () => {
+    setError(null);
+    setSuccessMessage(null);
+
+    const validatedSignup = mode === 'signup'
+      ? validateSignupSubmission({
+          displayName,
+          requirePassword: false,
+        })
+      : { error: null, displayName: null };
+
+    if (validatedSignup.error) {
+      setError(validatedSignup.error);
+      return;
+    }
+
+    setGoogleSubmitting(true);
+    try {
+      const { error: err } = await signInWithGoogle({
+        mode,
+        displayName: validatedSignup.displayName ?? undefined,
+        galaxyMapRequested: mode === 'signup' ? galaxyMapRequested : undefined,
+        redirectTo: window.location.href,
+      });
+
+      if (err) {
+        setError(err);
+      }
+    } finally {
+      setGoogleSubmitting(false);
+    }
+  }, [displayName, galaxyMapRequested, mode, signInWithGoogle]);
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccessMessage(null);
 
+    const validatedSignup = mode === 'signup'
+      ? validateSignupSubmission({
+          displayName,
+          password,
+          confirmPassword,
+          requirePassword: true,
+        })
+      : { error: null, displayName: null };
+
+    if (validatedSignup.error) {
+      setError(validatedSignup.error);
+      return;
+    }
+
     if (mode === 'signup') {
-      const failedRules = PASSWORD_RULES.filter((r) => !r.test(password));
-      if (failedRules.length > 0) {
-        setError(`Password requires: ${failedRules.map((r) => r.label).join(', ')}`);
-        return;
-      }
-      if (password !== confirmPassword) {
-        setError('Passwords do not match');
-        return;
-      }
-      if (!displayName.trim()) {
-        setError('Display name is required');
-        return;
-      }
+      setDisplayName(validatedSignup.displayName!);
     }
 
     setSubmitting(true);
@@ -74,7 +146,7 @@ export function useAuthForm(onSuccess: () => void) {
         if (err) { setError(err); return; }
         onSuccess();
       } else {
-        const { error: err } = await signUp(email, password, displayName.trim(), galaxyMapRequested);
+        const { error: err } = await signUp(email, password, validatedSignup.displayName!, galaxyMapRequested);
         if (err) { setError(err); return; }
         setSuccessMessage('Account created! Check your email to confirm, then sign in. If you don\'t see it, check your spam folder.');
         switchMode('login', { keepSuccessMessage: true });
@@ -98,9 +170,11 @@ export function useAuthForm(onSuccess: () => void) {
     setGalaxyMapRequested,
     error,
     submitting,
+    googleSubmitting,
     successMessage,
     passwordStrength,
     switchMode,
+    handleGoogleAuth,
     handleSubmit,
   };
 }
