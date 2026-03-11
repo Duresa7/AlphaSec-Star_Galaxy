@@ -1,4 +1,5 @@
 import { useAuthForm, PASSWORD_RULES } from '@/hooks/useAuthForm';
+import { GoogleAuthButton } from '@/components/auth/GoogleAuthButton';
 
 interface AuthModalProps {
   open: boolean;
@@ -30,6 +31,16 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
         {f.error && (
           <div className="auth-modal__error">{f.error}</div>
         )}
+
+        <GoogleAuthButton
+          mode={f.mode}
+          loading={f.googleSubmitting}
+          disabled={f.submitting || f.googleSubmitting}
+          onClick={f.handleGoogleAuth}
+          containerClassName="auth-modal__oauth"
+          buttonClassName="auth-modal__oauth-button"
+          dividerClassName="auth-modal__divider"
+        />
 
         <form onSubmit={f.handleSubmit} className="auth-modal__form">
           {f.mode === 'signup' && (
@@ -123,7 +134,7 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
 
           <button
             type="submit"
-            disabled={f.submitting}
+            disabled={f.submitting || f.googleSubmitting}
             className="auth-modal__submit"
           >
             {f.submitting ? 'Please wait...' : f.mode === 'login' ? 'Sign In' : 'Create Account'}
@@ -132,9 +143,9 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
 
         <p className="auth-modal__switch">
           {f.mode === 'login' ? (
-            <>Don't have an account?{' '}<button onClick={() => f.switchMode('signup')}>Sign Up</button></>
+            <>Don't have an account?{' '}<button type="button" onClick={() => f.switchMode('signup')}>Sign Up</button></>
           ) : (
-            <>Already have an account?{' '}<button onClick={() => f.switchMode('login')}>Sign In</button></>
+            <>Already have an account?{' '}<button type="button" onClick={() => f.switchMode('login')}>Sign In</button></>
           )}
         </p>
       </div>

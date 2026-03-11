@@ -1,69 +1,26 @@
-import { createContext, useEffect, useState, useRef, useCallback, type ReactNode } from 'react';
-import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
+import { useEffect, useState, useRef, useCallback, type ReactNode } from 'react';
+import type { Session } from '@supabase/supabase-js';
+import {
+  AuthContext,
+  getProfileFetchMode,
+  shouldFetchProfileForEvent,
+  startGoogleSignIn,
+  syncPendingGoogleAuthSession,
+  type AuthResolutionEvent,
+  type GoogleSignInOptions,
+  type ProfileFetchMode,
+} from '@/contexts/authContextHelpers';
 import { supabase, supabaseConfigured } from '@/lib/supabase';
 import { deleteAccount as deleteAccountRequest } from '@/data/supabaseStorage';
 import { withTimeout } from '@/utils/withTimeout';
+import { clearPendingGoogleAuthIntent } from '@/utils/googleAuth';
 import { logger } from '@/utils/logger';
 import type { UserProfile } from '@/types';
-
-export interface AuthContextValue {
-  session: Session | null;
-  profile: UserProfile | null;
-  loading: boolean;
-  authResolved: boolean;
-  profileLoadingInitial: boolean;
-  profileRefreshing: boolean;
-  profileError: string | null;
-  supabaseConfigured: boolean;
-  signUp: (email: string, password: string, displayName: string, galaxyMapRequested?: boolean) => Promise<{ error: string | null }>;
-  signIn: (email: string, password: string) => Promise<{ error: string | null }>;
-  signOut: () => Promise<void>;
-  refreshProfile: () => Promise<void>;
-  updateEmail: (newEmail: string) => Promise<{ error: string | null }>;
-  updatePassword: (newPassword: string) => Promise<{ error: string | null }>;
-  deleteAccount: () => Promise<{ error: string | null }>;
-}
-
-export const AuthContext = createContext<AuthContextValue | null>(null);
 
 const AUTH_OPERATION_TIMEOUT_MS = 15_000;
 const INITIAL_AUTH_TIMEOUT_MS = 7_000;
 const SESSION_BOOTSTRAP_TIMEOUT_MS = 4_000;
-
-type ProfileFetchMode = 'initial' | 'background';
-type AuthResolutionEvent = AuthChangeEvent | 'MANUAL';
-
-const PROFILE_FETCH_EVENTS: readonly AuthChangeEvent[] = [
-  'INITIAL_SESSION',
-  'SIGNED_IN',
-  'USER_UPDATED',
-] as const;
-
-export function getProfileFetchMode({
-  previousSessionUserId,
-  nextSessionUserId,
-  resolvedProfileUserId,
-}: {
-  previousSessionUserId: string | null;
-  nextSessionUserId: string | null;
-  resolvedProfileUserId: string | null;
-}): ProfileFetchMode | null {
-  if (!nextSessionUserId) return null;
-  if (previousSessionUserId !== nextSessionUserId || resolvedProfileUserId !== nextSessionUserId) {
-    return 'initial';
-  }
-  return 'background';
-}
-
-export function shouldFetchProfileForEvent(
-  event: AuthResolutionEvent,
-  fetchMode: ProfileFetchMode | null,
-): boolean {
-  if (!fetchMode) return false;
-  if (fetchMode === 'initial') return true;
-  if (event === 'MANUAL') return true;
-  return PROFILE_FETCH_EVENTS.includes(event);
-}
+const GOOGLE_AUTH_REDIRECT_TIMEOUT_MS = 20_000;
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -78,6 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const resolvedProfileUserIdRef = useRef<string | null>(null);
   const profileInitialRequestsInFlightRef = useRef(0);
   const profileRefreshRequestsInFlightRef = useRef(0);
+  const googleIntentSyncInFlightRef = useRef<string | null>(null);
 
   const fetchProfile = useCallback(async (userId: string, mode: ProfileFetchMode) => {
     if (!supabaseConfigured) return;
@@ -141,6 +99,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [session, fetchProfile]);
 
+  const finalizePendingGoogleAuth = useCallback(async (newSession: Session | null) => {
+    const userId = newSession?.user?.id ?? null;
+    if (!userId || googleIntentSyncInFlightRef.current === userId) {
+      return;
+    }
+
+    googleIntentSyncInFlightRef.current = userId;
+
+    try {
+      await syncPendingGoogleAuthSession({
+        session: newSession,
+        supabaseConfigured,
+        supabase,
+        resolvedProfileUserId: resolvedProfileUserIdRef.current,
+        fetchProfile,
+        authOperationTimeoutMs: AUTH_OPERATION_TIMEOUT_MS,
+        logger,
+      });
+    } finally {
+      googleIntentSyncInFlightRef.current = null;
+    }
+  }, [fetchProfile]);
+
   useEffect(() => {
     if (!supabaseConfigured) return;
 
@@ -161,6 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (profileFetchMode && shouldFetchProfileForEvent(event, profileFetchMode)) {
           void fetchProfile(nextSessionUserId, profileFetchMode);
         }
+        void finalizePendingGoogleAuth(newSession);
       } else {
         resolvedProfileUserIdRef.current = null;
         setProfile(null);
@@ -204,7 +186,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       subscription.unsubscribe();
       window.clearTimeout(timeout);
     };
-  }, [fetchProfile]);
+  }, [fetchProfile, finalizePendingGoogleAuth]);
 
   useEffect(() => {
     if (!supabaseConfigured || !session?.user?.id) return;
@@ -262,6 +244,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [fetchProfile]);
 
+  const signInWithGoogle = useCallback(async (options: GoogleSignInOptions) => {
+    return startGoogleSignIn({
+      options,
+      supabaseConfigured,
+      supabase,
+      redirectTimeoutMs: GOOGLE_AUTH_REDIRECT_TIMEOUT_MS,
+    });
+  }, []);
+
   const signOut = useCallback(async () => {
     setSession(null);
     setProfile(null);
@@ -272,6 +263,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfileError(null);
     resolvedProfileUserIdRef.current = null;
     sessionUserIdRef.current = null;
+    clearPendingGoogleAuthIntent();
     if (!supabaseConfigured) return;
 
     try {
@@ -338,7 +330,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [session]);
 
   return (
-    <AuthContext.Provider value={{ session, profile, loading, authResolved, profileLoadingInitial, profileRefreshing, profileError, supabaseConfigured, signUp, signIn, signOut, refreshProfile, updateEmail, updatePassword, deleteAccount }}>
+    <AuthContext.Provider value={{ session, profile, loading, authResolved, profileLoadingInitial, profileRefreshing, profileError, supabaseConfigured, signUp, signIn, signInWithGoogle, signOut, refreshProfile, updateEmail, updatePassword, deleteAccount }}>
       {children}
     </AuthContext.Provider>
   );
