@@ -524,8 +524,8 @@ begin
   from public.profiles
   where id = v_actor_id;
 
-  if v_actor_role <> 'bossman' then
-    raise exception 'Only bossman can change roles';
+  if v_actor_role not in ('admin', 'bossman') then
+    raise exception 'Only admins can change roles';
   end if;
 
   if p_user_id is null then
@@ -536,10 +536,6 @@ begin
     raise exception 'You cannot change your own role';
   end if;
 
-  if p_role not in ('user', 'galaxy_user', 'admin', 'bossman') then
-    raise exception 'Invalid role';
-  end if;
-
   select role, display_name
   into v_old_role, v_display_name
   from public.profiles
@@ -548,6 +544,18 @@ begin
 
   if not found then
     raise exception 'User not found';
+  end if;
+
+  if v_actor_role = 'admin' then
+    if p_role not in ('user', 'galaxy_user') then
+      raise exception 'Admins can only assign user or galaxy_user roles';
+    end if;
+
+    if v_old_role not in ('user', 'galaxy_user') then
+      raise exception 'Admins can only manage user or galaxy_user accounts';
+    end if;
+  elsif p_role not in ('user', 'galaxy_user', 'admin', 'bossman') then
+    raise exception 'Invalid role';
   end if;
 
   if v_old_role = p_role then
@@ -590,6 +598,65 @@ $$;
 
 revoke all on function public.set_user_role(uuid, text) from public;
 grant execute on function public.set_user_role(uuid, text) to authenticated;
+
+create or replace function public.fetch_user_management_profiles()
+returns table (
+  id                   uuid,
+  display_name         text,
+  email                text,
+  role                 text,
+  galaxy_map_requested boolean,
+  created_at           timestamptz,
+  updated_at           timestamptz,
+  can_manage           boolean
+)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_actor_id   uuid := auth.uid();
+  v_actor_role text;
+begin
+  if v_actor_id is null then
+    raise exception 'Not authenticated';
+  end if;
+
+  select profiles.role
+  into v_actor_role
+  from public.profiles
+  where profiles.id = v_actor_id;
+
+  if v_actor_role not in ('admin', 'bossman') then
+    raise exception 'Only admins can view user management';
+  end if;
+
+  return query
+  select
+    profiles.id,
+    profiles.display_name,
+    case
+      when v_actor_role = 'bossman' then nullif(profiles.email, '')
+      else null
+    end as email,
+    profiles.role,
+    profiles.galaxy_map_requested,
+    profiles.created_at,
+    profiles.updated_at,
+    case
+      when profiles.id = v_actor_id then false
+      when v_actor_role = 'bossman' then true
+      else profiles.role in ('user', 'galaxy_user')
+    end as can_manage
+  from public.profiles
+  where v_actor_role = 'bossman'
+     or (profiles.role in ('user', 'galaxy_user') and profiles.id <> v_actor_id)
+  order by profiles.created_at asc, profiles.display_name asc, profiles.id asc;
+end;
+$$;
+
+revoke all on function public.fetch_user_management_profiles() from public;
+grant execute on function public.fetch_user_management_profiles() to authenticated;
 
 -- ── Feedback Integrity ────────────────────────────────────────────────────────
 create or replace function public.prepare_feedback_insert()
