@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
-import { NewsShell } from '@/components/news/NewsShell';
-import { fetchLiveStatuses } from '@/data/liveStatuses';
-import { fetchTimelineEntries } from '@/data/timelineStorage';
-import type { ServiceStatus } from '@/data/liveStatuses';
-import type { TimelineEntry } from '@/data/timelineStorage';
-import { formatDate } from '@/utils/format';
+import { useEffect, useState, type ReactNode } from "react";
+import { AlertTriangle, ShieldAlert, Sparkles, Wrench } from "lucide-react";
+
+import { NewsShell } from "@/components/news/NewsShell";
+import { Timeline, type TimelineItem } from "@/components/ui/timeline";
+import { fetchLiveStatuses } from "@/data/liveStatuses";
+import { fetchTimelineEntries } from "@/data/timelineStorage";
+import type { ServiceStatus } from "@/data/liveStatuses";
+import type { TimelineEntry, TimelineEntryType } from "@/data/timelineStorage";
 
 function StatusCard({ status }: { status: ServiceStatus }) {
   return (
@@ -30,21 +32,30 @@ function StatusCard({ status }: { status: ServiceStatus }) {
   );
 }
 
-function TimelineItem({ entry }: { entry: TimelineEntry }) {
-  return (
-    <details className={`timeline-item timeline-item--${entry.type}`}>
-      <summary>
-        <span className={`timeline-item__type timeline-item__type--${entry.type}`}>
-          {entry.type}
-        </span>
-        <span className="timeline-item__title">{entry.title}</span>
-        <span className="timeline-item__time">{formatDate(entry.timestamp)}</span>
-      </summary>
-      <div className="timeline-item__content">
-        {entry.expandedContent}
-      </div>
-    </details>
-  );
+const TIMELINE_ICONS: Record<TimelineEntryType, ReactNode> = {
+  update: <Sparkles className="h-3.5 w-3.5" />,
+  release: <ShieldAlert className="h-3.5 w-3.5" />,
+  incident: <AlertTriangle className="h-3.5 w-3.5" />,
+  maintenance: <Wrench className="h-3.5 w-3.5" />,
+};
+
+function toTimelineItems(entries: TimelineEntry[]): TimelineItem[] {
+  return entries.map((entry) => {
+    const description = entry.description.trim() || undefined;
+    const expandedContent = entry.expandedContent.trim() || undefined;
+    const content =
+      expandedContent && expandedContent !== description ? expandedContent : undefined;
+
+    return {
+      id: entry.id,
+      date: entry.timestamp,
+      title: entry.title,
+      description,
+      content,
+      type: entry.type,
+      icon: TIMELINE_ICONS[entry.type],
+    };
+  });
 }
 
 export function ServicesPage() {
@@ -84,11 +95,12 @@ export function ServicesPage() {
             <p className="article-dash__empty">No updates yet.</p>
           )}
           {entries.length > 0 && (
-            <div className="gh-timeline">
-              {entries.map(entry => (
-                <TimelineItem key={entry.id} entry={entry} />
-              ))}
-            </div>
+            <Timeline
+              items={toTimelineItems(entries)}
+              initialCount={3}
+              showMoreText="Load More"
+              showLessText="Show Less"
+            />
           )}
         </section>
       </div>

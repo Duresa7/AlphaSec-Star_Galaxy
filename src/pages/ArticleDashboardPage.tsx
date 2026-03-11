@@ -302,15 +302,18 @@ export function ArticleDashboardPage() {
                 />
               </div>
               <div className="article-editor__field">
-                <label className="article-editor__label">Expanded Content</label>
+                <label className="article-editor__label">Expanded Content (Markdown)</label>
                 <textarea
                   className="article-editor__textarea"
                   value={entryForm.expandedContent}
                   onChange={(e) => setField('expandedContent', e.target.value)}
-                  placeholder="Full details shown when the entry is expanded"
-                  rows={4}
+                  placeholder={"Full details shown when the entry is expanded.\n\nUse markdown for paragraphs, lists, links, and headings.\n- Bullet item\n- Another item"}
+                  rows={6}
                   maxLength={2000}
                 />
+                <p className="article-dash__entry-help">
+                  Supports markdown, including paragraphs, bullet lists, links, and headings.
+                </p>
               </div>
               <div className="article-dash__status-form-actions">
                 <button
@@ -336,11 +339,22 @@ export function ArticleDashboardPage() {
               {entries.map((e) => (
                 <div key={e.id} className="article-dash__entry-row">
                   <div className="article-dash__entry-row-info">
-                    <span className={`timeline-item__type timeline-item__type--${e.type}`}>{e.type}</span>
+                    <div className="article-dash__entry-row-meta">
+                      <span className={`timeline-tone timeline-tone--${e.type}`}>{e.type}</span>
+                      <span className="article-dash__entry-row-date">{formatDate(e.timestamp)}</span>
+                      {e.expandedContent.trim() && (
+                        <span className="article-dash__entry-row-pill">Expandable details</span>
+                      )}
+                    </div>
                     <span className="article-dash__entry-row-name">{e.title}</span>
-                    <span className="article-dash__entry-row-date">{formatDate(e.timestamp)}</span>
+                    {e.description.trim() && (
+                      <p className="article-dash__entry-row-summary">{e.description}</p>
+                    )}
+                    {e.expandedContent.trim() && (
+                      <p className="article-dash__entry-row-detail">{e.expandedContent}</p>
+                    )}
                   </div>
-                  <div className="article-dash__td--actions">
+                  <div className="article-dash__td--actions article-dash__entry-row-actions">
                     <button
                       className="news-btn news-btn--small"
                       onClick={() => openEditEntry(e)}
