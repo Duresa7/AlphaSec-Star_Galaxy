@@ -112,7 +112,7 @@
 - Entry: `src/main.tsx` (BrowserRouter + AuthProvider) → `src/App.tsx` (routes)
 - All pages lazy-loaded via React.lazy() except LandingPage; wrapped with Suspense (null fallback)
 - Code-split chunks: `three` (Three.js), `react-three` (@react-three/fiber + drei), `supabase`, `tiptap`
-- Zustand stores in `src/store/`: `galaxyDataStore` (systems/fleets/planets/anomalies), `galaxySelectionStore` (selected IDs + view mode), `galaxyUIStore` (panel/module toggles), `factionStore` (faction config)
+- Zustand stores in `src/store/`: `galaxyDataStore` (systems/fleets/planets), `galaxySelectionStore` (selected IDs + view mode), `galaxyUIStore` (panel/module toggles), `factionStore` (faction config)
 - Auth: `AuthContext` in `src/contexts/` — PKCE flow, Google OAuth, timeout-guarded profile fetch
 - Role-based routes in `src/components/auth/`: `ProtectedRoute`, `AdminRoute`, `BossmanRoute`, `GalaxyRoute`
 - Supabase client: `src/lib/supabase.ts` — gracefully degrades (auth + persistence disabled) if env vars are missing

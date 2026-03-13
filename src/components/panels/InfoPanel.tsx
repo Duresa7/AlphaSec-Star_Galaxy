@@ -7,7 +7,6 @@ import type { StarSystem, Fleet, InfoPanelData, ViewMode } from '@/types';
 import { SystemInfo } from '@/components/panels/SystemInfo';
 import { PlanetInfo } from '@/components/panels/PlanetInfo';
 import { FleetInfo } from '@/components/panels/FleetInfo';
-import { AnomalyInfo } from '@/components/panels/AnomalyInfo';
 
 function resolvePanelData({
   infoPanelData,
@@ -120,8 +119,6 @@ export function InfoPanel() {
         return <PlanetInfo planet={data.data} editable={isAdmin} />;
       case 'fleet':
         return <FleetInfo fleet={data.data} editable={isAdmin} />;
-      case 'anomaly':
-        return <AnomalyInfo anomaly={data.data} />;
       default:
         return null;
     }
