@@ -1,6 +1,7 @@
-import { useState, type ComponentType, type CSSProperties } from 'react';
+import { useState, type ComponentType } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useShaderBackground } from '@/hooks/useShaderBackground';
 import { AuthModal } from '@/components/auth/AuthModal';
 import { Footer } from '@/components/Footer';
 import { getUserIdentity } from '@/utils/getUserIdentity';
@@ -108,7 +109,7 @@ const SOCIAL_LINKS: SocialLink[] = [
 ];
 
 export function LandingPage() {
-  const heroImageUrl = `${import.meta.env.BASE_URL}homepage-bg.jpg`;
+  const shaderCanvasRef = useShaderBackground();
   const { session, profile, signOut } = useAuth();
   const location = useLocation();
   const locationState = location.state as { showAuthModal?: boolean } | null;
@@ -135,9 +136,12 @@ export function LandingPage() {
     <section
       className="portfolio-hero"
       aria-label="Portfolio homepage"
-      style={{ '--portfolio-hero-bg-image': `url("${heroImageUrl}")` } as CSSProperties}
     >
-      <div className="portfolio-hero__layer portfolio-hero__base-image" aria-hidden="true" />
+      <canvas
+        ref={shaderCanvasRef}
+        className="portfolio-hero__layer portfolio-hero__shader-canvas"
+        aria-hidden="true"
+      />
 
       <div className="portfolio-hero__content portfolio-hero__content--base">
         <div className="portfolio-hero__name-block portfolio-hero__parallax">
@@ -191,29 +195,10 @@ export function LandingPage() {
         <div className="portfolio-hero__social-block portfolio-hero__parallax">{renderSocialLinks()}</div>
       </div>
 
-      <div
-        style={{
-          position: 'absolute',
-          top: 'clamp(20px, 3.4vw, 48px)',
-          right: 'clamp(20px, 3.4vw, 48px)',
-          zIndex: 10,
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-        }}
-      >
+      <div className="portfolio-hero__auth-block">
         {session ? (
           <>
-            <span
-              style={{
-                fontFamily: '"Manrope", "Spline Sans", sans-serif',
-                fontSize: '11px',
-                fontWeight: 700,
-                letterSpacing: '0.1em',
-                textTransform: 'uppercase',
-                color: '#111',
-              }}
-            >
+            <span className="portfolio-hero__auth-name">
               {displayName}
             </span>
             <Link
