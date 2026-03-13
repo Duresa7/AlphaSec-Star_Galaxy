@@ -8,7 +8,7 @@ import type {
   StarSystem,
   Fleet,
 } from '@/types';
-import { starSystems, anomalies, fleets } from '@/data/galaxyData';
+import { starSystems, fleets } from '@/data/galaxyData';
 import {
   loadCustomSystems as loadFromSupabase,
   loadCustomFleets as loadFleetsFromSupabase,
@@ -167,7 +167,6 @@ const mergeSavedSnapshotEntries = <T extends { id: string }>(
 
 export const useGalaxyDataStore = create<GalaxyDataStore>((set, get) => ({
   systems: [...starSystems],
-  anomalies,
   fleets: [...fleets],
   isLoading: true,
   setIsLoading: (loading: boolean) => set({ isLoading: loading }),
