@@ -1,4 +1,4 @@
-import { useRef, useState, Suspense } from 'react';
+import { useRef, useState } from 'react';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
@@ -6,7 +6,7 @@ import type { Anomaly } from '@/types';
 import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
 import { useGalaxyUIStore } from '@/store/galaxyUIStore';
 import { useGalaxyDataStore } from '@/store/galaxyDataStore';
-import { AnomalyModel } from '@/components/three/ModelLoader';
+
 
 interface AnomalyMarkerProps {
   anomaly: Anomaly;
@@ -56,33 +56,28 @@ function AnomalyMarker({ anomaly }: AnomalyMarkerProps) {
     setHovered(false);
     document.body.style.cursor = 'auto';
   };
-  const renderFallback = () => {
+  const renderGeometry = () => {
     switch (anomaly.type) {
       case 'black_hole':
         return (
           <group>
-
             <mesh>
               <sphereGeometry args={[anomaly.radius * 0.3, 32, 32]} />
               <meshBasicMaterial color="#000000" />
             </mesh>
-
             <mesh rotation={[Math.PI / 2, 0, 0]}>
               <torusGeometry args={[anomaly.radius * 0.6, anomaly.radius * 0.15, 16, 32]} />
               <meshBasicMaterial color="#FF4500" transparent opacity={0.7} />
             </mesh>
-
             <mesh rotation={[Math.PI / 2, 0, 0]}>
               <ringGeometry args={[anomaly.radius * 0.8, anomaly.radius, 32]} />
               <meshBasicMaterial color="#FF6B00" transparent opacity={0.3} side={THREE.DoubleSide} />
             </mesh>
           </group>
         );
-
       case 'nebula':
         return (
           <group>
-
             {[0.6, 0.8, 1.0].map((scale, i) => (
               <mesh key={i} scale={scale}>
                 <icosahedronGeometry args={[anomaly.radius, 1]} />
@@ -96,28 +91,23 @@ function AnomalyMarker({ anomaly }: AnomalyMarkerProps) {
             ))}
           </group>
         );
-
       case 'space_station':
         return (
           <group>
-
             <mesh>
               <cylinderGeometry args={[0.5, 0.5, 1, 8]} />
               <meshStandardMaterial color="#4A5568" metalness={0.8} roughness={0.3} />
             </mesh>
-
             <mesh rotation={[Math.PI / 2, 0, 0]}>
               <torusGeometry args={[1.2, 0.15, 8, 16]} />
               <meshStandardMaterial color="#4A5568" metalness={0.8} roughness={0.3} />
             </mesh>
-
             <mesh position={[0, 0.6, 0]}>
               <sphereGeometry args={[0.15, 8, 8]} />
               <meshBasicMaterial color="#00BFFF" />
             </mesh>
           </group>
         );
-
       case 'hyperspace_lane':
         return (
           <group>
@@ -127,7 +117,6 @@ function AnomalyMarker({ anomaly }: AnomalyMarkerProps) {
             </mesh>
           </group>
         );
-
       default:
         return (
           <mesh>
@@ -147,15 +136,7 @@ function AnomalyMarker({ anomaly }: AnomalyMarkerProps) {
       onPointerOut={handlePointerOut}
     >
 
-      <Suspense fallback={renderFallback()}>
-        <AnomalyModel
-          type={anomaly.type}
-          position={new THREE.Vector3(0, 0, 0)}
-          scale={anomaly.radius * 0.5}
-        />
-      </Suspense>
-
-
+      {renderGeometry()}
       {hovered && (
         <mesh>
           <sphereGeometry args={[anomaly.radius * 1.2, 16, 16]} />
