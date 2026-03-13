@@ -24,11 +24,6 @@ export type PlanetType =
   | 'city'
   | 'barren'
   | 'destroyed';
-export type AnomalyType =
-  | 'nebula'
-  | 'black_hole'
-  | 'space_station'
-  | 'hyperspace_lane';
 export interface Planet {
   id: string;
   name: string;
@@ -70,14 +65,6 @@ export type GalaxyRegion =
   | 'mid_rim'
   | 'outer_rim'
   | 'unknown_regions';
-export interface Anomaly {
-  id: string;
-  name: string;
-  type: AnomalyType;
-  position: THREE.Vector3;
-  radius: number;
-  description: string;
-}
 export interface Fleet {
   id: string;
   name: string;
@@ -103,8 +90,7 @@ export interface FleetShipEntry {
 export type InfoPanelData =
   | { type: 'system'; data: StarSystem }
   | { type: 'planet'; data: Planet }
-  | { type: 'fleet'; data: Fleet }
-  | { type: 'anomaly'; data: Anomaly };
+  | { type: 'fleet'; data: Fleet };
 export interface SearchResult {
   type: 'system' | 'planet' | 'fleet';
   id: string;
@@ -211,11 +197,9 @@ export interface GalaxySelectionStore {
 
 export interface GalaxyUIStore {
   showFleets: boolean;
-  showAnomalies: boolean;
   showLabels: boolean;
   showCivilianTraffic: boolean;
   toggleFleets: () => void;
-  toggleAnomalies: () => void;
   toggleLabels: () => void;
   toggleCivilianTraffic: () => void;
   searchQuery: string;
@@ -240,7 +224,6 @@ export interface GalaxyUIStore {
 
 export interface GalaxyDataStore {
   systems: StarSystem[];
-  anomalies: Anomaly[];
   fleets: Fleet[];
   isLoading: boolean;
   setIsLoading: (loading: boolean) => void;

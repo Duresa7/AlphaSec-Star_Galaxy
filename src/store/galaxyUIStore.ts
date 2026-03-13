@@ -21,12 +21,9 @@ export const useGalaxyUIStore = create<
     })),
 
   showFleets: true,
-  showAnomalies: true,
   showLabels: true,
   showCivilianTraffic: true,
   toggleFleets: () => set((state) => ({ showFleets: !state.showFleets })),
-  toggleAnomalies: () =>
-    set((state) => ({ showAnomalies: !state.showAnomalies })),
   toggleLabels: () => set((state) => ({ showLabels: !state.showLabels })),
   toggleCivilianTraffic: () =>
     set((state) => ({ showCivilianTraffic: !state.showCivilianTraffic })),

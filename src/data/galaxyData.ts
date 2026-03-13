@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { StarSystem, Anomaly, Fleet } from '@/types';
+import type { StarSystem, Fleet } from '@/types';
 
 export const starSystems: StarSystem[] = [
   {
@@ -442,7 +442,5 @@ export const starSystems: StarSystem[] = [
     ],
   },
 ];
-
-export const anomalies: Anomaly[] = [];
 
 export const fleets: Fleet[] = [];
