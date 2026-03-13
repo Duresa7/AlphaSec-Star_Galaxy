@@ -13,10 +13,7 @@ const MODEL_PATHS = {
   civilianFreighter: '/models/ships/civilian_freighter.glb',
   civilianCorvette: '/models/ships/civilian_corvette.glb',
   civilianTransport: '/models/ships/civilian_transport.glb',
-  nebula: '/models/icons/nebula.glb',
-  blackHole: '/models/icons/black_hole.glb',
-  spaceStation: '/models/icons/space_station.glb',
-  hyperspaceMarker: '/models/icons/hyperspace_marker.glb',
+
   planetCoruscant: '/models/planets/coruscant.glb',
   planetHoth: '/models/planets/hoth.glb',
   planetKorriban: '/models/planets/korriban.glb',
@@ -72,46 +69,7 @@ export function ShipModel({ type, position, scale = 0.5, rotation = [0, 0, 0] }:
   );
 }
 
-interface AnomalyModelProps {
-  type: 'nebula' | 'black_hole' | 'space_station' | 'hyperspace_lane';
-  position: THREE.Vector3;
-  scale?: number;
-}
 
-export function AnomalyModel({ type, position, scale = 1 }: AnomalyModelProps) {
-  const groupRef = useRef<THREE.Group>(null);
-
-  const modelPath = useMemo(() => {
-    switch (type) {
-      case 'nebula': return MODEL_PATHS.nebula;
-      case 'black_hole': return MODEL_PATHS.blackHole;
-      case 'space_station': return MODEL_PATHS.spaceStation;
-      case 'hyperspace_lane': return MODEL_PATHS.hyperspaceMarker;
-      default: return null;
-    }
-  }, [type]);
-  const { scene } = useGLTF(modelPath || MODEL_PATHS.nebula);
-  const clonedScene = useMemo(() => scene.clone(), [scene]);
-  useFrame(() => {
-    if (groupRef.current) {
-      if (type === 'black_hole') {
-        groupRef.current.rotation.y += 0.01;
-      } else if (type === 'nebula') {
-        groupRef.current.rotation.y += 0.002;
-      } else if (type === 'space_station') {
-        groupRef.current.rotation.y += 0.005;
-      }
-    }
-  });
-
-  if (!modelPath) return null;
-
-  return (
-    <group ref={groupRef} position={position} scale={scale}>
-      <primitive object={clonedScene} />
-    </group>
-  );
-}
 
 interface PlanetModelProps {
   planetId: string;
@@ -142,10 +100,7 @@ useGLTF.preload(MODEL_PATHS.sithDreadnought);
 useGLTF.preload(MODEL_PATHS.republicFrigate);
 useGLTF.preload(MODEL_PATHS.republicValor);
 useGLTF.preload(MODEL_PATHS.sithTerminus);
-useGLTF.preload(MODEL_PATHS.nebula);
-useGLTF.preload(MODEL_PATHS.blackHole);
-useGLTF.preload(MODEL_PATHS.spaceStation);
-useGLTF.preload(MODEL_PATHS.hyperspaceMarker);
+
 useGLTF.preload(MODEL_PATHS.civilianFreighter);
 useGLTF.preload(MODEL_PATHS.civilianCorvette);
 useGLTF.preload(MODEL_PATHS.civilianTransport);

@@ -11,11 +11,9 @@ export function MapControlsPanel() {
   const toggleFactionFilter = useGalaxyUIStore((s) => s.toggleFactionFilter);
   const factions = useFactionStore((s) => s.factions);
   const showFleets = useGalaxyUIStore((s) => s.showFleets);
-  const showAnomalies = useGalaxyUIStore((s) => s.showAnomalies);
   const showLabels = useGalaxyUIStore((s) => s.showLabels);
   const showCivilianTraffic = useGalaxyUIStore((s) => s.showCivilianTraffic);
   const toggleFleets = useGalaxyUIStore((s) => s.toggleFleets);
-  const toggleAnomalies = useGalaxyUIStore((s) => s.toggleAnomalies);
   const toggleLabels = useGalaxyUIStore((s) => s.toggleLabels);
   const toggleCivilianTraffic = useGalaxyUIStore((s) => s.toggleCivilianTraffic);
 
@@ -80,7 +78,6 @@ export function MapControlsPanel() {
                 <span className="text-[11px] uppercase tracking-wider mb-2.5 block" style={{ color: 'var(--holo-text-muted)' }}>Layers</span>
                 <div className="grid grid-cols-2 gap-[10px]">
                   <FilterBox active={showFleets} onClick={toggleFleets} label="Fleets" color="red" />
-                  <FilterBox active={showAnomalies} onClick={toggleAnomalies} label="Anomalies" color="purple" />
                   <FilterBox active={showLabels} onClick={toggleLabels} label="Labels" color="yellow" />
                   <FilterBox
                     active={showCivilianTraffic}
