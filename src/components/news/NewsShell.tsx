@@ -4,6 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import "@/styles/news.css";
 
 import { NewsFooter } from "@/components/news/NewsFooter";
+import { NotificationBell } from "@/components/NotificationBell";
 import { NewsProfileMenu } from "@/components/news/NewsProfileMenu";
 import {
   NewsThemeContext,
@@ -116,6 +117,7 @@ export function NewsShell({ children }: { children: ReactNode }) {
                     <path d="m21 21-4.3-4.3" />
                   </svg>
                 </button>
+                <NotificationBell variant="news" />
                 <NewsProfileMenu />
               </div>
             </div>

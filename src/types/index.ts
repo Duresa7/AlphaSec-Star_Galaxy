@@ -251,3 +251,15 @@ export interface GalaxyDataStore {
   saveAllChanges: () => Promise<void>;
   discardAllChanges: () => Promise<void>;
 }
+
+export type NotificationType = 'article' | 'update';
+
+export interface NotificationItem {
+  id: string;
+  type: NotificationType;
+  title: string;
+  message: string | null;
+  href: string;
+  createdAt: string;
+  read: boolean;
+}

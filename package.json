@@ -1,6 +1,6 @@
 {
   "name": "galaxy-map-live",
-  "version": "1.0.0",
+  "version": "1.3.0",
   "description": "Interactive 3D Galaxy Map - Old Republic Era",
   "type": "module",
   "scripts": {
@@ -33,6 +33,7 @@
     "vitest": "^4.0.18"
   },
   "dependencies": {
+    "@radix-ui/react-popover": "^1.1.15",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
     "@supabase/supabase-js": "^2.95.3",
