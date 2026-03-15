@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useRole } from '@/hooks/useRole';
-import { shouldShowAdminLoading } from './AdminRoute';
+import { shouldShowAdminLoading } from '@/utils/authGuard';
 
 const AUTH_GUARD_TIMEOUT_MS = 8_000;
 

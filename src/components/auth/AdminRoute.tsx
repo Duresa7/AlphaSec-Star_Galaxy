@@ -2,23 +2,9 @@ import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useRole } from '@/hooks/useRole';
+import { shouldShowAdminLoading } from '@/utils/authGuard';
 
 const AUTH_GUARD_TIMEOUT_MS = 8_000;
-
-export function shouldShowAdminLoading({
-  authResolved,
-  authWaitExpired,
-  hasSession,
-  profileLoadingInitial,
-}: {
-  authResolved: boolean;
-  authWaitExpired: boolean;
-  hasSession: boolean;
-  profileLoadingInitial: boolean;
-}): boolean {
-  if (!authResolved && !authWaitExpired) return true;
-  return hasSession && profileLoadingInitial && !authWaitExpired;
-}
 
 export function AdminRoute({ children }: { children: React.ReactNode }) {
   const { session, authResolved, profileLoadingInitial, supabaseConfigured } = useAuth();
