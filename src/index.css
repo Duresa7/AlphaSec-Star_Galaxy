@@ -15,6 +15,8 @@
   --holo-text-muted: rgba(200, 170, 110, 0.5);
 }
 
+@keyframes spin { to { transform: rotate(360deg); } }
+
 body {
   font-family: "Spline Sans", "Manrope", sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -2864,6 +2866,239 @@ body {
   transform: translateY(-1px);
   background: rgba(255, 255, 255, 0.18);
   box-shadow: 0 14px 28px rgba(0, 0, 0, 0.35);
+}
+
+.portfolio-hero__notification-bell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  cursor: pointer;
+  pointer-events: auto;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.3);
+  transition:
+    transform 0.2s,
+    background 0.2s,
+    box-shadow 0.2s;
+}
+
+.portfolio-hero__notification-bell:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.35);
+}
+
+.notification-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #e53e3e;
+  color: #fff;
+  font-family: "Manrope", "Spline Sans", sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.notification-popover {
+  width: 420px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.4);
+}
+
+.notification-popover__empty {
+  padding: 32px 20px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: "Manrope", "Spline Sans", sans-serif;
+  font-size: 14px;
+}
+
+.notification-popover__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.notification-popover__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px 22px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  transition: background 0.15s;
+}
+
+.notification-popover__item:last-child {
+  border-bottom: none;
+}
+
+.notification-popover__item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.notification-popover__item--read {
+  opacity: 0.5;
+}
+
+.notification-popover__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.6);
+  flex-shrink: 0;
+}
+
+.notification-popover__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-popover__link {
+  display: block;
+  color: #fff;
+  font-family: "Manrope", "Spline Sans", sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  text-decoration: none;
+  line-height: 1.5;
+  transition: color 0.15s;
+}
+
+.notification-popover__link:hover {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: underline;
+}
+
+.notification-popover__message {
+  margin: 6px 0 0;
+  color: rgba(255, 255, 255, 0.55);
+  font-family: "Manrope", "Spline Sans", sans-serif;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.notification-popover__time {
+  display: block;
+  margin-top: 8px;
+  color: rgba(255, 255, 255, 0.35);
+  font-family: "Manrope", "Spline Sans", sans-serif;
+  font-size: 12px;
+}
+
+.notification-popover__unread-dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: #e53e3e;
+}
+
+.notification-popover[data-variant="news"][data-theme="light"] {
+  background: #ffffff;
+  border: 1px solid rgba(12, 12, 12, 0.16);
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.05);
+}
+
+.notification-popover[data-variant="news"][data-theme="light"] .notification-popover__empty {
+  color: rgba(17, 17, 17, 0.5);
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.notification-popover[data-variant="news"][data-theme="light"] .notification-popover__item {
+  border-bottom-color: rgba(12, 12, 12, 0.08);
+}
+
+.notification-popover[data-variant="news"][data-theme="light"] .notification-popover__item:hover {
+  background: #f5f5f5;
+}
+
+.notification-popover[data-variant="news"][data-theme="light"] .notification-popover__icon {
+  color: rgba(17, 17, 17, 0.5);
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.notification-popover[data-variant="news"][data-theme="light"] .notification-popover__link {
+  color: #1a1a1a;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.notification-popover[data-variant="news"][data-theme="light"] .notification-popover__link:hover {
+  color: #1a73e8;
+}
+
+.notification-popover[data-variant="news"][data-theme="light"] .notification-popover__message {
+  color: #4a4a4a;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.notification-popover[data-variant="news"][data-theme="light"] .notification-popover__time {
+  color: rgba(17, 17, 17, 0.5);
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.notification-popover[data-variant="news"][data-theme="dark"] {
+  background: #101821;
+  border: 1px solid rgba(169, 188, 208, 0.26);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.32);
+}
+
+.notification-popover[data-variant="news"][data-theme="dark"] .notification-popover__empty {
+  color: rgba(190, 203, 218, 0.68);
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.notification-popover[data-variant="news"][data-theme="dark"] .notification-popover__item {
+  border-bottom-color: rgba(169, 188, 208, 0.14);
+}
+
+.notification-popover[data-variant="news"][data-theme="dark"] .notification-popover__item:hover {
+  background: #17212d;
+}
+
+.notification-popover[data-variant="news"][data-theme="dark"] .notification-popover__icon {
+  color: rgba(190, 203, 218, 0.68);
+}
+
+.notification-popover[data-variant="news"][data-theme="dark"] .notification-popover__link {
+  color: #ecf2f8;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.notification-popover[data-variant="news"][data-theme="dark"] .notification-popover__link:hover {
+  color: #8ab4ff;
+}
+
+.notification-popover[data-variant="news"][data-theme="dark"] .notification-popover__message {
+  color: #becbda;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.notification-popover[data-variant="news"][data-theme="dark"] .notification-popover__time {
+  color: rgba(190, 203, 218, 0.68);
+  font-family: "Inter", system-ui, sans-serif;
 }
 
 .admin-page {
