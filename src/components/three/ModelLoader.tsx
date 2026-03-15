@@ -14,6 +14,7 @@ const MODEL_PATHS = {
   civilianCorvette: '/models/ships/civilian_corvette.glb',
   civilianTransport: '/models/ships/civilian_transport.glb',
 
+  planetAlderaan: '/models/planets/alderaan.glb',
   planetCoruscant: '/models/planets/coruscant.glb',
   planetHoth: '/models/planets/hoth.glb',
   planetKorriban: '/models/planets/korriban.glb',
@@ -22,6 +23,7 @@ const MODEL_PATHS = {
   planetTython: '/models/planets/tython.glb',
 };
 const PLANET_MODEL_PATHS: Record<string, string> = {
+  'alderaan-prime': MODEL_PATHS.planetAlderaan,
   'coruscant-prime': MODEL_PATHS.planetCoruscant,
   'hoth-prime': MODEL_PATHS.planetHoth,
   'korriban-prime': MODEL_PATHS.planetKorriban,
@@ -104,6 +106,7 @@ useGLTF.preload(MODEL_PATHS.sithTerminus);
 useGLTF.preload(MODEL_PATHS.civilianFreighter);
 useGLTF.preload(MODEL_PATHS.civilianCorvette);
 useGLTF.preload(MODEL_PATHS.civilianTransport);
+useGLTF.preload(MODEL_PATHS.planetAlderaan);
 
 export function GalaxySkybox() {
   return <ProceduralSkybox />;
