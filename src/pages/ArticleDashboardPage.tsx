@@ -14,10 +14,13 @@ import {
   deleteTimelineEntry,
 } from '@/data/timelineStorage';
 import { fetchFeedback, deleteFeedback } from '@/data/feedbackStorage';
+import { createNotification } from '@/data/notificationStorage';
 import type { Article } from '@/data/articleTypes';
 import type { TimelineEntry, TimelineEntryType } from '@/data/timelineStorage';
 import type { FeedbackEntry } from '@/data/feedbackStorage';
 import { formatDate } from '@/utils/format';
+
+const DASH_PAGE_SIZE = 10;
 
 const EMPTY_ENTRY_FORM = {
   title: '',
@@ -49,6 +52,9 @@ export function ArticleDashboardPage() {
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   const [entryForm, setEntryForm] = useState<EntryForm>(EMPTY_ENTRY_FORM);
   const [savingEntry, setSavingEntry] = useState(false);
+  const [articlePage, setArticlePage] = useState(0);
+  const [entryPage, setEntryPage] = useState(0);
+  const [feedbackPage, setFeedbackPage] = useState(0);
 
   const loadAll = useCallback(() => {
     setLoading(true);
@@ -161,8 +167,25 @@ export function ArticleDashboardPage() {
     }
   }, [loadAll]);
 
+  const handleNotify = useCallback(async (
+    type: 'article' | 'update', title: string, href: string, message?: string,
+  ) => {
+    if (!window.confirm(`Send notification for "${title}"?`)) return;
+    const ok = await createNotification(type, title, href, message);
+    alert(ok ? 'Notification sent.' : 'Failed to send notification.');
+  }, []);
+
   const setField = (field: keyof EntryForm, value: string) =>
     setEntryForm((prev) => ({ ...prev, [field]: value }));
+
+  const articleTotalPages = Math.max(1, Math.ceil(articles.length / DASH_PAGE_SIZE));
+  const pagedArticles = articles.slice(articlePage * DASH_PAGE_SIZE, (articlePage + 1) * DASH_PAGE_SIZE);
+
+  const entryTotalPages = Math.max(1, Math.ceil(entries.length / DASH_PAGE_SIZE));
+  const pagedEntries = entries.slice(entryPage * DASH_PAGE_SIZE, (entryPage + 1) * DASH_PAGE_SIZE);
+
+  const feedbackTotalPages = Math.max(1, Math.ceil(feedback.length / DASH_PAGE_SIZE));
+  const pagedFeedback = feedback.slice(feedbackPage * DASH_PAGE_SIZE, (feedbackPage + 1) * DASH_PAGE_SIZE);
 
   return (
     <NewsShell>
@@ -202,7 +225,7 @@ export function ArticleDashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {articles.map((a) => (
+                {pagedArticles.map((a) => (
                   <tr key={a.id} className="article-dash__row">
                     <td className="article-dash__td article-dash__td--title">
                       <Link to={`/news/${a.slug}`} className="article-dash__link">
@@ -244,6 +267,13 @@ export function ArticleDashboardPage() {
                         Edit
                       </Link>
                       <button
+                        type="button"
+                        className="news-btn news-btn--small"
+                        onClick={() => handleNotify('article', 'New Blog Post', `/news/${a.slug}`, a.title)}
+                      >
+                        Notify
+                      </button>
+                      <button
                         className="news-btn news-btn--small news-btn--danger"
                         onClick={() => handleDeleteArticle(a.id, a.title)}
                       >
@@ -254,6 +284,13 @@ export function ArticleDashboardPage() {
                 ))}
               </tbody>
             </table>
+            {articleTotalPages > 1 && (
+              <div className="article-dash__pagination">
+                <button disabled={articlePage === 0} onClick={() => setArticlePage(p => p - 1)}>Prev</button>
+                <span>Page {articlePage + 1} of {articleTotalPages}</span>
+                <button disabled={articlePage + 1 >= articleTotalPages} onClick={() => setArticlePage(p => p + 1)}>Next</button>
+              </div>
+            )}
           </div>
         )}
 
@@ -351,7 +388,7 @@ export function ArticleDashboardPage() {
 
           {entries.length > 0 && (
             <div className="article-dash__entry-list">
-              {entries.map((e) => {
+              {pagedEntries.map((e) => {
                 const { description, detailPreview, hasExpandedDetails } =
                   getDashboardEntryPreview(e);
 
@@ -381,6 +418,13 @@ export function ArticleDashboardPage() {
                         Edit
                       </button>
                       <button
+                        type="button"
+                        className="news-btn news-btn--small"
+                        onClick={() => handleNotify('update', `New Update: ${e.title}`, '/services')}
+                      >
+                        Notify
+                      </button>
+                      <button
                         className="news-btn news-btn--small news-btn--danger"
                         onClick={() => handleDeleteEntry(e.id, e.title)}
                       >
@@ -390,6 +434,13 @@ export function ArticleDashboardPage() {
                   </div>
                 );
               })}
+              {entryTotalPages > 1 && (
+                <div className="article-dash__pagination">
+                  <button disabled={entryPage === 0} onClick={() => setEntryPage(p => p - 1)}>Prev</button>
+                  <span>Page {entryPage + 1} of {entryTotalPages}</span>
+                  <button disabled={entryPage + 1 >= entryTotalPages} onClick={() => setEntryPage(p => p + 1)}>Next</button>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -418,7 +469,7 @@ export function ArticleDashboardPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {feedback.map((f) => (
+                  {pagedFeedback.map((f) => (
                     <tr key={f.id} className="article-dash__row">
                       <td className="article-dash__td">{f.display_name}</td>
                       <td className="article-dash__td">
@@ -444,6 +495,13 @@ export function ArticleDashboardPage() {
                   ))}
                 </tbody>
               </table>
+              {feedbackTotalPages > 1 && (
+                <div className="article-dash__pagination">
+                  <button disabled={feedbackPage === 0} onClick={() => setFeedbackPage(p => p - 1)}>Prev</button>
+                  <span>Page {feedbackPage + 1} of {feedbackTotalPages}</span>
+                  <button disabled={feedbackPage + 1 >= feedbackTotalPages} onClick={() => setFeedbackPage(p => p + 1)}>Next</button>
+                </div>
+              )}
             </div>
           )}
         </div>

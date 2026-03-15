@@ -51,7 +51,10 @@ export function ArticlePage() {
     setLoading(true);
     setNotFound(false);
 
-    fetchArticleBySlug(slug ?? '').then((data) => {
+    Promise.all([
+      fetchArticleBySlug(slug ?? ''),
+      fetchArticles({ limit: 4 }),
+    ]).then(([data, all]) => {
       if (cancelled) return;
       if (!data) {
         setNotFound(true);
@@ -59,15 +62,11 @@ export function ArticlePage() {
         return;
       }
       setArticle(data);
+      const others = all.filter(a => a.slug !== data.slug);
+      const sameCat = others.filter(a => a.category === data.category);
+      const backfill = others.filter(a => a.category !== data.category);
+      setRelated([...sameCat, ...backfill].slice(0, 3));
       setLoading(false);
-
-      fetchArticles({ limit: 4 }).then((all) => {
-        if (cancelled) return;
-        const others = all.filter(a => a.slug !== data.slug);
-        const sameCat = others.filter(a => a.category === data.category);
-        const backfill = others.filter(a => a.category !== data.category);
-        setRelated([...sameCat, ...backfill].slice(0, 3));
-      });
     });
 
     return () => { cancelled = true; };
