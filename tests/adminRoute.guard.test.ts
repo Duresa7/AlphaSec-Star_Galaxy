@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { shouldShowAdminLoading } from '../src/components/auth/AdminRoute';
+import { shouldShowAdminLoading } from '../src/utils/authGuard';
 
 describe('shouldShowAdminLoading', () => {
   it('blocks while initial auth has not resolved', () => {

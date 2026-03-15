@@ -4,6 +4,7 @@ import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { ProceduralSkybox } from './ProceduralSkybox';
 import type { ShipModelType } from '@/types';
+import { getPlanetModelPath } from '@/utils/planetModels';
 
 const MODEL_PATHS = {
   sithDreadnought: '/models/ships/sith_dreadnought.glb',
@@ -13,23 +14,6 @@ const MODEL_PATHS = {
   civilianFreighter: '/models/ships/civilian_freighter.glb',
   civilianCorvette: '/models/ships/civilian_corvette.glb',
   civilianTransport: '/models/ships/civilian_transport.glb',
-
-  planetAlderaan: '/models/planets/alderaan.glb',
-  planetCoruscant: '/models/planets/coruscant.glb',
-  planetHoth: '/models/planets/hoth.glb',
-  planetKorriban: '/models/planets/korriban.glb',
-  planetQuesh: '/models/planets/quesh.glb',
-  planetTatooine: '/models/planets/tatooine.glb',
-  planetTython: '/models/planets/tython.glb',
-};
-const PLANET_MODEL_PATHS: Record<string, string> = {
-  'alderaan-prime': MODEL_PATHS.planetAlderaan,
-  'coruscant-prime': MODEL_PATHS.planetCoruscant,
-  'hoth-prime': MODEL_PATHS.planetHoth,
-  'korriban-prime': MODEL_PATHS.planetKorriban,
-  'quesh-prime': MODEL_PATHS.planetQuesh,
-  'tatooine-prime': MODEL_PATHS.planetTatooine,
-  'tython-prime': MODEL_PATHS.planetTython,
 };
 
 interface ShipModelProps {
@@ -83,7 +67,7 @@ interface PlanetModelProps {
 export function PlanetModel({ planetId, position, scale = 1, rotation = [0, 0, 0] }: PlanetModelProps) {
   const groupRef = useRef<THREE.Group>(null);
 
-  const modelPath = PLANET_MODEL_PATHS[planetId];
+  const modelPath = getPlanetModelPath(planetId);
   const { scene } = useGLTF(modelPath);
   const clonedScene = useMemo(() => scene.clone(), [scene]);
 
@@ -94,10 +78,6 @@ export function PlanetModel({ planetId, position, scale = 1, rotation = [0, 0, 0
   );
 }
 
-export function hasPlanetModel(planetId: string): boolean {
-  return planetId in PLANET_MODEL_PATHS;
-}
-
 useGLTF.preload(MODEL_PATHS.sithDreadnought);
 useGLTF.preload(MODEL_PATHS.republicFrigate);
 useGLTF.preload(MODEL_PATHS.republicValor);
@@ -106,7 +86,6 @@ useGLTF.preload(MODEL_PATHS.sithTerminus);
 useGLTF.preload(MODEL_PATHS.civilianFreighter);
 useGLTF.preload(MODEL_PATHS.civilianCorvette);
 useGLTF.preload(MODEL_PATHS.civilianTransport);
-useGLTF.preload(MODEL_PATHS.planetAlderaan);
 
 export function GalaxySkybox() {
   return <ProceduralSkybox />;

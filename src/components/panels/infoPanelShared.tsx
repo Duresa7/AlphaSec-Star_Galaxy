@@ -153,11 +153,3 @@ export function AddFactionControl({
     </button>
   );
 }
-
-export function formatRegion(region: string): string {
-  return region.split('_').map(capitalizeFirst).join(' ');
-}
-
-export function capitalizeFirst(str: string): string {
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}

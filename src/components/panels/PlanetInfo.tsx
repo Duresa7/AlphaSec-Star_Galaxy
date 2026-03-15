@@ -4,7 +4,7 @@ import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
 import { useGalaxyDataStore } from '@/store/galaxyDataStore';
 import { useFactionStore } from '@/store/factionStore';
 import { EditableStatCard, AddFactionControl } from '@/components/panels/infoPanelShared';
-import { PLANET_APPEARANCES } from '@/components/galaxy/SystemDetailView';
+import { PLANET_APPEARANCES } from '@/config/planetAppearances';
 import { normalizeFactionControl } from '@/utils/factionControl';
 import { useEditableField } from '@/hooks/useEditableField';
 import {
@@ -70,7 +70,10 @@ export function PlanetInfo({ planet, editable }: PlanetInfoProps) {
 
   const [editingFaction, setEditingFaction] = useState(false);
 
-  const factionControl = planet.factionControl || { [planet.faction]: 100 };
+  const factionControl = useMemo(
+    () => planet.factionControl || { [planet.faction]: 100 },
+    [planet.factionControl, planet.faction],
+  );
   const system = systems.find((s) => s.id === planet.systemId);
 
   const markerSize =

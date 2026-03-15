@@ -9,6 +9,7 @@ export function GalaxyOverview() {
   const factions = useFactionStore((s) => s.factions);
   const activeModule = useGalaxyUIStore((s) => s.activeModule);
   const getFactionStats = useGalaxyDataStore((s) => s.getFactionStats);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const factionStats = useMemo(() => getFactionStats(), [systems, fleets, factions, getFactionStats]);
 
   if (activeModule !== 'overview') return null;

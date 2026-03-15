@@ -2,7 +2,8 @@ import type { StarSystem } from '@/types';
 import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
 import { useGalaxyDataStore } from '@/store/galaxyDataStore';
 import { useFactionStore } from '@/store/factionStore';
-import { InfoRow, formatRegion, capitalizeFirst } from '@/components/panels/infoPanelShared';
+import { InfoRow } from '@/components/panels/infoPanelShared';
+import { formatRegion, capitalizeFirst } from '@/utils/format';
 import {
   DEFAULT_TOPDOWN_SYSTEM_MARKER_SIZE,
 } from '@/config/topDownMarkerConfig';
