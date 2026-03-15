@@ -122,6 +122,32 @@ export function CreditsPage() {
 
           <details className="legal-accordion__item">
             <summary className="legal-accordion__summary">
+              Alderaan
+              <span className="legal-accordion__tag legal-accordion__tag--modified">CC BY 4.0 / Modified</span>
+            </summary>
+            <div className="legal-accordion__body">
+              <ul>
+                <li><strong>Author:</strong> uperesito</li>
+                <li><strong>Original title:</strong> Io Terraformed</li>
+                <li>
+                  <strong>Source:</strong>{' '}
+                  <a href="https://skfb.ly/6oYuZ" target="_blank" rel="noopener noreferrer">
+                    https://skfb.ly/6oYuZ
+                  </a>
+                </li>
+                <li>
+                  <strong>License:</strong>{' '}
+                  <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">
+                    Creative Commons Attribution 4.0 (CC BY 4.0)
+                  </a>
+                </li>
+                <li><strong>Changes:</strong> Modified and adapted for use as Alderaan in this application</li>
+              </ul>
+            </div>
+          </details>
+
+          <details className="legal-accordion__item">
+            <summary className="legal-accordion__summary">
               Tatooine
               <span className="legal-accordion__tag legal-accordion__tag--modified">CC BY 4.0 / Modified</span>
             </summary>
@@ -193,6 +219,38 @@ export function CreditsPage() {
                   </a>
                 </li>
                 <li><strong>Changes:</strong> None</li>
+              </ul>
+            </div>
+          </details>
+
+          <details className="legal-accordion__item">
+            <summary className="legal-accordion__summary">
+              Hoth
+              <span className="legal-accordion__tag legal-accordion__tag--modified">CC BY 4.0 / Modified</span>
+            </summary>
+            <div className="legal-accordion__body">
+              <ul>
+                <li><strong>Author:</strong> LazarCraze</li>
+                <li><strong>Original title:</strong> Cryonox</li>
+                <li>
+                  <strong>Source:</strong>{' '}
+                  <a href="https://skfb.ly/pvZSG" target="_blank" rel="noopener noreferrer">
+                    https://skfb.ly/pvZSG
+                  </a>
+                </li>
+                <li>
+                  <strong>Alternate listing:</strong>{' '}
+                  <a href="https://open3dmodel.com/3d-models/sci-fi-planet-hoth_485302.html" target="_blank" rel="noopener noreferrer">
+                    open3dmodel.com
+                  </a>
+                </li>
+                <li>
+                  <strong>License:</strong>{' '}
+                  <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">
+                    Creative Commons Attribution 4.0 (CC BY 4.0)
+                  </a>
+                </li>
+                <li><strong>Changes:</strong> Modified and adapted for use as Hoth in this application</li>
               </ul>
             </div>
           </details>
