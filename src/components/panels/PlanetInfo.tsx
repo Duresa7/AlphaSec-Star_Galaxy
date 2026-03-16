@@ -171,7 +171,7 @@ export function PlanetInfo({ planet, editable }: PlanetInfoProps) {
           className="w-full"
           style={{ height: '3px', marginTop: '10px', marginBottom: '14px', backgroundColor: getFactionBarColor(planet.faction), opacity: 0.6 }}
         />
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-3">
           {editable && editingType ? (
             <input
               type="text"
@@ -200,14 +200,16 @@ export function PlanetInfo({ planet, editable }: PlanetInfoProps) {
             </span>
           )}
           <div
-            className="holo-faction-territory text-[12px] font-medium tracking-wide flex items-center gap-2"
+            className="holo-faction-territory min-w-0 max-w-full text-[12px] font-medium tracking-wide"
             style={{ color: getFactionBarColor(planet.faction) }}
           >
             <span
-              className="w-2.5 h-2.5 rounded-full shadow-[0_0_8px_currentColor]"
+              className="holo-faction-dot h-2.5 w-2.5 shrink-0 shadow-[0_0_8px_currentColor]"
               style={{ backgroundColor: getFactionBarColor(planet.faction) }}
             />
-            {getFactionLabel(planet.faction)}
+            <span className="min-w-0 truncate">
+              {getFactionLabel(planet.faction)}
+            </span>
           </div>
         </div>
       </motion.div>
@@ -316,15 +318,20 @@ export function PlanetInfo({ planet, editable }: PlanetInfoProps) {
         {!editingFaction ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {sortedFactions.map(([faction, pct], barIdx) => (
-              <div key={faction} className="holo-faction-bar-row">
-                <span className="text-[11px] text-white/50 w-[90px] truncate flex items-center gap-1.5">
+              <div
+                key={faction}
+                className="flex items-center gap-2"
+              >
+                <span className="flex min-w-0 max-w-[42%] shrink items-center gap-1.5 text-[11px] text-white/50">
                   <span
                     className="w-1.5 h-1.5 rounded-full shrink-0"
                     style={{ backgroundColor: getFactionBarColor(faction), boxShadow: `0 0 6px ${getFactionBarColor(faction)}` }}
                   />
-                  {getFactionLabel(faction)}
+                  <span className="min-w-0 truncate">
+                    {getFactionLabel(faction)}
+                  </span>
                 </span>
-                <div className="holo-faction-bar-track">
+                <div className="holo-faction-bar-track min-w-0 flex-1">
                   <motion.div
                     className="holo-faction-bar-fill"
                     initial={{ width: 0 }}
@@ -333,7 +340,7 @@ export function PlanetInfo({ planet, editable }: PlanetInfoProps) {
                     style={{ backgroundColor: getFactionBarColor(faction), color: getFactionBarColor(faction) }}
                   />
                 </div>
-                <span className="text-[12px] font-semibold w-[36px] text-right" style={{ color: getFactionBarColor(faction) }}>{pct}%</span>
+                <span className="w-[36px] shrink-0 text-right text-[12px] font-semibold" style={{ color: getFactionBarColor(faction) }}>{pct}%</span>
               </div>
             ))}
           </div>
