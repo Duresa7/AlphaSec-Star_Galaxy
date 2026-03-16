@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { GalaxyScene } from '@/components/galaxy/GalaxyScene';
 import { InfoPanel } from '@/components/panels/InfoPanel';
@@ -340,31 +341,44 @@ export function MapPage() {
 
           <InfoPanel />
 
-          {isAdmin && hasPendingChanges && (
-            <div className="absolute bottom-20 right-6 z-50 flex items-center gap-3 animate-slide-in-right">
-              <button
-                onClick={async () => {
-                  setSaving(true);
-                  await saveAllChanges();
-                  setSaving(false);
-                }}
-                disabled={saving}
-                className="holo-button holo-button-sm"
+          <AnimatePresence>
+            {isAdmin && hasPendingChanges && (
+              <motion.div
+                className="absolute bottom-20 right-6 z-50 flex items-center gap-3"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.25, ease: 'easeOut' }}
               >
-                {saving ? 'Saving...' : 'Save Changes'}
-              </button>
-              <button
-                onClick={() => discardAllChanges()}
-                disabled={saving}
-                className="holo-button holo-button-sm holo-button-danger"
-              >
-                Discard
-              </button>
-            </div>
-          )}
+                <button
+                  onClick={async () => {
+                    setSaving(true);
+                    await saveAllChanges();
+                    setSaving(false);
+                  }}
+                  disabled={saving}
+                  className="holo-button holo-button-sm"
+                >
+                  {saving ? 'Saving...' : 'Save Changes'}
+                </button>
+                <button
+                  onClick={() => discardAllChanges()}
+                  disabled={saving}
+                  className="holo-button holo-button-sm holo-button-danger"
+                >
+                  Discard
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {viewMode === 'topdown' && (
-            <div className="absolute top-20 right-6 z-40 flex flex-col gap-2">
+            <motion.div
+              className="absolute top-20 right-6 z-40 flex flex-col gap-2"
+              initial={{ opacity: 0, x: 12 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3, ease: 'easeOut', delay: 0.2 }}
+            >
               <button
                 onClick={() => requestZoom(-1)}
                 className="holo-button holo-button-sm"
@@ -395,11 +409,16 @@ export function MapPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 14a9 9 0 01-17.36 2.35" />
                 </svg>
               </button>
-            </div>
+            </motion.div>
           )}
 
           {viewMode !== 'topdown' && (
-            <div className="absolute top-20 left-5 z-40">
+            <motion.div
+              className="absolute top-20 left-5 z-40"
+              initial={{ opacity: 0, x: -12 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+            >
               <button
                 onClick={() => {
                   if (viewMode === 'fleet') setSelectedFleet(null);
@@ -413,19 +432,29 @@ export function MapPage() {
                 </svg>
                 <span>Galaxy Map</span>
               </button>
-            </div>
+            </motion.div>
           )}
 
-          <div className="absolute bottom-6 left-6 z-40">
+          <motion.div
+            className="absolute bottom-6 left-6 z-40"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, ease: 'easeOut', delay: 0.2 }}
+          >
             <Link to="/" className="holo-button holo-button-sm" style={TOOLBAR_BUTTON_STYLE}>
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
               </svg>
               <span>AlphaSec</span>
             </Link>
-          </div>
+          </motion.div>
 
-          <div className="absolute bottom-6 right-6 z-40">
+          <motion.div
+            className="absolute bottom-6 right-6 z-40"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, ease: 'easeOut', delay: 0.25 }}
+          >
             {isAdmin && (
               <Link to="/admin" className="holo-button holo-button-sm">
                 <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -435,13 +464,18 @@ export function MapPage() {
                 <span>Admin</span>
               </Link>
             )}
-          </div>
+          </motion.div>
 
-          <div className="absolute top-5 right-5 z-40">
+          <motion.div
+            className="absolute top-5 right-5 z-40"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, ease: 'easeOut', delay: 0.1 }}
+          >
             {session && (
               <div className="holo-account-shell">
                 <span
-                  className="px-4 py-2 text-[13px] font-semibold tracking-[0.1em] uppercase"
+                  className="px-3 py-1 text-[10px] font-semibold tracking-[0.1em] uppercase"
                   style={{ fontFamily: 'Oxanium, Orbitron, monospace', color: 'rgba(255, 255, 255, 0.8)' }}
                 >
                   {displayName}
@@ -454,9 +488,14 @@ export function MapPage() {
                 </button>
               </div>
             )}
-          </div>
+          </motion.div>
 
-          <div className="absolute top-5 left-1/2 -translate-x-1/2 text-center pointer-events-none z-0">
+          <motion.div
+            className="absolute top-5 left-1/2 -translate-x-1/2 text-center pointer-events-none z-0"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: 'easeOut', delay: 0.05 }}
+          >
             <div className="holo-title-bar">
               <h1
                 className="text-xl font-black tracking-[0.3em] uppercase mb-1"
@@ -492,7 +531,7 @@ export function MapPage() {
                 <div className="h-px w-12" style={{ background: 'linear-gradient(90deg, rgba(200, 170, 110, 0.3), transparent)' }} />
               </div>
             </div>
-          </div>
+          </motion.div>
         </>
       )}
 
