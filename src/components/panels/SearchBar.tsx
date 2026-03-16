@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
 import { useGalaxyUIStore } from '@/store/galaxyUIStore';
 import { useGalaxyDataStore } from '@/store/galaxyDataStore';
@@ -93,7 +94,13 @@ export function SearchBar() {
   if (activeModule !== 'search') return null;
 
   return (
-    <div ref={searchRef} className="absolute left-20 top-20 z-40 w-80 animate-slide-in-left-subtle">
+    <motion.div
+      ref={searchRef}
+      className="absolute left-20 top-20 z-40 w-80"
+      initial={{ opacity: 0, x: -12 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+    >
       <div className="holo-panel">
         <label className="holo-label holo-section-header mb-3 pointer-events-none">
           <span className="flex items-center gap-2">
@@ -120,35 +127,43 @@ export function SearchBar() {
           </div>
       </div>
 
-      {isSearchFocused && searchResults.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-2 z-50">
-          <div className="holo-panel overflow-hidden">
-            {searchResults.map((result) => (
-              <button
-                key={`${result.type}-${result.id}`}
-                onClick={() => handleSelectResult(result)}
-                className="w-full px-4 py-3 text-left hover:bg-amber-500/5 transition-colors flex items-center gap-3 border-b border-amber-500/10 last:border-0"
-              >
-                <span className={`text-[10px] font-semibold px-2 py-0.5 holo-badge holo-label-orbitron ${
-                  result.type === 'system'
-                    ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
-                    : result.type === 'fleet'
-                    ? 'bg-red-500/15 text-red-400 border border-red-500/30'
-                    : 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30'
-                }`}>
-                  {result.type === 'system' ? 'LOC' : result.type === 'fleet' ? 'FLT' : 'PLN'}
-                </span>
-                <div className="flex flex-col">
-                  <span className="text-gray-100 text-[14px] font-medium holo-body-text">{result.name}</span>
-                  {result.parentName && (
-                    <span className="text-gray-500 text-[12px]">in {result.parentName}</span>
-                  )}
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
+      <AnimatePresence>
+        {isSearchFocused && searchResults.length > 0 && (
+          <motion.div
+            className="absolute top-full left-0 right-0 mt-2 z-50"
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+          >
+            <div className="holo-panel overflow-hidden">
+              {searchResults.map((result) => (
+                <button
+                  key={`${result.type}-${result.id}`}
+                  onClick={() => handleSelectResult(result)}
+                  className="w-full px-4 py-3 text-left hover:bg-amber-500/5 transition-colors flex items-center gap-3 border-b border-amber-500/10 last:border-0"
+                >
+                  <span className={`text-[10px] font-semibold px-2 py-0.5 holo-badge holo-label-orbitron ${
+                    result.type === 'system'
+                      ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                      : result.type === 'fleet'
+                      ? 'bg-red-500/15 text-red-400 border border-red-500/30'
+                      : 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30'
+                  }`}>
+                    {result.type === 'system' ? 'LOC' : result.type === 'fleet' ? 'FLT' : 'PLN'}
+                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-gray-100 text-[14px] font-medium holo-body-text">{result.name}</span>
+                    {result.parentName && (
+                      <span className="text-gray-500 text-[12px]">in {result.parentName}</span>
+                    )}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }

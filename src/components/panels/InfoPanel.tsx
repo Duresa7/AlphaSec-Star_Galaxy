@@ -1,4 +1,5 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
 import { useGalaxyDataStore } from '@/store/galaxyDataStore';
 import { useRole } from '@/hooks/useRole';
@@ -94,7 +95,12 @@ export function InfoPanel() {
     [infoPanelData, viewMode, selectedSystemId, selectedPlanetId, selectedFleetId, systems, fleets],
   );
 
+  const [collapsed, setCollapsed] = useState(false);
+  const currentPanelId = panelData?.data?.id ?? null;
+
   if (!panelData) return null;
+
+  const panelLabel = panelData.data.name;
 
   const handleClose = () => {
     setInfoPanelData(null);
@@ -125,20 +131,64 @@ export function InfoPanel() {
   };
 
   return (
-    <div className="absolute right-4 top-4 z-50 w-[30rem] max-h-[calc(100vh-2rem)] animate-slide-in-right-subtle">
-      <div className="holo-panel max-h-[calc(100vh-2rem)] overflow-y-auto">
-
-        <button
-          onClick={handleClose}
-          className="holo-close-button absolute -top-2 right-4 z-10"
+    <AnimatePresence mode="wait">
+      {collapsed ? (
+        <motion.div
+          key="collapsed"
+          className="absolute z-50"
+          style={{ top: '20px', right: '220px' }}
+          initial={{ opacity: 0, scale: 0.92 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.92 }}
+          transition={{ duration: 0.15, ease: 'easeOut' }}
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+          <div
+            className="holo-panel flex items-center gap-3 cursor-pointer select-none"
+            style={{ padding: '8px 14px' }}
+            onClick={() => setCollapsed(false)}
+            title="Expand panel"
+          >
+            <span className="text-[11px] uppercase tracking-widest text-white/60 font-semibold" style={{ fontFamily: '"Oxanium", monospace' }}>
+              {panelLabel}
+            </span>
+          </div>
+        </motion.div>
+      ) : (
+        <motion.div
+          key="expanded"
+          className="absolute right-4 top-4 z-50 w-[30rem] max-h-[calc(100vh-2rem)]"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0, x: 40 }}
+          transition={{ duration: 0.15, ease: 'easeOut' }}
+        >
+          <div className="holo-panel" style={{ maxHeight: 'calc(100vh - 2rem)', overflowY: 'auto' }}>
 
-        <div className="space-y-4">{renderPanelContent(panelData)}</div>
-      </div>
-    </div>
+            <div className="absolute -top-2 right-4 z-10 flex items-center gap-1">
+              <button
+                onClick={handleClose}
+                className="holo-close-button"
+                title="Close panel"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+              <button
+                onClick={() => setCollapsed(true)}
+                className="holo-close-button"
+                title="Hide panel"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14" />
+                </svg>
+              </button>
+            </div>
+
+            <div key={currentPanelId} className="space-y-6">{renderPanelContent(panelData)}</div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
