@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import { useGalaxyDataStore } from '@/store/galaxyDataStore';
 import { useGalaxyUIStore } from '@/store/galaxyUIStore';
 import { useRole } from '@/hooks/useRole';
@@ -28,7 +29,12 @@ export function TimelineControl() {
   if (activeModule !== 'timeline') return null;
 
   return (
-    <div className="absolute left-20 top-[60%] z-40 w-[240px] animate-slide-in-left-subtle">
+    <motion.div
+      className="absolute left-20 top-[60%] z-40 w-[240px]"
+      initial={{ opacity: 0, x: -12 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+    >
       <div className="holo-panel">
         <div>
           <label className="holo-label holo-section-header pointer-events-none">
@@ -66,6 +72,6 @@ export function TimelineControl() {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

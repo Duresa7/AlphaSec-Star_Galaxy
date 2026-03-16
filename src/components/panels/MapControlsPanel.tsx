@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import { useGalaxyUIStore } from '@/store/galaxyUIStore';
 import { useFactionStore } from '@/store/factionStore';
 import { FilterBox } from '@/components/panels/FilterBox';
@@ -23,11 +24,14 @@ export function MapControlsPanel() {
   if (activeModule !== 'mapControls') return null;
 
   return (
-    <div
+    <motion.div
       className="absolute bottom-24 left-1/2 -translate-x-1/2 z-40"
       style={{ width: 'min(31rem, calc(100vw - 1.5rem))' }}
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
     >
-      <div className="animate-slide-up-subtle">
+      <div>
         <div className="holo-panel map-controls-panel">
           <label className="holo-label holo-section-header mb-5 pointer-events-none">
             <span className="flex items-center gap-2">
@@ -93,6 +97,6 @@ export function MapControlsPanel() {
           )}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

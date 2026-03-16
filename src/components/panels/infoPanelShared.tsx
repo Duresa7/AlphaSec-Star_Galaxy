@@ -110,6 +110,53 @@ export function EditableStatCard({
   );
 }
 
+export function EditableStatPill({
+  label,
+  value,
+  placeholder,
+  editable = true,
+  editing,
+  draft,
+  onStartEdit,
+  onDraftChange,
+  onSave,
+  onCancel,
+}: EditableFieldProps) {
+  return (
+    <div className="holo-stat-pill">
+      <span className="holo-stat-pill-label">{label}</span>
+      {!editable ? (
+        <span className="holo-stat-pill-value">{value || placeholder}</span>
+      ) : editing ? (
+        <div className="flex items-center gap-1">
+          <input
+            type="text"
+            value={draft}
+            onChange={(e) => onDraftChange(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') onSave();
+              if (e.key === 'Escape') onCancel();
+            }}
+            autoFocus
+            className="holo-input holo-field-input w-24 text-left text-sm"
+          />
+          <button onClick={onSave} className="holo-edit-action holo-edit-action-save px-1">
+            &#10003;
+          </button>
+        </div>
+      ) : (
+        <span
+          onClick={onStartEdit}
+          className="holo-stat-pill-value cursor-pointer hover:text-amber-400 transition-colors"
+          title={value ? `Click to edit (Current: ${value})` : 'Click to edit'}
+        >
+          {value || placeholder}
+        </span>
+      )}
+    </div>
+  );
+}
+
 export function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between text-[14px]">
