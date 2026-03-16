@@ -1,3 +1,4 @@
+import { motion } from "framer-motion";
 import { useGalaxyUIStore } from "@/store/galaxyUIStore";
 import { useRole } from "@/hooks/useRole";
 import { CustomPlanetsPanel } from "@/components/panels/CustomPlanetsPanel";
@@ -11,7 +12,12 @@ export function BottomActionBar() {
   const setActiveModule = useGalaxyUIStore((s) => s.setActiveModule);
 
   return (
-    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center justify-center gap-3 animate-slide-in-right">
+    <motion.div
+      className="absolute bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center justify-center gap-3"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, ease: 'easeOut', delay: 0.15 }}
+    >
       <div className="holo-toolbar">
         <button
           onClick={() => setActiveModule("mapControls")}
@@ -84,7 +90,7 @@ export function BottomActionBar() {
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }
 

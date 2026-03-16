@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { useGalaxyDataStore } from '@/store/galaxyDataStore';
 import { useFactionStore } from '@/store/factionStore';
 import { useGalaxyUIStore } from '@/store/galaxyUIStore';
@@ -15,7 +16,12 @@ export function GalaxyOverview() {
   if (activeModule !== 'overview') return null;
 
   return (
-    <div className="absolute left-20 top-20 z-40 w-80 animate-slide-in-left-subtle">
+    <motion.div
+      className="absolute left-20 top-20 z-40 w-80"
+      initial={{ opacity: 0, x: -12 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+    >
       <div className="holo-panel">
         <label className="holo-label holo-section-header mb-3 pointer-events-none">
           <span className="flex items-center gap-2">
@@ -27,14 +33,17 @@ export function GalaxyOverview() {
         </label>
 
         <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-2">
-          {factions.map((f) => {
+          {factions.map((f, i) => {
             const stats = factionStats[f.id];
             const color = f.barColor;
             if (!stats || (stats.planets === 0 && stats.fleets === 0 && stats.shipUnits === 0)) return null;
             return (
-              <div
+              <motion.div
                 key={f.id}
                 className="holo-overview-row"
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.1 + i * 0.06, duration: 0.3, ease: 'easeOut' }}
               >
                 <div
                   className="holo-status-dot"
@@ -57,11 +66,11 @@ export function GalaxyOverview() {
                     <div className="holo-overview-metric-label">SHIPS</div>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

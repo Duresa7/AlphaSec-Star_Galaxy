@@ -1,9 +1,10 @@
 import { useState, useCallback, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import type { Planet, PlanetType } from '@/types';
 import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
 import { useGalaxyDataStore } from '@/store/galaxyDataStore';
 import { useFactionStore } from '@/store/factionStore';
-import { EditableStatCard, AddFactionControl } from '@/components/panels/infoPanelShared';
+import { EditableStatPill, AddFactionControl } from '@/components/panels/infoPanelShared';
 import { PLANET_APPEARANCES } from '@/config/planetAppearances';
 import { normalizeFactionControl } from '@/utils/factionControl';
 import { useEditableField } from '@/hooks/useEditableField';
@@ -11,6 +12,15 @@ import {
   TOPDOWN_SYSTEM_MARKER_SIZE_BY_IMPORTANCE,
   DEFAULT_TOPDOWN_SYSTEM_MARKER_SIZE,
 } from '@/config/topDownMarkerConfig';
+
+const sectionVariants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.07, duration: 0.35, ease: 'easeOut' as const },
+  }),
+};
 
 const PLANET_TYPE_COLORS: Record<string, string> = {
   terrestrial: 'text-green-400',
@@ -34,6 +44,7 @@ const EDIT_TOGGLE_BTN =
   'text-[10px] uppercase tracking-wider text-white/30 hover:text-white/70 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100';
 const SAVE_BTN_BASE = 'px-3 py-1 text-[11px] border rounded transition-colors uppercase tracking-wider';
 const CANCEL_BTN = 'px-3 py-1 text-[11px] text-white/50 hover:text-white transition-colors uppercase tracking-wider';
+const PANEL_DIVIDER = 'w-full h-[1px] bg-white/15';
 
 interface PlanetInfoProps {
   planet: Planet;
@@ -149,13 +160,17 @@ export function PlanetInfo({ planet, editable }: PlanetInfoProps) {
   const formatHyperlanes = (routes?: string[]) => routes?.join(', ') ?? '';
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col">
 
       {/* ── 1. Header ────────────────────────────────────────────────────── */}
-      <div className="pb-8 pt-2">
-        <h2 className="text-3xl font-bold mb-3 tracking-wide text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
+      <motion.div custom={0} variants={sectionVariants} initial="hidden" animate="visible">
+        <h2 className="text-3xl font-bold tracking-wide text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
           {planet.name}
         </h2>
+        <div
+          className="w-full"
+          style={{ height: '3px', marginTop: '10px', marginBottom: '14px', backgroundColor: getFactionBarColor(planet.faction), opacity: 0.6 }}
+        />
         <div className="flex items-center gap-3">
           {editable && editingType ? (
             <input
@@ -195,14 +210,14 @@ export function PlanetInfo({ planet, editable }: PlanetInfoProps) {
             {getFactionLabel(planet.faction)}
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent mt-4 mb-6" />
+      <div className={`${PANEL_DIVIDER} my-3`} />
 
-      {/* ── 2. Stats Grid ────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 gap-4 pb-8">
-        <EditableStatCard
-          label="CLIMATE"
+      {/* ── 2. Stats ──────────────────────────────────────────────────────── */}
+      <motion.div custom={1} variants={sectionVariants} initial="hidden" animate="visible" className="flex flex-wrap gap-2">
+        <EditableStatPill
+          label="Climate"
           value={planet.climate || ''}
           placeholder="Unknown"
           editable={editable}
@@ -213,8 +228,8 @@ export function PlanetInfo({ planet, editable }: PlanetInfoProps) {
           onSave={() => { updateStats({ climate: climate.draft }); climate.stopEditing(); }}
           onCancel={climate.cancel}
         />
-        <EditableStatCard
-          label="TERRAIN"
+        <EditableStatPill
+          label="Terrain"
           value={planet.terrain || ''}
           placeholder="Unknown"
           editable={editable}
@@ -225,8 +240,8 @@ export function PlanetInfo({ planet, editable }: PlanetInfoProps) {
           onSave={() => { updateStats({ terrain: terrain.draft }); terrain.stopEditing(); }}
           onCancel={terrain.cancel}
         />
-        <EditableStatCard
-          label="NATIVE INHABITANTS"
+        <EditableStatPill
+          label="Inhabitants"
           value={planet.nativeInhabitants || ''}
           placeholder="Unknown"
           editable={editable}
@@ -237,10 +252,10 @@ export function PlanetInfo({ planet, editable }: PlanetInfoProps) {
           onSave={() => { updateStats({ nativeInhabitants: inhabitants.draft }); inhabitants.stopEditing(); }}
           onCancel={inhabitants.cancel}
         />
-        <EditableStatCard
-          label="HYPERLANE ROUTES"
+        <EditableStatPill
+          label="Hyperlanes"
           value={formatHyperlanes(planet.hyperlanes)}
-          placeholder="None set"
+          placeholder="None"
           editable={editable}
           editing={hyperlanes.editing}
           draft={hyperlanes.draft}
@@ -253,13 +268,15 @@ export function PlanetInfo({ planet, editable }: PlanetInfoProps) {
           }}
           onCancel={hyperlanes.cancel}
         />
-      </div>
+      </motion.div>
 
       {/* ── 3. Planet Color (admin-only) ─────────────────────────────────── */}
       {editable && (
-        <div className="pt-6">
+        <>
+        <div className={`${PANEL_DIVIDER} my-2`} />
+        <div className="py-1">
           <label className={SECTION_LABEL}>Planet Color</label>
-          <div className="flex items-center gap-3 mt-4">
+          <div className="flex items-center gap-3" style={{ marginTop: '14px' }}>
             <input
               type="color"
               value={planet.customColor || defaultPlanetColor}
@@ -279,11 +296,14 @@ export function PlanetInfo({ planet, editable }: PlanetInfoProps) {
             )}
           </div>
         </div>
+        </>
       )}
 
+      <div className={`${PANEL_DIVIDER} my-2`} />
+
       {/* ── 4. Faction Control ───────────────────────────────────────────── */}
-      <div className="pt-8 pb-8 group">
-        <div className="flex justify-between items-center mb-8">
+      <motion.div custom={3} variants={sectionVariants} initial="hidden" animate="visible" className="group" style={{ paddingTop: '4px', paddingBottom: '4px' }}>
+        <div className="flex justify-between items-center" style={{ marginBottom: '16px' }}>
           <h3 className={SECTION_LABEL}>Faction Control</h3>
           {editable && (
             <button onClick={() => setEditingFaction(!editingFaction)} className={EDIT_TOGGLE_BTN}>
@@ -292,32 +312,28 @@ export function PlanetInfo({ planet, editable }: PlanetInfoProps) {
           )}
         </div>
 
-        {/* Influence bar */}
-        <div className="holo-control-meter h-1.5 rounded-full overflow-hidden bg-white/5 mb-3 flex">
-          {sortedFactions.map(([faction, pct]) => (
-            <div
-              key={faction}
-              className="h-full transition-all duration-500 ease-out shadow-[0_0_10px_currentColor]"
-              style={{
-                width: `${pct}%`,
-                backgroundColor: getFactionBarColor(faction),
-                color: getFactionBarColor(faction),
-              }}
-            />
-          ))}
-        </div>
-
-        {/* Summary vs. Edit mode */}
+        {/* Stacked faction bars */}
         {!editingFaction ? (
-          <div className="flex flex-wrap gap-x-4 gap-y-1">
-            {sortedFactions.map(([faction, pct]) => (
-              <div key={faction} className="flex items-center gap-1.5 text-[12px]">
-                <span
-                  className="w-1.5 h-1.5 rounded-full shadow-[0_0_4px_currentColor]"
-                  style={{ backgroundColor: getFactionBarColor(faction), color: getFactionBarColor(faction) }}
-                />
-                <span className="text-white/60">{getFactionLabel(faction)}</span>
-                <span className="font-semibold" style={{ color: getFactionBarColor(faction) }}>{pct}%</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {sortedFactions.map(([faction, pct], barIdx) => (
+              <div key={faction} className="holo-faction-bar-row">
+                <span className="text-[11px] text-white/50 w-[90px] truncate flex items-center gap-1.5">
+                  <span
+                    className="w-1.5 h-1.5 rounded-full shrink-0"
+                    style={{ backgroundColor: getFactionBarColor(faction), boxShadow: `0 0 6px ${getFactionBarColor(faction)}` }}
+                  />
+                  {getFactionLabel(faction)}
+                </span>
+                <div className="holo-faction-bar-track">
+                  <motion.div
+                    className="holo-faction-bar-fill"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${pct}%` }}
+                    transition={{ delay: 0.3 + barIdx * 0.12, duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] }}
+                    style={{ backgroundColor: getFactionBarColor(faction), color: getFactionBarColor(faction) }}
+                  />
+                </div>
+                <span className="text-[12px] font-semibold w-[36px] text-right" style={{ color: getFactionBarColor(faction) }}>{pct}%</span>
               </div>
             ))}
           </div>
@@ -365,16 +381,18 @@ export function PlanetInfo({ planet, editable }: PlanetInfoProps) {
             )}
           </div>
         )}
-      </div>
+      </motion.div>
+
+      <div className={`${PANEL_DIVIDER} my-2`} />
 
       {/* ── 5. Planetary Record ──────────────────────────────────────────── */}
-      <div className="pt-8 group">
-        <div className="flex justify-between items-center mb-4">
+      <motion.div custom={4} variants={sectionVariants} initial="hidden" animate="visible" className="group" style={{ paddingTop: '4px', paddingBottom: '4px' }}>
+        <div className="flex justify-between items-center" style={{ marginBottom: '16px' }}>
           <h3 className={SECTION_LABEL}>Planetary Record</h3>
         </div>
 
         {editable && description.editing ? (
-          <div className="mt-1">
+          <div className="holo-recessed-card">
             <textarea
               value={description.draft}
               onChange={(e) => description.setDraft(e.target.value)}
@@ -388,9 +406,10 @@ export function PlanetInfo({ planet, editable }: PlanetInfoProps) {
               }}
               autoFocus
               rows={4}
-              className="holo-input holo-field-textarea w-full text-[14px] leading-relaxed p-3 bg-white/[0.02] border-white/5 focus:border-white/20 transition-colors"
+              className="holo-input holo-field-textarea w-full text-[13px] leading-relaxed p-0 bg-transparent border-none focus:border-none focus:ring-0"
+              style={{ outline: 'none', boxShadow: 'none' }}
             />
-            <div className="flex gap-2 justify-end mt-2">
+            <div className="flex gap-2 justify-end" style={{ marginTop: '10px' }}>
               <button onClick={description.cancel} className={CANCEL_BTN}>
                 Cancel
               </button>
@@ -403,32 +422,34 @@ export function PlanetInfo({ planet, editable }: PlanetInfoProps) {
             </div>
           </div>
         ) : (
-          <div>
+          <div className="holo-recessed-card">
             <div
               onClick={editable ? () => description.startEdit(planet.description || '') : undefined}
-              className={`text-[13px] leading-relaxed text-white/80 ${
-                !expandedRecord ? 'line-clamp-2' : ''
-              } ${editable ? 'cursor-text hover:text-white transition-colors' : ''}`}
+              className={`text-[13px] leading-relaxed text-white/70 ${
+                !expandedRecord ? 'line-clamp-3' : 'overflow-y-auto'
+              } ${editable ? 'cursor-text hover:text-white/90 transition-colors' : ''}`}
+              style={expandedRecord ? { maxHeight: '200px' } : undefined}
               title={editable ? 'Click to edit' : undefined}
             >
-              {planet.description || <span className="text-white/30 italic">No planetary records found.</span>}
+              {planet.description || <span className="text-white/25 italic">No planetary records on file.</span>}
             </div>
 
             {planet.description && planet.description.length > DESCRIPTION_EXPAND_THRESHOLD && (
               <button
                 onClick={() => setExpandedRecord(!expandedRecord)}
-                className="text-[10px] text-amber-500/70 hover:text-amber-400 uppercase tracking-widest mt-1.5 transition-colors"
+                className="text-[10px] text-amber-500/70 hover:text-amber-400 uppercase tracking-widest transition-colors"
+                style={{ marginTop: '8px' }}
               >
-                {expandedRecord ? 'Show Less' : 'Read More'}
+                {expandedRecord ? 'Collapse' : 'Read Full Record'}
               </button>
             )}
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* ── 6. Top-Down Marker Size (admin + topdown only) ───────────────── */}
       {editable && viewMode === 'topdown' && (
-        <div className="pt-8">
+        <div>
           <label className={`${SECTION_LABEL} mb-4 block`}>Top-Down Marker Size</label>
           <div className="flex items-center gap-2">
             <input
@@ -445,9 +466,11 @@ export function PlanetInfo({ planet, editable }: PlanetInfoProps) {
         </div>
       )}
 
+      <div className={`${PANEL_DIVIDER} my-3`} />
+
       {/* ── 7. Points of Interest ────────────────────────────────────────── */}
-      <div className="pt-8 group">
-        <div className="flex justify-between items-center mb-4">
+      <motion.div custom={5} variants={sectionVariants} initial="hidden" animate="visible" className="group" style={{ paddingTop: '8px', paddingBottom: '8px' }}>
+        <div className="flex justify-between items-center" style={{ marginBottom: '16px' }}>
           <h3 className={SECTION_LABEL}>Points of Interest</h3>
         </div>
 
@@ -488,22 +511,16 @@ export function PlanetInfo({ planet, editable }: PlanetInfoProps) {
               title={editable ? 'Click to edit' : undefined}
             >
               {planet.notable && planet.notable.length > 0 ? (
-                <div className={`flex flex-wrap gap-2 ${!expandedPOI ? 'max-h-[56px] overflow-hidden' : ''}`}>
+                <div className={`flex flex-col gap-1 ${!expandedPOI ? 'max-h-[120px] overflow-hidden' : ''}`}>
                   {planet.notable.map((loc, i) => (
-                    <span
-                      key={i}
-                      className="px-2.5 py-1 text-[12px] rounded bg-white/[0.03] border border-white/5 text-white/70 flex items-center gap-1.5 transition-colors hover:text-white hover:bg-white/[0.06]"
-                    >
-                      <svg className="w-3 h-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      {loc}
-                    </span>
+                    <div key={i} className="holo-poi-item">
+                      <span className="holo-poi-index">{String(i + 1).padStart(2, '0')}</span>
+                      <span className="holo-poi-name">{loc}</span>
+                    </div>
                   ))}
                 </div>
               ) : (
-                <span className="text-white/30 italic text-[13px]">
+                <span className="text-white/25 italic text-[13px]">
                   {editable ? 'Click to register locations...' : 'No surface data available.'}
                 </span>
               )}
@@ -519,7 +536,7 @@ export function PlanetInfo({ planet, editable }: PlanetInfoProps) {
             )}
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* ── 8. Alerts ────────────────────────────────────────────────────── */}
       {planet.type === 'destroyed' && (
