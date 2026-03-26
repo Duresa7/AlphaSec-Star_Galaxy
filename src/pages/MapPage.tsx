@@ -10,6 +10,7 @@ import { TimelineControl } from '@/components/panels/TimelineControl';
 import { GalaxyOverview } from '@/components/panels/GalaxyOverview';
 import { MapControlsPanel } from '@/components/panels/MapControlsPanel';
 import { LoadingScreen } from '@/components/panels/LoadingScreen';
+import { OnboardingTour } from '@/components/panels/OnboardingTour';
 import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
 import { useGalaxyDataStore } from '@/store/galaxyDataStore';
 import { useGalaxyUIStore } from '@/store/galaxyUIStore';
@@ -23,6 +24,8 @@ const TOOLBAR_BUTTON_STYLE: React.CSSProperties = {
   background: 'rgba(10, 10, 16, 0.7)',
   backdropFilter: 'blur(12px)',
 };
+
+const TOUR_STORAGE_KEY = 'onboarding_tour_completed';
 
 function drawLabelToCanvas(
   ctx: CanvasRenderingContext2D,
@@ -172,6 +175,8 @@ export function MapPage() {
   const { isAdmin } = useRole();
   const [saving, setSaving] = useState(false);
   const [uiHidden, setUiHidden] = useState(false);
+  const [tourRunning, setTourRunning] = useState(false);
+  const [tourReady, setTourReady] = useState(false);
   const realtimeRefreshTimeoutRef = useRef<number | null>(null);
   const factionRefreshTimeoutRef = useRef<number | null>(null);
   const viewLabel = viewMode === 'topdown' ? 'Galaxy Map' : viewMode === 'system' ? 'Planet View' : 'Fleet View';
@@ -280,8 +285,25 @@ export function MapPage() {
     };
   }, [initializeData]);
 
+  const systems = useGalaxyDataStore((s) => s.systems);
+  const isLoading = useGalaxyDataStore((s) => s.isLoading);
+  const hasCompletedTour = useCallback(
+    () => window.localStorage.getItem(TOUR_STORAGE_KEY) === 'true',
+    [],
+  );
+
+  useEffect(() => {
+    if (systems.length > 0 && !isLoading && !tourReady && !hasCompletedTour()) {
+      const timer = window.setTimeout(() => {
+        setTourReady(true);
+        setTourRunning(true);
+      }, 800);
+      return () => window.clearTimeout(timer);
+    }
+  }, [systems.length, isLoading, tourReady, hasCompletedTour]);
+
   return (
-    <div className="w-full h-full relative overflow-hidden">
+    <div className="w-full h-full relative overflow-hidden" data-tour="galaxy-canvas">
       <GalaxyScene />
 
       <div className="absolute top-5 left-5 z-50 flex items-center gap-2">
@@ -309,6 +331,7 @@ export function MapPage() {
             className="flex items-center justify-center w-10 h-10 rounded-lg border border-white/20 text-white/80 hover:text-amber-300 hover:border-amber-400/50 transition-all duration-200 cursor-pointer"
             style={TOOLBAR_BUTTON_STYLE}
             title="Download map as PNG"
+            data-tour="download-map"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V3" />
@@ -326,6 +349,23 @@ export function MapPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M7 8h10M7 12h6m-6 4h4M5 3h14a2 2 0 012 2v13a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z" />
             </svg>
           </Link>
+        )}
+        {!uiHidden && (
+          <button
+            onClick={() => {
+              setTourReady(true);
+              setTourRunning(true);
+            }}
+            className="flex items-center justify-center w-10 h-10 rounded-lg border border-white/20 text-white/80 hover:text-amber-300 hover:border-amber-400/50 transition-all duration-200 cursor-pointer"
+            style={TOOLBAR_BUTTON_STYLE}
+            title="Replay guided tour"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" />
+              <circle cx="12" cy="17" r="0.5" fill="currentColor" />
+            </svg>
+          </button>
         )}
       </div>
 
@@ -378,6 +418,7 @@ export function MapPage() {
               initial={{ opacity: 0, x: 12 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3, ease: 'easeOut', delay: 0.2 }}
+              data-tour="zoom-controls"
             >
               <button
                 onClick={() => requestZoom(-1)}
@@ -495,6 +536,7 @@ export function MapPage() {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, ease: 'easeOut', delay: 0.05 }}
+            data-tour="title-bar"
           >
             <div className="holo-title-bar">
               <h1
@@ -536,6 +578,13 @@ export function MapPage() {
       )}
 
       <LoadingScreen />
+
+      <OnboardingTour
+        run={tourRunning && tourReady}
+        onFinish={() => setTourRunning(false)}
+        isAdmin={isAdmin}
+        storageKey={TOUR_STORAGE_KEY}
+      />
     </div>
   );
 }
