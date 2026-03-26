@@ -1,10 +1,14 @@
 import * as THREE from 'three';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Fleet, StarSystem } from '../src/types';
+import {
+  TOPDOWN_MARKER_MAX_SIZE,
+  TOPDOWN_MARKER_MIN_SIZE,
+} from '../src/config/topDownMarkerConfig';
 
 const mocks = vi.hoisted(() => ({
-  loadCustomSystems: vi.fn(async () => []),
-  loadCustomFleets: vi.fn(async () => []),
+  loadCustomSystems: vi.fn<() => Promise<StarSystem[]>>(async () => []),
+  loadCustomFleets: vi.fn<() => Promise<Fleet[]>>(async () => []),
   insertCustomSystem: vi.fn(async () => {}),
   batchUpsertSystems: vi.fn(async () => {}),
   deleteCustomSystem: vi.fn(async () => {}),
@@ -12,9 +16,9 @@ const mocks = vi.hoisted(() => ({
   batchUpsertFleets: vi.fn(async () => {}),
   deleteCustomFleet: vi.fn(async () => {}),
   logAction: vi.fn(async () => {}),
-  loadSetting: vi.fn(async () => null),
+  loadSetting: vi.fn<() => Promise<number | null>>(async () => null),
   updateSetting: vi.fn(async () => {}),
-  getAuthenticatedUserId: vi.fn(async () => 'user-1'),
+  getAuthenticatedUserId: vi.fn<() => Promise<string | null>>(async () => 'user-1'),
 }));
 
 vi.mock('@/data/supabaseStorage', () => ({
@@ -77,12 +81,18 @@ const buildFleet = (id: string): Fleet => ({
 
 describe('useGalaxyDataStore.saveAllChanges', () => {
   beforeEach(() => {
+    mocks.loadCustomSystems.mockReset();
+    mocks.loadCustomFleets.mockReset();
+    mocks.loadSetting.mockReset();
     mocks.batchUpsertSystems.mockReset();
     mocks.batchUpsertFleets.mockReset();
     mocks.updateSetting.mockReset();
     mocks.logAction.mockReset();
     mocks.getAuthenticatedUserId.mockReset();
 
+    mocks.loadCustomSystems.mockResolvedValue([]);
+    mocks.loadCustomFleets.mockResolvedValue([]);
+    mocks.loadSetting.mockResolvedValue(null);
     mocks.getAuthenticatedUserId.mockResolvedValue('user-1');
     (mocks.batchUpsertSystems as ReturnType<typeof vi.fn>).mockImplementation(async (systems: StarSystem[]) => {
       if (systems.some(s => s.id === 'system-fail')) {
@@ -153,5 +163,111 @@ describe('useGalaxyDataStore.saveAllChanges', () => {
       'system-ok Prime',
       { fields: ['hyperlanes'] },
     );
+  });
+
+  it('initializes custom data and restores snapshots on discard', async () => {
+    const customSystem = {
+      ...buildSystem('custom-system'),
+      position: new THREE.Vector3(9, 1, 3),
+      isCustom: true,
+    };
+    const customFleet = {
+      ...buildFleet('custom-fleet'),
+      position: new THREE.Vector3(4, 2, 8),
+      isCustom: true,
+    };
+
+    mocks.loadCustomSystems.mockResolvedValue([customSystem]);
+    mocks.loadCustomFleets.mockResolvedValue([customFleet]);
+    mocks.loadSetting.mockResolvedValue(4123);
+
+    await useGalaxyDataStore.getState().initializeData();
+
+    let state = useGalaxyDataStore.getState();
+    expect(state.currentYear).toBe(4123);
+    expect(state.systems.find((system) => system.id === 'custom-system')?.position.x).toBe(9);
+    expect(state.fleets.find((fleet) => fleet.id === 'custom-fleet')?.position.z).toBe(8);
+
+    state.updateCustomSystemPosition('custom-system', new THREE.Vector3(20, 0, 20));
+    state.updateCustomFleetPosition('custom-fleet', new THREE.Vector3(30, 0, 30));
+    state.setCurrentYear(5000);
+
+    await state.discardAllChanges();
+
+    state = useGalaxyDataStore.getState();
+    expect(state.systems.find((system) => system.id === 'custom-system')?.position.x).toBe(9);
+    expect(state.fleets.find((fleet) => fleet.id === 'custom-fleet')?.position.x).toBe(4);
+    expect(state.currentYear).toBe(4123);
+    expect(state.hasPendingChanges).toBe(false);
+  });
+
+  it('clamps marker sizes through store updates instead of raw helper tests', () => {
+    useGalaxyDataStore.setState({
+      systems: [buildSystem('system-ok')],
+      fleets: [buildFleet('fleet-ok')],
+      dirtySystemIds: new Set<string>(),
+      dirtyFleetIds: new Set<string>(),
+      dirtyTimeline: false,
+      hasPendingChanges: false,
+    });
+
+    useGalaxyDataStore.getState().updateCustomSystemMarkerSize('system-ok', 999);
+    useGalaxyDataStore.getState().updateFleetMarkerSize('fleet-ok', -10);
+
+    const state = useGalaxyDataStore.getState();
+    expect(state.systems.find((system) => system.id === 'system-ok')?.markerSize).toBe(TOPDOWN_MARKER_MAX_SIZE);
+    expect(state.fleets.find((fleet) => fleet.id === 'fleet-ok')?.markerSize).toBe(TOPDOWN_MARKER_MIN_SIZE);
+  });
+
+  it('keeps the timeline dirty when saving the year fails', async () => {
+    mocks.updateSetting.mockRejectedValue(new Error('timeline failed'));
+
+    useGalaxyDataStore.setState({
+      systems: [],
+      fleets: [],
+      currentYear: 4400,
+      dirtySystemIds: new Set<string>(),
+      dirtyFleetIds: new Set<string>(),
+      dirtyTimeline: true,
+      hasPendingChanges: true,
+    });
+
+    await useGalaxyDataStore.getState().saveAllChanges();
+
+    const state = useGalaxyDataStore.getState();
+    expect(state.dirtyTimeline).toBe(true);
+    expect(state.hasPendingChanges).toBe(true);
+  });
+
+  it('preserves successful snapshots while failed entities still discard back to the previous saved state', async () => {
+    const customSystem = {
+      ...buildSystem('system-fail'),
+      position: new THREE.Vector3(1, 0, 1),
+      isCustom: true,
+    };
+    const customFleet = {
+      ...buildFleet('fleet-ok'),
+      position: new THREE.Vector3(2, 0, 2),
+      isCustom: true,
+    };
+
+    mocks.loadCustomSystems.mockResolvedValue([customSystem]);
+    mocks.loadCustomFleets.mockResolvedValue([customFleet]);
+
+    await useGalaxyDataStore.getState().initializeData();
+
+    useGalaxyDataStore.getState().updateCustomSystemPosition('system-fail', new THREE.Vector3(10, 0, 10));
+    useGalaxyDataStore.getState().updateCustomFleetPosition('fleet-ok', new THREE.Vector3(20, 0, 20));
+
+    await useGalaxyDataStore.getState().saveAllChanges();
+
+    useGalaxyDataStore.getState().updateCustomSystemPosition('system-fail', new THREE.Vector3(30, 0, 30));
+    useGalaxyDataStore.getState().updateCustomFleetPosition('fleet-ok', new THREE.Vector3(40, 0, 40));
+
+    await useGalaxyDataStore.getState().discardAllChanges();
+
+    const state = useGalaxyDataStore.getState();
+    expect(state.systems.find((system) => system.id === 'system-fail')?.position.x).toBe(1);
+    expect(state.fleets.find((fleet) => fleet.id === 'fleet-ok')?.position.x).toBe(20);
   });
 });
