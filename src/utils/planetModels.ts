@@ -5,6 +5,7 @@ const PLANET_MODEL_PATHS: Record<string, string> = {
   'coruscant-prime': '/models/planets/coruscant.glb',
   'hoth-prime': '/models/planets/hoth.glb',
   'korriban-prime': '/models/planets/korriban.glb',
+  'mirial-prime': '/models/planets/mirial.glb',
   'quesh-prime': '/models/planets/quesh.glb',
   'tatooine-prime': '/models/planets/tatooine.glb',
   'tython-prime': '/models/planets/tython.glb',

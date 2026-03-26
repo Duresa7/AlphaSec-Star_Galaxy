@@ -53,6 +53,7 @@ export function IconRail() {
       variants={railContainer}
       initial="hidden"
       animate="visible"
+      data-tour="icon-rail"
     >
       {MODULE_OPTIONS.map((mod) => {
         const isActive = activeModule === mod.id;

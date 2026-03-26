@@ -295,6 +295,36 @@ export const starSystems: StarSystem[] = [
     ],
   },
   {
+    id: 'mirial',
+    name: 'Mirial',
+    position: new THREE.Vector3(94.2152659403987, 0, -111.731324865659),
+    faction: 'galactic_republic',
+    starType: 'yellow',
+    importance: 'minor',
+    description: 'Mirial is a green-gray world of dark basins and pale cloud bands aligned with the Galactic Republic.',
+    region: 'unknown_regions',
+    markerSize: 1.3,
+    customColor: '#0505a7',
+    planets: [
+      {
+        id: 'mirial-prime',
+        name: 'Mirial',
+        type: 'terrestrial',
+        position: new THREE.Vector3(0, 0, 0),
+        radius: 1,
+        faction: 'galactic_republic',
+        description: 'A muted green world with charcoal basins and high cloud cover.',
+        climate: 'Cool temperate',
+        terrain: 'Rocky basins, clouded highlands',
+        systemId: 'mirial',
+        factionControl: {
+          galactic_republic: 100,
+        },
+        customColor: '#0000ff',
+      }
+    ],
+  },
+  {
     id: 'nar-shaddaa',
     name: 'Nar Shaddaa',
     position: new THREE.Vector3(60, 0, -15),
