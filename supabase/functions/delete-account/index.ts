@@ -105,21 +105,26 @@ Deno.serve(async (req: Request) => {
         .eq(step.column, user.id);
 
       if (error) {
+        console.error(`Failed to clean up ${step.table}.${step.column}:`, error.message);
         return jsonResponse(origin, 500, {
-          error: `Failed to clean up references in ${step.table}.${step.column}: ${error.message}`,
+          error: "Failed to delete account. Please try again or contact support.",
         });
       }
     }
 
     const { error: deleteError } = await adminClient.auth.admin.deleteUser(user.id);
     if (deleteError) {
-      return jsonResponse(origin, 500, { error: deleteError.message });
+      console.error("Account deletion failed:", deleteError.message);
+      return jsonResponse(origin, 500, {
+        error: "Failed to delete account. Please try again or contact support.",
+      });
     }
 
     return jsonResponse(origin, 200, { success: true });
   } catch (err) {
+    console.error("Unexpected error in delete-account:", err);
     return jsonResponse(origin, 500, {
-      error: err instanceof Error ? err.message : "Internal server error",
+      error: "An unexpected error occurred. Please try again or contact support.",
     });
   }
 });
