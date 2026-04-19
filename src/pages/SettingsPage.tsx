@@ -157,14 +157,6 @@ function SettingsPageContent() {
   const handleDeleteAccount = async () => {
     setDeleteMsg(null);
     setDeleting(true);
-    if (session?.user?.id) {
-      await logAction(
-        "account_deleted",
-        "user",
-        session.user.id,
-        profile?.display_name ?? "",
-      );
-    }
     const { error } = await deleteAccount();
     if (error) {
       setDeleteMsg({ type: "error", text: error });
