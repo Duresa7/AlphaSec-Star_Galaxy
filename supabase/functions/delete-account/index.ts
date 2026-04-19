@@ -65,28 +65,29 @@ Deno.serve(async (req: Request) => {
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
-    const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    const supabasePublishableKey = Deno.env.get("EDGE_PUBLISHABLE_KEY");
+    const supabaseSecretKey = Deno.env.get("EDGE_SECRET_KEY");
 
-    if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceRoleKey) {
+    if (!supabaseUrl || !supabasePublishableKey || !supabaseSecretKey) {
       return jsonResponse(origin, 500, { error: "Missing required Supabase environment variables" });
     }
 
-    const userClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
+    const token = authHeader.replace(/^Bearer\s+/i, "");
+
+    const userClient = createClient(supabaseUrl, supabasePublishableKey, {
       auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
     });
 
     const {
       data: { user },
       error: userError,
-    } = await userClient.auth.getUser();
+    } = await userClient.auth.getUser(token);
 
     if (userError || !user) {
       return jsonResponse(origin, 401, { error: "Invalid or expired token" });
     }
 
-    const adminClient = createClient(supabaseUrl, supabaseServiceRoleKey, {
+    const adminClient = createClient(supabaseUrl, supabaseSecretKey, {
       auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
     });
 
