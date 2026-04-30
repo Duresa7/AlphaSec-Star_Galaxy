@@ -138,6 +138,7 @@ Thumbs.db
 .mcp.json
 .mcp/
 .playwright-mcp/
+supabase/.temp/
 
 
 nul
