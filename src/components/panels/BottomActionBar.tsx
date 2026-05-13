@@ -3,6 +3,7 @@ import { useGalaxyUIStore } from "@/store/galaxyUIStore";
 import { useRole } from "@/hooks/useRole";
 import { CustomPlanetsPanel } from "@/components/panels/CustomPlanetsPanel";
 import { CustomFleetsPanel } from "@/components/panels/CustomFleetsPanel";
+import { HoloMicroExpander } from "@/components/panels/HoloMicroExpander";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 
@@ -16,36 +17,35 @@ export function BottomActionBar() {
       className="absolute bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center justify-center gap-3"
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, ease: 'easeOut', delay: 0.15 }}
+      transition={{ duration: 0.35, ease: "easeOut", delay: 0.15 }}
       data-tour="bottom-action-bar"
     >
-      <div className="holo-toolbar">
-        <button
+      <div className="flex items-center gap-3">
+        <HoloMicroExpander
+          size="md"
+          text="Map Controls"
+          isActive={activeModule === "mapControls"}
           onClick={() => setActiveModule("mapControls")}
-          className={`holo-button holo-button-sm${activeModule === "mapControls" ? " is-active" : ""}`}
-        >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
-            />
-          </svg>
-          <span className="text-[11px] font-semibold tracking-wider">
-            Map Controls
-          </span>
-        </button>
-
-        {isAdmin && <div className="w-px h-8 bg-white/10 mx-1" />}
+          icon={
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
+              />
+            </svg>
+          }
+        />
 
         {isAdmin && (
-          <div className="flex gap-2">
+          <>
             <PanelTriggerWrapper
               component={<CustomPlanetsPanel />}
               label="Create Planet"
@@ -57,6 +57,7 @@ export function BottomActionBar() {
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
+                  aria-hidden="true"
                 >
                   <path
                     strokeLinecap="round"
@@ -78,6 +79,7 @@ export function BottomActionBar() {
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
+                  aria-hidden="true"
                 >
                   <path
                     strokeLinecap="round"
@@ -88,7 +90,7 @@ export function BottomActionBar() {
                 </svg>
               }
             />
-          </div>
+          </>
         )}
       </div>
     </motion.div>
@@ -111,7 +113,7 @@ function PanelTriggerWrapper({
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    if (activeModule === 'mapControls') {
+    if (activeModule === "mapControls") {
       setOpen(false);
     }
   }, [activeModule]);
@@ -149,7 +151,7 @@ function PanelTriggerWrapper({
         !panelRef.current.contains(target) &&
         buttonRef.current &&
         !buttonRef.current.contains(target) &&
-        !target.closest('.fleet-modal-overlay')
+        !target.closest(".fleet-modal-overlay")
       ) {
         setOpen(false);
       }
@@ -160,8 +162,12 @@ function PanelTriggerWrapper({
 
   return (
     <>
-      <button
+      <HoloMicroExpander
         ref={buttonRef}
+        size="md"
+        text={label}
+        isActive={open}
+        icon={icon}
         onClick={() => {
           const next = !open;
           if (next) {
@@ -170,13 +176,7 @@ function PanelTriggerWrapper({
           }
           setOpen(next);
         }}
-        className={`holo-button holo-button-sm${open ? " is-active" : ""}`}
-      >
-        {icon}
-        <span className="text-[11px] font-semibold tracking-wider">
-          {label}
-        </span>
-      </button>
+      />
 
       {open && pos &&
         createPortal(
@@ -189,9 +189,7 @@ function PanelTriggerWrapper({
               transform: "translateX(-50%)",
             }}
           >
-            <div className="animate-slide-up-subtle">
-              {component}
-            </div>
+            <div className="animate-slide-up-subtle">{component}</div>
           </div>,
           document.body,
         )}

@@ -8,11 +8,12 @@ import {
   fetchUserManagementProfiles,
   updateUserRole,
 } from "@/data/supabaseStorage";
+import { AuditLogTable } from "@/components/admin/AuditLogTable";
 import type { AuditLogEntry, UserManagementProfile, UserRole } from "@/types";
 
 const PAGE_SIZE = 40;
 
-const ACTION_LABELS: Record<string, string> = {
+const ACTION_FILTER_LABELS: Record<string, string> = {
   system_created: "Created System",
   system_moved: "Moved System",
   system_deleted: "Deleted System",
@@ -68,12 +69,6 @@ function formatTime(iso: string): string {
     " " +
     d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
   );
-}
-
-function getActionTone(action: string): "create" | "move" | "update" {
-  if (action.includes("created")) return "create";
-  if (action.includes("moved")) return "move";
-  return "update";
 }
 
 function matchesUser(user: UserManagementProfile, query: string): boolean {
@@ -256,7 +251,6 @@ export function AdminPage() {
     setRoleUpdating(null);
   };
 
-  const totalPages = Math.max(1, Math.ceil(logTotal / PAGE_SIZE));
   const usersToRender = users.filter((user) => matchesUser(user, searchQuery));
   const pendingRequests = users.filter((u) => u.galaxy_map_requested && u.role === "user");
   const assignableRoles = getAssignableRoles(isBossman);
@@ -453,7 +447,7 @@ export function AdminPage() {
                       >
                         All
                       </button>
-                      {Object.entries(ACTION_LABELS).map(([key, label]) => (
+                      {Object.entries(ACTION_FILTER_LABELS).map(([key, label]) => (
                         <button
                           key={key}
                           type="button"
@@ -470,80 +464,16 @@ export function AdminPage() {
                   </div>
                 </div>
 
-                {logsLoading ? (
-                  <p className="admin-page__loading">Loading audit logs...</p>
-                ) : logs.length === 0 ? (
-                  <p className="admin-page__empty">
-                    {isAuditSearchActive
-                      ? "No matching audit entries."
-                      : "No audit entries yet."}
-                  </p>
-                ) : (
-                  <>
-                    <div className="admin-page__table-wrap admin-page__table-wrap--audit">
-                      <table className="admin-page__table">
-                        <thead>
-                          <tr>
-                            <th>Time</th>
-                            <th>User</th>
-                            <th>Action</th>
-                            <th>Entity</th>
-                            <th>Details</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {logs.map((log) => (
-                            <tr key={log.id}>
-                              <td className="admin-page__td-time">
-                                {formatTime(log.created_at)}
-                              </td>
-                              <td>{log.display_name || "Unknown"}</td>
-                              <td>
-                                <span
-                                  className={`admin-page__action-badge admin-page__action-badge--${getActionTone(log.action)}`}
-                                >
-                                  {ACTION_LABELS[log.action] || log.action}
-                                </span>
-                              </td>
-                              <td>{log.entity_name || log.entity_id}</td>
-                              <td className="admin-page__td-details">
-                                {log.details
-                                  ? JSON.stringify(log.details).slice(0, 80)
-                                  : ""}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-
-                    <div className="admin-page__pagination">
-                      <button
-                        disabled={logPage === 0 || logsLoading}
-                        onClick={() => setLogPage((p) => Math.max(0, p - 1))}
-                        className="admin-page__page-btn"
-                      >
-                        Prev
-                      </button>
-                      <span className="admin-page__page-info">
-                        Page {logPage + 1} of {totalPages}
-                      </span>
-                      <button
-                        disabled={logPage + 1 >= totalPages || logsLoading}
-                        onClick={() => setLogPage((p) => p + 1)}
-                        className="admin-page__page-btn"
-                      >
-                        Next
-                      </button>
-                    </div>
-                    {isAuditFiltered && (
-                      <p className="admin-page__search-meta">
-                        Showing {logs.length} of {logTotal}{" "}
-                        matching result{logTotal === 1 ? "" : "s"}
-                      </p>
-                    )}
-                  </>
-                )}
+                <AuditLogTable
+                  logs={logs}
+                  loading={logsLoading}
+                  total={logTotal}
+                  page={logPage}
+                  pageSize={PAGE_SIZE}
+                  isFiltered={isAuditFiltered}
+                  isSearchActive={isAuditSearchActive}
+                  onPageChange={setLogPage}
+                />
               </section>
             )}
 

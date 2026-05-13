@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { GalaxyScene } from '@/components/galaxy/GalaxyScene';
 import { InfoPanel } from '@/components/panels/InfoPanel';
 import { IconRail } from '@/components/panels/IconRail';
@@ -11,6 +11,7 @@ import { GalaxyOverview } from '@/components/panels/GalaxyOverview';
 import { MapControlsPanel } from '@/components/panels/MapControlsPanel';
 import { LoadingScreen } from '@/components/panels/LoadingScreen';
 import { OnboardingTour } from '@/components/panels/OnboardingTour';
+import { HoloMicroExpander } from '@/components/panels/HoloMicroExpander';
 import { useGalaxySelectionStore } from '@/store/galaxySelectionStore';
 import { useGalaxyDataStore } from '@/store/galaxyDataStore';
 import { useGalaxyUIStore } from '@/store/galaxyUIStore';
@@ -173,6 +174,7 @@ export function MapPage() {
   const discardAllChanges = useGalaxyDataStore((s) => s.discardAllChanges);
   const { session, profile, signOut } = useAuth();
   const { isAdmin } = useRole();
+  const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
   const [uiHidden, setUiHidden] = useState(false);
   const [tourRunning, setTourRunning] = useState(false);
@@ -307,65 +309,68 @@ export function MapPage() {
       <GalaxyScene />
 
       <div className="absolute top-5 left-5 z-50 flex items-center gap-2">
-        <button
+        <HoloMicroExpander
+          size="sm"
+          text={uiHidden ? 'Show UI' : 'Hide UI'}
           onClick={() => setUiHidden((prev) => !prev)}
-          className="flex items-center justify-center w-10 h-10 rounded-lg border border-white/20 text-white/80 hover:text-amber-300 hover:border-amber-400/50 transition-all duration-200 cursor-pointer"
-          style={TOOLBAR_BUTTON_STYLE}
-          title={uiHidden ? 'Show UI' : 'Hide UI'}
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
-            {uiHidden ? (
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L6.59 6.59m7.532 7.532l3.29 3.29M3 3l18 18" />
-            ) : (
-              <>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              </>
-            )}
-          </svg>
-        </button>
+          icon={
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
+              {uiHidden ? (
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L6.59 6.59m7.532 7.532l3.29 3.29M3 3l18 18" />
+              ) : (
+                <>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </>
+              )}
+            </svg>
+          }
+        />
 
         {!uiHidden && (
-          <button
-            onClick={handleDownloadMap}
-            className="flex items-center justify-center w-10 h-10 rounded-lg border border-white/20 text-white/80 hover:text-amber-300 hover:border-amber-400/50 transition-all duration-200 cursor-pointer"
-            style={TOOLBAR_BUTTON_STYLE}
-            title="Download map as PNG"
-            data-tour="download-map"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V3" />
-            </svg>
-          </button>
+          <span data-tour="download-map" className="flex">
+            <HoloMicroExpander
+              size="sm"
+              text="Download Map"
+              onClick={handleDownloadMap}
+              icon={
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V3" />
+                </svg>
+              }
+            />
+          </span>
         )}
+
         {!uiHidden && (
-          <Link
-            to="/feedback"
-            className="flex items-center justify-center w-10 h-10 rounded-lg border border-white/20 text-white/80 hover:text-amber-300 hover:border-amber-400/50 transition-all duration-200"
-            style={TOOLBAR_BUTTON_STYLE}
-            title="Submit feedback"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M7 8h10M7 12h6m-6 4h4M5 3h14a2 2 0 012 2v13a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z" />
-            </svg>
-          </Link>
+          <HoloMicroExpander
+            size="sm"
+            text="Feedback"
+            onClick={() => navigate('/feedback')}
+            icon={
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M7 8h10M7 12h6m-6 4h4M5 3h14a2 2 0 012 2v13a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z" />
+              </svg>
+            }
+          />
         )}
+
         {!uiHidden && (
-          <button
+          <HoloMicroExpander
+            size="sm"
+            text="Replay Tour"
             onClick={() => {
               setTourReady(true);
               setTourRunning(true);
             }}
-            className="flex items-center justify-center w-10 h-10 rounded-lg border border-white/20 text-white/80 hover:text-amber-300 hover:border-amber-400/50 transition-all duration-200 cursor-pointer"
-            style={TOOLBAR_BUTTON_STYLE}
-            title="Replay guided tour"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="12" cy="12" r="10" />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" />
-              <circle cx="12" cy="17" r="0.5" fill="currentColor" />
-            </svg>
-          </button>
+            icon={
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" />
+                <circle cx="12" cy="17" r="0.5" fill="currentColor" />
+              </svg>
+            }
+          />
         )}
       </div>
 
