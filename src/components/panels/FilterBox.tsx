@@ -25,9 +25,14 @@ export function FilterBox({ active, onClick, label, color = 'blue', hexColor }: 
       onClick={onClick}
       className="relative flex flex-col items-center justify-center p-3.5 border transition-all duration-250 cursor-pointer overflow-hidden"
       style={{
-        background: active ? `rgba(200, 170, 110, 0.06)` : 'rgba(5, 5, 8, 0.4)',
-        borderColor: active ? `${activeColor}50` : 'rgba(200, 170, 110, 0.08)',
-        borderRadius: '8px',
+        background: active
+          ? `linear-gradient(160deg, rgba(255, 255, 255, 0.08) 0%, transparent 70%), rgba(200, 170, 110, 0.08)`
+          : 'linear-gradient(160deg, rgba(255, 255, 255, 0.04) 0%, transparent 70%), rgba(5, 6, 10, 0.4)',
+        borderColor: active ? `${activeColor}55` : 'rgba(255, 255, 255, 0.08)',
+        borderRadius: '12px',
+        boxShadow: active
+          ? 'inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 4px 14px -6px rgba(0, 0, 0, 0.5)'
+          : 'inset 0 1px 0 rgba(255, 255, 255, 0.05)',
       }}
     >
       <span

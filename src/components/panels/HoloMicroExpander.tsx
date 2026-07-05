@@ -40,9 +40,12 @@ const VARIANT_STYLES: Record<HoloVariant, { base: string; hover: string }> = {
 };
 
 const BACKDROP: React.CSSProperties = {
-  background: "rgba(10, 10, 16, 0.65)",
-  backdropFilter: "blur(14px)",
-  WebkitBackdropFilter: "blur(14px)",
+  background:
+    "linear-gradient(160deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.02) 100%), rgba(10, 12, 18, 0.5)",
+  backdropFilter: "blur(22px) saturate(160%)",
+  WebkitBackdropFilter: "blur(22px) saturate(160%)",
+  boxShadow:
+    "inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 10px 24px -10px rgba(0, 0, 0, 0.55)",
 };
 
 export const HoloMicroExpander = React.forwardRef<

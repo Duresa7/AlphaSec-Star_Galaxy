@@ -26,9 +26,11 @@ function FactionRow({
     <div
       className="flex items-center gap-3 min-h-[52px] px-3.5"
       style={{
-        background: 'rgba(200, 170, 110, 0.03)',
-        border: '1px solid rgba(200, 170, 110, 0.08)',
-        borderRadius: '8px',
+        background:
+          'linear-gradient(160deg, rgba(255, 255, 255, 0.05) 0%, transparent 60%), rgba(200, 170, 110, 0.04)',
+        border: '1px solid rgba(200, 170, 110, 0.1)',
+        borderRadius: '12px',
+        boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.07)',
       }}
     >
       <span
@@ -76,9 +78,11 @@ function FactionEditForm({
     <div
       className="space-y-3 p-4"
       style={{
-        background: 'rgba(0, 240, 255, 0.04)',
-        border: '1px solid rgba(0, 240, 255, 0.15)',
-        borderRadius: '8px',
+        background:
+          'linear-gradient(160deg, rgba(255, 255, 255, 0.05) 0%, transparent 60%), rgba(0, 240, 255, 0.05)',
+        border: '1px solid rgba(0, 240, 255, 0.2)',
+        borderRadius: '12px',
+        boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.07)',
       }}
     >
       <div className="text-[10px] uppercase tracking-wide holo-label-orbitron" style={{ color: 'var(--holo-cyan)' }}>
@@ -240,9 +244,10 @@ export function FactionManagementPanel({ isFloatingMode = false }: { isFloatingM
           <div
             className="space-y-3 p-3.5"
             style={{
-              background: 'rgba(200, 170, 110, 0.025)',
-              border: '1px solid rgba(200, 170, 110, 0.08)',
-              borderRadius: '10px',
+              background: 'rgba(0, 0, 0, 0.18)',
+              border: '1px solid rgba(255, 255, 255, 0.07)',
+              borderRadius: '14px',
+              boxShadow: 'inset 0 2px 6px rgba(0, 0, 0, 0.25)',
             }}
           >
             {factions.map((f) =>
@@ -261,9 +266,11 @@ export function FactionManagementPanel({ isFloatingMode = false }: { isFloatingM
                   key={f.id}
                   className="p-4 space-y-3"
                   style={{
-                    background: 'rgba(220, 20, 60, 0.06)',
-                    border: '1px solid rgba(220, 20, 60, 0.2)',
-                    borderRadius: '8px',
+                    background:
+                      'linear-gradient(160deg, rgba(255, 255, 255, 0.04) 0%, transparent 60%), rgba(220, 20, 60, 0.07)',
+                    border: '1px solid rgba(220, 20, 60, 0.25)',
+                    borderRadius: '12px',
+                    boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.06)',
                   }}
                 >
                   <div className="text-[11px] holo-label-orbitron" style={{ color: '#DC143C' }}>
@@ -310,9 +317,11 @@ export function FactionManagementPanel({ isFloatingMode = false }: { isFloatingM
               <div
                 className="space-y-3 p-4"
                 style={{
-                  background: 'rgba(0, 240, 255, 0.04)',
-                  border: '1px solid rgba(0, 240, 255, 0.15)',
-                  borderRadius: '8px',
+                  background:
+                    'linear-gradient(160deg, rgba(255, 255, 255, 0.05) 0%, transparent 60%), rgba(0, 240, 255, 0.05)',
+                  border: '1px solid rgba(0, 240, 255, 0.2)',
+                  borderRadius: '12px',
+                  boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.07)',
                 }}
               >
                 <div className="text-[10px] uppercase tracking-wide holo-label-orbitron" style={{ color: 'var(--holo-cyan)' }}>

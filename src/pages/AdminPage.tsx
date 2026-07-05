@@ -1,5 +1,19 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
+import {
+  ArrowLeft,
+  Check,
+  ChevronDown,
+  Download,
+  ListFilter,
+  Menu,
+  Radar,
+  RefreshCw,
+  ScrollText,
+  Search,
+  Users as UsersIcon,
+  X,
+} from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRole } from "@/hooks/useRole";
 import {
@@ -9,30 +23,31 @@ import {
   updateUserRole,
 } from "@/data/supabaseStorage";
 import { AuditLogTable } from "@/components/admin/AuditLogTable";
+import { UserTable } from "@/components/admin/UserTable";
+import {
+  ACTION_GROUPS,
+  ACTION_LABELS,
+  ROLE_COLORS,
+  ROLE_LABELS,
+  getInitials,
+} from "@/components/admin/adminMeta";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import type { AuditLogEntry, UserManagementProfile, UserRole } from "@/types";
 
 const PAGE_SIZE = 40;
-
-const ACTION_FILTER_LABELS: Record<string, string> = {
-  system_created: "Created System",
-  system_moved: "Moved System",
-  system_deleted: "Deleted System",
-  system_resized: "Resized System",
-  fleet_created: "Created Fleet",
-  fleet_moved: "Moved Fleet",
-  fleet_deleted: "Deleted Fleet",
-  fleet_resized: "Resized Fleet",
-  planet_stats_updated: "Updated Planet",
-  role_changed: "Changed Role",
-};
 
 type TimeFilter = "" | "24h" | "7d" | "30d";
 
 const TIME_FILTER_LABELS: Record<TimeFilter, string> = {
   "": "All time",
-  "24h": "Last 24 hours",
-  "7d": "Last 7 days",
-  "30d": "Last 30 days",
+  "24h": "24h",
+  "7d": "7d",
+  "30d": "30d",
 };
 
 function getSinceTimestamp(filter: TimeFilter): string | null {
@@ -44,43 +59,12 @@ function getSinceTimestamp(filter: TimeFilter): string | null {
   return now.toISOString();
 }
 
-const ROLE_COLORS: Record<UserRole, string> = {
-  user: "#6b7280",
-  galaxy_user: "#7c3aed",
-  admin: "#1a73e8",
-  bossman: "#92761b",
-};
-
-const ROLE_LABELS: Record<UserRole, string> = {
-  user: "User",
-  galaxy_user: "Galaxy User",
-  admin: "Admin",
-  bossman: "Bossman",
-};
-
-function formatTime(iso: string): string {
-  const d = new Date(iso);
-  return (
-    d.toLocaleDateString(undefined, {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    }) +
-    " " +
-    d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })
-  );
-}
-
 function matchesUser(user: UserManagementProfile, query: string): boolean {
   if (!query) return true;
-  const text = [
-    user.display_name,
-    ROLE_LABELS[user.role],
-    formatTime(user.created_at),
-  ]
+  return [user.display_name, ROLE_LABELS[user.role], user.email ?? ""]
     .join(" ")
-    .toLowerCase();
-  return text.includes(query);
+    .toLowerCase()
+    .includes(query);
 }
 
 function getAssignableRoles(isBossman: boolean): UserRole[] {
@@ -89,22 +73,64 @@ function getAssignableRoles(isBossman: boolean): UserRole[] {
     : ["user", "galaxy_user"];
 }
 
+function csvEscape(value: unknown): string {
+  const text = value === null || value === undefined ? "" : String(value);
+  return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+interface AuditStats {
+  total: number;
+  last24h: number;
+  last7d: number;
+}
+
+function Stat({
+  label,
+  value,
+  accent,
+  live,
+}: {
+  label: string;
+  value: string;
+  accent?: string;
+  live?: boolean;
+}) {
+  return (
+    <div className="adm-stat">
+      <div className="mb-1 flex items-center gap-2">
+        {live && <span className="adm-live-dot" aria-hidden />}
+        <span className="adm-label">{label}</span>
+      </div>
+      <div className="adm-stat-value" style={accent ? { color: accent } : undefined}>
+        {value}
+      </div>
+    </div>
+  );
+}
+
 export function AdminPage() {
   const location = useLocation();
   const { profile: currentProfile } = useAuth();
   const { isAdmin, isBossman } = useRole();
+
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);
   const [logTotal, setLogTotal] = useState(0);
   const [logPage, setLogPage] = useState(0);
   const [logsLoading, setLogsLoading] = useState(true);
+  const [auditStats, setAuditStats] = useState<AuditStats | null>(null);
+
   const [users, setUsers] = useState<UserManagementProfile[]>([]);
   const [usersLoading, setUsersLoading] = useState(true);
   const [roleUpdating, setRoleUpdating] = useState<string | null>(null);
+
   const [searchInput, setSearchInput] = useState("");
   const [debouncedAuditQuery, setDebouncedAuditQuery] = useState("");
   const [timeFilter, setTimeFilter] = useState<TimeFilter>("");
   const [actionFilter, setActionFilter] = useState("");
+  const [roleFilter, setRoleFilter] = useState<UserRole | "">("");
+  const [actionMenuOpen, setActionMenuOpen] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
   const isUsersView = location.pathname.startsWith("/admin/users");
   const isAuditView = !isUsersView;
 
@@ -114,6 +140,27 @@ export function AdminPage() {
     setUsers(profiles);
     setUsersLoading(false);
   }, []);
+
+  const loadAuditStats = useCallback(async () => {
+    const day = new Date();
+    day.setHours(day.getHours() - 24);
+    const week = new Date();
+    week.setDate(week.getDate() - 7);
+    const [total, last24h, last7d] = await Promise.all([
+      fetchAuditLogTotal(),
+      fetchAuditLogTotal("", day.toISOString()),
+      fetchAuditLogTotal("", week.toISOString()),
+    ]);
+    setAuditStats({ total, last24h, last7d });
+  }, []);
+
+  useEffect(() => {
+    void loadAuditStats();
+  }, [loadAuditStats]);
+
+  useEffect(() => {
+    if (isAdmin) void loadUsers();
+  }, [isAdmin, loadUsers]);
 
   useEffect(() => {
     if (!isAuditView) {
@@ -185,10 +232,6 @@ export function AdminPage() {
   }, [isAuditView, logPage, debouncedAuditQuery, sinceTimestamp, actionArg]);
 
   useEffect(() => {
-    if (isUsersView && isAdmin) loadUsers();
-  }, [isUsersView, isAdmin, loadUsers]);
-
-  useEffect(() => {
     if (!isDrawerOpen) return;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setIsDrawerOpen(false);
@@ -202,7 +245,9 @@ export function AdminPage() {
     setDebouncedAuditQuery("");
     setTimeFilter("");
     setActionFilter("");
+    setRoleFilter("");
     setLogPage(0);
+    setIsDrawerOpen(false);
   }, [location.pathname]);
 
   const searchQuery = searchInput.trim().toLowerCase();
@@ -222,16 +267,58 @@ export function AdminPage() {
         actionArg,
       ),
       fetchAuditLogTotal(debouncedAuditQuery, sinceTimestamp, actionArg),
+      loadAuditStats(),
     ]);
     setLogs(fetchedLogs);
     setLogTotal(total);
     setLogsLoading(false);
-  }, [isAuditView, logPage, debouncedAuditQuery, sinceTimestamp, actionArg]);
+  }, [
+    isAuditView,
+    logPage,
+    debouncedAuditQuery,
+    sinceTimestamp,
+    actionArg,
+    loadAuditStats,
+  ]);
 
-  const handleRoleChange = async (
-    userId: string,
-    newRole: UserRole,
-  ) => {
+  const handleExportCsv = useCallback(() => {
+    if (logs.length === 0) return;
+    const header = [
+      "id",
+      "timestamp",
+      "action",
+      "entity_type",
+      "entity_name",
+      "entity_id",
+      "operator",
+      "details",
+    ];
+    const rows = logs.map((log) =>
+      [
+        log.id,
+        log.created_at,
+        log.action,
+        log.entity_type,
+        log.entity_name,
+        log.entity_id,
+        log.display_name ?? "",
+        log.details ? JSON.stringify(log.details) : "",
+      ]
+        .map(csvEscape)
+        .join(","),
+    );
+    const blob = new Blob([[header.join(","), ...rows].join("\n")], {
+      type: "text/csv;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `audit-log-page-${logPage + 1}.csv`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }, [logs, logPage]);
+
+  const handleRoleChange = async (userId: string, newRole: UserRole) => {
     if (!currentProfile) return;
     setRoleUpdating(userId);
     const { error } = await updateUserRole(userId, newRole);
@@ -242,7 +329,8 @@ export function AdminPage() {
             ? {
                 ...u,
                 role: newRole,
-                galaxy_map_requested: newRole === "user" ? u.galaxy_map_requested : false,
+                galaxy_map_requested:
+                  newRole === "user" ? u.galaxy_map_requested : false,
               }
             : u,
         ),
@@ -251,218 +339,375 @@ export function AdminPage() {
     setRoleUpdating(null);
   };
 
-  const usersToRender = users.filter((user) => matchesUser(user, searchQuery));
-  const pendingRequests = users.filter((u) => u.galaxy_map_requested && u.role === "user");
+  const usersToRender = users.filter(
+    (user) =>
+      matchesUser(user, searchQuery) &&
+      (!roleFilter || user.role === roleFilter),
+  );
+  const pendingRequests = users.filter(
+    (u) => u.galaxy_map_requested && u.role === "user",
+  );
   const assignableRoles = getAssignableRoles(isBossman);
+
+  const roleCounts = useMemo(() => {
+    const counts: Record<UserRole, number> = {
+      user: 0,
+      galaxy_user: 0,
+      admin: 0,
+      bossman: 0,
+    };
+    for (const u of users) counts[u.role] += 1;
+    return counts;
+  }, [users]);
+
+  const closeDrawer = () => setIsDrawerOpen(false);
 
   return (
     <div
-      className={`admin-page${isDrawerOpen ? " admin-page--drawer-open" : ""}`}
+      className={cn("admin-page", isDrawerOpen && "admin-page--drawer-open")}
     >
       <div
-        className={`admin-page__overlay${isDrawerOpen ? " admin-page__overlay--open" : ""}`}
-        onClick={() => setIsDrawerOpen(false)}
+        className="adm-overlay"
+        onClick={closeDrawer}
         aria-hidden={!isDrawerOpen}
       />
-      <div className="admin-page__shell">
-        <aside
-          className={`admin-page__sidebar${isDrawerOpen ? " admin-page__sidebar--open" : ""}`}
-        >
-          <div className="admin-page__sidebar-head">
-            <span className="admin-page__brand-mark" aria-hidden>
-              SW
+      <div className="adm-shell">
+        <aside className="adm-sidebar">
+          <div className="adm-brand">
+            <span className="adm-brand-mark" aria-hidden>
+              <Radar size={16} />
             </span>
-            <span className="admin-page__brand-text">Admin</span>
+            <div>
+              <div className="adm-brand-title">Holonet</div>
+              <div className="adm-brand-sub">Records Terminal</div>
+            </div>
           </div>
-          <nav className="admin-page__nav" aria-label="Admin navigation">
-            <NavLink
-              to="/map"
-              className="admin-page__nav-item"
-              onClick={() => setIsDrawerOpen(false)}
-            >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                aria-hidden
-              >
-                <path d="M11 17l-5-5m0 0l5-5m-5 5h12" />
-              </svg>
-              <span>Exit to Map</span>
-            </NavLink>
+
+          <div className="adm-side-label">Console</div>
+          <nav
+            className="flex flex-col gap-0.5"
+            aria-label="Admin navigation"
+          >
             <NavLink
               to="/admin/audit"
-              className="admin-page__nav-item"
-              onClick={() => setIsDrawerOpen(false)}
+              className="adm-nav-item"
+              onClick={closeDrawer}
             >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                aria-hidden
-              >
-                <path d="M5 6h14" />
-                <path d="M5 12h14" />
-                <path d="M5 18h14" />
-              </svg>
-              <span>Audit Log</span>
+              <ScrollText size={15} />
+              <span>Audit Feed</span>
             </NavLink>
             <NavLink
               to="/admin/users"
-              className="admin-page__nav-item"
-              onClick={() => setIsDrawerOpen(false)}
+              className="adm-nav-item"
+              onClick={closeDrawer}
             >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-                aria-hidden
-              >
-                <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
-                <circle cx="9" cy="7" r="3" />
-                <path d="M22 21v-2a4 4 0 00-3-3.87" />
-                <path d="M16 3.13a3 3 0 010 5.75" />
-              </svg>
-              <span>Users</span>
+              <UsersIcon size={15} />
+              <span>Personnel</span>
+              {pendingRequests.length > 0 && (
+                <span
+                  className="adm-nav-badge"
+                  title={`${pendingRequests.length} pending galaxy access request${pendingRequests.length === 1 ? "" : "s"}`}
+                >
+                  {pendingRequests.length}
+                </span>
+              )}
             </NavLink>
           </nav>
+
+          <div className="mt-auto flex flex-col gap-2.5">
+            {currentProfile && (
+              <div className="adm-identity">
+                <span
+                  className="adm-avatar"
+                  style={{
+                    color: ROLE_COLORS[currentProfile.role],
+                    borderColor: `${ROLE_COLORS[currentProfile.role]}66`,
+                  }}
+                  aria-hidden
+                >
+                  {getInitials(currentProfile.display_name)}
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate text-[13px] font-medium">
+                    {currentProfile.display_name}
+                  </p>
+                  <p
+                    className="adm-label"
+                    style={{ color: ROLE_COLORS[currentProfile.role] }}
+                  >
+                    {ROLE_LABELS[currentProfile.role]}
+                  </p>
+                </div>
+              </div>
+            )}
+            <NavLink
+              to="/map"
+              className="adm-btn justify-center"
+              onClick={closeDrawer}
+            >
+              <ArrowLeft size={13} />
+              Exit to Map
+            </NavLink>
+          </div>
         </aside>
 
-        <main className="admin-page__main">
-          <div className="admin-page__topbar">
-            <div className="admin-page__topbar-left">
+        <main className="adm-main">
+          <header className="adm-header">
+            <div className="flex min-w-0 items-center gap-3">
               <button
                 type="button"
-                className="admin-page__menu-btn"
+                className="adm-btn adm-btn--icon adm-menu-toggle"
                 onClick={() => setIsDrawerOpen((prev) => !prev)}
                 aria-label="Toggle navigation menu"
                 aria-expanded={isDrawerOpen}
               >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  aria-hidden
-                >
-                  <path d="M4 7h16" />
-                  <path d="M4 12h16" />
-                  <path d="M4 17h16" />
-                </svg>
+                <Menu size={15} />
               </button>
-              <div>
-                <h1 className="admin-page__title">
-                  {isUsersView ? "User Management" : "Audit Log"}
+              <div className="min-w-0">
+                <p className="adm-eyebrow">Holonet // Admin Control</p>
+                <h1 className="adm-title">
+                  {isUsersView ? "Personnel" : "Audit Feed"}
                 </h1>
-                <p className="admin-page__subtitle">Admin Control Panel</p>
               </div>
             </div>
-            <div className="admin-page__topbar-tools">
-              <label className="admin-page__search-wrap" htmlFor="admin-search">
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.8"
-                  aria-hidden
-                >
-                  <circle cx="11" cy="11" r="7" />
-                  <path d="M20 20l-3.5-3.5" />
-                </svg>
-                <input
-                  id="admin-search"
-                  type="search"
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
-                  placeholder={
-                    isUsersView ? "Search users" : "Search audit logs"
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                className="adm-btn"
+                onClick={() =>
+                  isAuditView ? void handleAuditRefresh() : void loadUsers()
+                }
+                disabled={isAuditView ? logsLoading : usersLoading}
+              >
+                <RefreshCw
+                  size={13}
+                  className={
+                    (isAuditView ? logsLoading : usersLoading)
+                      ? "animate-spin"
+                      : undefined
                   }
                 />
-              </label>
+                <span className="max-sm:hidden">Refresh</span>
+              </button>
               {isAuditView && (
                 <button
                   type="button"
-                  className="admin-page__refresh-btn"
-                  onClick={() => void handleAuditRefresh()}
-                  disabled={logsLoading}
+                  className="adm-btn"
+                  onClick={handleExportCsv}
+                  disabled={logsLoading || logs.length === 0}
+                  title="Export the current page as CSV"
                 >
-                  Refresh
+                  <Download size={13} />
+                  <span className="max-sm:hidden">Export</span>
                 </button>
               )}
-              {currentProfile && (
-                <div className="admin-page__user-pill">
-                  <span className="admin-page__user-meta">
-                    <span className="admin-page__user-name">
-                      {currentProfile.display_name}
-                    </span>
-                    <span className="admin-page__user-role">
-                      {currentProfile.role}
-                    </span>
-                  </span>
-                </div>
-              )}
             </div>
-          </div>
+          </header>
 
-          <div className="admin-page__grid">
-            {isAuditView && (
-              <section className="admin-page__section admin-page__section--full">
-                <h2 className="admin-page__section-title">Audit Log</h2>
-
-                <div className="admin-page__filters">
-                  <div className="admin-page__filter-group">
-                    <span className="admin-page__filter-label">Recent</span>
-                    <div className="admin-page__filter-pills">
-                      {(Object.keys(TIME_FILTER_LABELS) as TimeFilter[]).map(
-                        (key) => (
-                          <button
-                            key={key}
-                            type="button"
-                            className={`admin-page__filter-pill${timeFilter === key ? " admin-page__filter-pill--active" : ""}`}
-                            onClick={() => {
-                              setTimeFilter(key);
-                              setLogPage(0);
-                            }}
-                          >
-                            {TIME_FILTER_LABELS[key]}
-                          </button>
-                        ),
-                      )}
-                    </div>
+          <div className="adm-body">
+            {isAuditView ? (
+              <>
+                <section className="adm-card overflow-hidden">
+                  <div className="adm-ticks" aria-hidden />
+                  <div className="adm-stat-strip">
+                    <Stat
+                      label="Feed Live"
+                      value={auditStats ? auditStats.total.toLocaleString() : "—"}
+                      live
+                    />
+                    <Stat
+                      label="Last 24 Hours"
+                      value={
+                        auditStats ? auditStats.last24h.toLocaleString() : "—"
+                      }
+                    />
+                    <Stat
+                      label="Last 7 Days"
+                      value={
+                        auditStats ? auditStats.last7d.toLocaleString() : "—"
+                      }
+                    />
+                    {isAuditFiltered && (
+                      <Stat
+                        label="Matching Filters"
+                        value={logsLoading ? "—" : logTotal.toLocaleString()}
+                        accent="var(--adm-accent)"
+                      />
+                    )}
                   </div>
+                </section>
 
-                  <div className="admin-page__filter-group">
-                    <span className="admin-page__filter-label">Action</span>
-                    <div className="admin-page__filter-pills">
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <label
+                    className="adm-input-wrap min-w-[200px] flex-1"
+                    htmlFor="admin-search"
+                  >
+                    <Search size={14} />
+                    <input
+                      id="admin-search"
+                      type="search"
+                      value={searchInput}
+                      onChange={(e) => setSearchInput(e.target.value)}
+                      placeholder="Search records, operators, entities…"
+                    />
+                    {searchInput && (
                       <button
                         type="button"
-                        className={`admin-page__filter-pill${actionFilter === "" ? " admin-page__filter-pill--active" : ""}`}
-                        onClick={() => {
-                          setActionFilter("");
-                          setLogPage(0);
-                        }}
+                        onClick={() => setSearchInput("")}
+                        aria-label="Clear search"
+                        className="inline-flex cursor-pointer items-center border-0 bg-transparent p-0"
+                        style={{ color: "var(--adm-text-faint)" }}
                       >
-                        All
+                        <X size={13} />
                       </button>
-                      {Object.entries(ACTION_FILTER_LABELS).map(([key, label]) => (
+                    )}
+                  </label>
+
+                  <div className="adm-seg" role="group" aria-label="Time range">
+                    {(Object.keys(TIME_FILTER_LABELS) as TimeFilter[]).map(
+                      (key) => (
                         <button
                           key={key}
                           type="button"
-                          className={`admin-page__filter-pill${actionFilter === key ? " admin-page__filter-pill--active" : ""}`}
+                          className={cn(
+                            "adm-seg-btn",
+                            timeFilter === key && "adm-seg-btn--active",
+                          )}
                           onClick={() => {
-                            setActionFilter(key);
+                            setTimeFilter(key);
                             setLogPage(0);
                           }}
                         >
-                          {label}
+                          {TIME_FILTER_LABELS[key]}
                         </button>
-                      ))}
-                    </div>
+                      ),
+                    )}
                   </div>
+
+                  <Popover open={actionMenuOpen} onOpenChange={setActionMenuOpen}>
+                    <PopoverTrigger asChild>
+                      <button
+                        type="button"
+                        className={cn(
+                          "adm-btn h-[34px]",
+                          actionFilter && "adm-btn--primary",
+                        )}
+                      >
+                        <ListFilter size={13} />
+                        {actionFilter
+                          ? ACTION_LABELS[actionFilter]
+                          : "All actions"}
+                        <ChevronDown size={12} />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent align="end" className="adm-menu">
+                      <button
+                        type="button"
+                        className={cn(
+                          "adm-menu-item",
+                          !actionFilter && "adm-menu-item--active",
+                        )}
+                        onClick={() => {
+                          setActionFilter("");
+                          setLogPage(0);
+                          setActionMenuOpen(false);
+                        }}
+                      >
+                        <span className="flex-1">All actions</span>
+                        {!actionFilter && <Check size={13} />}
+                      </button>
+                      {ACTION_GROUPS.map((group) => (
+                        <div key={group.label}>
+                          <div className="adm-menu-label">{group.label}</div>
+                          {group.actions.map((action) => (
+                            <button
+                              key={action}
+                              type="button"
+                              className={cn(
+                                "adm-menu-item",
+                                actionFilter === action &&
+                                  "adm-menu-item--active",
+                              )}
+                              onClick={() => {
+                                setActionFilter(action);
+                                setLogPage(0);
+                                setActionMenuOpen(false);
+                              }}
+                            >
+                              <span className="flex-1">
+                                {ACTION_LABELS[action]}
+                              </span>
+                              {actionFilter === action && <Check size={13} />}
+                            </button>
+                          ))}
+                        </div>
+                      ))}
+                    </PopoverContent>
+                  </Popover>
                 </div>
+
+                {isAuditFiltered && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    {isAuditSearchActive && (
+                      <span className="adm-chip">
+                        “{debouncedAuditQuery}”
+                        <button
+                          type="button"
+                          onClick={() => setSearchInput("")}
+                          aria-label="Clear search filter"
+                        >
+                          <X size={11} />
+                        </button>
+                      </span>
+                    )}
+                    {timeFilter && (
+                      <span className="adm-chip">
+                        {timeFilter === "24h"
+                          ? "Last 24 hours"
+                          : timeFilter === "7d"
+                            ? "Last 7 days"
+                            : "Last 30 days"}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTimeFilter("");
+                            setLogPage(0);
+                          }}
+                          aria-label="Clear time filter"
+                        >
+                          <X size={11} />
+                        </button>
+                      </span>
+                    )}
+                    {actionFilter && (
+                      <span className="adm-chip">
+                        {ACTION_LABELS[actionFilter]}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActionFilter("");
+                            setLogPage(0);
+                          }}
+                          aria-label="Clear action filter"
+                        >
+                          <X size={11} />
+                        </button>
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      className="adm-btn h-[26px] border-0 bg-transparent px-2"
+                      onClick={() => {
+                        setSearchInput("");
+                        setTimeFilter("");
+                        setActionFilter("");
+                        setLogPage(0);
+                      }}
+                    >
+                      Clear all
+                    </button>
+                  </div>
+                )}
 
                 <AuditLogTable
                   logs={logs}
@@ -474,154 +719,122 @@ export function AdminPage() {
                   isSearchActive={isAuditSearchActive}
                   onPageChange={setLogPage}
                 />
-              </section>
-            )}
+              </>
+            ) : !isAdmin ? (
+              <p className="adm-label py-8 text-center">
+                Only admins can access personnel management.
+              </p>
+            ) : (
+              <>
+                <section className="adm-card overflow-hidden">
+                  <div className="adm-ticks" aria-hidden />
+                  <div className="adm-stat-strip">
+                    <Stat
+                      label="Personnel"
+                      value={usersLoading ? "—" : users.length.toLocaleString()}
+                      live
+                    />
+                    <Stat
+                      label="Galaxy Users"
+                      value={
+                        usersLoading
+                          ? "—"
+                          : roleCounts.galaxy_user.toLocaleString()
+                      }
+                    />
+                    <Stat
+                      label="Admins"
+                      value={
+                        usersLoading
+                          ? "—"
+                          : (
+                              roleCounts.admin + roleCounts.bossman
+                            ).toLocaleString()
+                      }
+                    />
+                    <Stat
+                      label="Pending Requests"
+                      value={
+                        usersLoading
+                          ? "—"
+                          : pendingRequests.length.toLocaleString()
+                      }
+                      accent={
+                        pendingRequests.length > 0
+                          ? "var(--adm-gold)"
+                          : undefined
+                      }
+                    />
+                  </div>
+                </section>
 
-            {isUsersView && (
-              <section className="admin-page__section admin-page__section--full">
-                <h2 className="admin-page__section-title">User Management</h2>
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <label
+                    className="adm-input-wrap min-w-[200px] flex-1"
+                    htmlFor="admin-search"
+                  >
+                    <Search size={14} />
+                    <input
+                      id="admin-search"
+                      type="search"
+                      value={searchInput}
+                      onChange={(e) => setSearchInput(e.target.value)}
+                      placeholder="Search personnel…"
+                    />
+                    {searchInput && (
+                      <button
+                        type="button"
+                        onClick={() => setSearchInput("")}
+                        aria-label="Clear search"
+                        className="inline-flex cursor-pointer items-center border-0 bg-transparent p-0"
+                        style={{ color: "var(--adm-text-faint)" }}
+                      >
+                        <X size={13} />
+                      </button>
+                    )}
+                  </label>
 
-                {!isAdmin ? (
-                  <p className="admin-page__empty">
-                    Only admins can access user management.
-                  </p>
-                ) : usersLoading ? (
-                  <p className="admin-page__loading">Loading users...</p>
-                ) : (
-                  <>
-                    {pendingRequests.length > 0 && (
-                      <div className="admin-page__pending-galaxy">
-                        <h3 className="admin-page__pending-galaxy-title">
-                          Pending Galaxy Map Requests
-                        </h3>
-                        <div className="admin-page__table-wrap">
-                          <table className="admin-page__table">
-                            <thead>
-                              <tr>
-                                <th>Display Name</th>
-                                {isBossman && <th>Email</th>}
-                                <th>Joined</th>
-                                <th>Actions</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {pendingRequests.map((user) => (
-                                  <tr key={user.id}>
-                                    <td style={{ fontWeight: 600 }}>
-                                      {user.display_name}
-                                    </td>
-                                    {isBossman && (
-                                      <td className="admin-page__td-email">
-                                        {user.email || "Hidden"}
-                                      </td>
-                                    )}
-                                    <td className="admin-page__td-time">
-                                      {formatTime(user.created_at)}
-                                    </td>
-                                    <td>
-                                      <button
-                                        className="admin-page__grant-btn"
-                                        disabled={roleUpdating === user.id}
-                                        onClick={() =>
-                                          handleRoleChange(
-                                            user.id,
-                                            "galaxy_user",
-                                          )
-                                        }
-                                      >
-                                        {roleUpdating === user.id
-                                          ? "Granting..."
-                                          : "Grant Access"}
-                                      </button>
-                                    </td>
-                                  </tr>
-                                ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    )}
-                    {usersToRender.length === 0 ? (
-                      <p className="admin-page__empty">
-                        {isSearchActive
-                          ? "No matching users found."
-                          : "No users found."}
-                      </p>
-                    ) : (
-                      <div className="admin-page__table-wrap">
-                        <table className="admin-page__table">
-                          <thead>
-                            <tr>
-                              <th>Display Name</th>
-                              {isBossman && <th>Email</th>}
-                              <th>Role</th>
-                              <th>Joined</th>
-                              <th>Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {usersToRender.map((user) => (
-                              <tr key={user.id}>
-                                <td style={{ fontWeight: 600 }}>
-                                  {user.display_name}
-                                </td>
-                                {isBossman && (
-                                  <td className="admin-page__td-email">
-                                    {user.email || "Hidden"}
-                                  </td>
-                                )}
-                                <td>
-                                  <span
-                                    className="admin-page__role-badge"
-                                    style={{
-                                      color: ROLE_COLORS[user.role],
-                                      borderColor: ROLE_COLORS[user.role],
-                                    }}
-                                  >
-                                    {ROLE_LABELS[user.role]}
-                                  </span>
-                                </td>
-                                <td className="admin-page__td-time">
-                                  {formatTime(user.created_at)}
-                                </td>
-                                <td>
-                                  {user.id === currentProfile?.id ? (
-                                    <span className="admin-page__you-label">
-                                      You
-                                    </span>
-                                  ) : !user.can_manage ? (
-                                    <span className="admin-page__you-label">
-                                      Restricted
-                                    </span>
-                                  ) : (
-                                    <select
-                                      value={user.role}
-                                      onChange={(e) =>
-                                        handleRoleChange(
-                                          user.id,
-                                          e.target.value as UserRole,
-                                        )
-                                      }
-                                      disabled={roleUpdating === user.id}
-                                      className="admin-page__role-select"
-                                    >
-                                      {assignableRoles.map((role) => (
-                                        <option key={role} value={role}>
-                                          {ROLE_LABELS[role]}
-                                        </option>
-                                      ))}
-                                    </select>
-                                  )}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </>
-                )}
-              </section>
+                  <div className="adm-seg" role="group" aria-label="Role filter">
+                    <button
+                      type="button"
+                      className={cn(
+                        "adm-seg-btn",
+                        !roleFilter && "adm-seg-btn--active",
+                      )}
+                      onClick={() => setRoleFilter("")}
+                    >
+                      All · {users.length}
+                    </button>
+                    {(Object.keys(ROLE_LABELS) as UserRole[]).map((role) => (
+                      <button
+                        key={role}
+                        type="button"
+                        className={cn(
+                          "adm-seg-btn",
+                          roleFilter === role && "adm-seg-btn--active",
+                        )}
+                        onClick={() =>
+                          setRoleFilter((prev) => (prev === role ? "" : role))
+                        }
+                      >
+                        {ROLE_LABELS[role]} · {roleCounts[role]}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <UserTable
+                  users={usersToRender}
+                  pendingRequests={pendingRequests}
+                  loading={usersLoading}
+                  isBossman={isBossman}
+                  currentUserId={currentProfile?.id}
+                  assignableRoles={assignableRoles}
+                  roleUpdating={roleUpdating}
+                  isFiltered={isSearchActive || !!roleFilter}
+                  onRoleChange={handleRoleChange}
+                />
+              </>
             )}
           </div>
         </main>

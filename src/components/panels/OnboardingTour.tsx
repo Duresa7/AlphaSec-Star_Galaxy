@@ -218,9 +218,14 @@ function HoloTooltip({
       style={{
         maxWidth: 360,
         padding: '20px 24px 16px',
-        background: 'rgba(10, 10, 16, 0.95)',
-        border: '1px solid rgba(200, 170, 110, 0.25)',
-        boxShadow: '0 12px 32px -4px rgba(0, 0, 0, 0.5), 0 0 16px rgba(0, 0, 0, 0.2)',
+        background:
+          'linear-gradient(160deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 40%, rgba(200, 170, 110, 0.05) 100%), rgba(10, 12, 18, 0.88)',
+        backdropFilter: 'blur(24px) saturate(160%)',
+        WebkitBackdropFilter: 'blur(24px) saturate(160%)',
+        border: '1px solid rgba(255, 255, 255, 0.14)',
+        borderRadius: 18,
+        boxShadow:
+          'inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 24px 48px -16px rgba(0, 0, 0, 0.65)',
       }}
     >
       {step.title && (

@@ -21,10 +21,6 @@ import { useRole } from '@/hooks/useRole';
 import { supabase, supabaseConfigured } from '@/lib/supabase';
 import { getUserIdentity } from '@/utils/getUserIdentity';
 
-const TOOLBAR_BUTTON_STYLE: React.CSSProperties = {
-  background: 'rgba(10, 10, 16, 0.7)',
-  backdropFilter: 'blur(12px)',
-};
 
 const TOUR_STORAGE_KEY = 'onboarding_tour_completed';
 
@@ -487,7 +483,7 @@ export function MapPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, ease: 'easeOut', delay: 0.2 }}
           >
-            <Link to="/" className="holo-button holo-button-sm" style={TOOLBAR_BUTTON_STYLE}>
+            <Link to="/" className="holo-button holo-button-sm">
               <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
               </svg>
