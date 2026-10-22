@@ -131,7 +131,8 @@ Thumbs.db
 .claude/
 .codex/
 .vercel/
-.github/
+.github/*
+!.github/workflows/
 *.suo
 *.ntvs*
 *.njsproj
